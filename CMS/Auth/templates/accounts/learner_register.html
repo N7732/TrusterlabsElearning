@@ -1,0 +1,317 @@
+{% extends 'courses/base.html' %}
+
+{% block title %}Register - Truster Lab{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-wrapper {
+        min-height: calc(100vh - 80px);
+        display: flex;
+        align-items: center;
+        background-color: var(--background-alt);
+        padding: 3rem 0;
+    }
+    
+    .auth-card {
+        max-width: 800px;
+        margin: 0 auto;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-xl);
+        background: var(--background);
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+    }
+    
+    .auth-header {
+        background-color: var(--primary);
+        color: white;
+        padding: 2.5rem 2rem 1.5rem;
+        text-align: center;
+        position: relative;
+    }
+    
+    .auth-icon {
+        width: 80px;
+        height: 80px;
+        background-color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: -60px auto 1.5rem;
+        box-shadow: var(--shadow-md);
+        position: relative;
+        z-index: 2;
+    }
+    
+    .auth-icon i {
+        color: var(--primary);
+        font-size: 2rem;
+    }
+    
+    .input-group-text {
+        background-color: transparent;
+        border-right: none;
+        color: var(--text-secondary);
+    }
+    
+    .form-control.border-start-0 {
+        padding-left: 0;
+    }
+    
+    .form-control:focus + .input-group-text,
+    .input-group-text:has(+ .form-control:focus) {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    /* Password strength */
+    .password-strength-bar {
+        height: 6px;
+        background: var(--border-color);
+        border-radius: 3px;
+        margin-top: 0.5rem;
+        overflow: hidden;
+    }
+    .password-strength-fill {
+        height: 100%;
+        width: 0%;
+        transition: all 0.3s ease;
+        border-radius: 3px;
+    }
+    .requirement {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+    .requirement.met {
+        color: var(--success-color);
+    }
+    .requirement.met i {
+        color: var(--success-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-icon">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <h2 class="fw-bold mb-2 text-white">Create Your Account</h2>
+                <p class="text-white-50 mb-0">Join Truster Lab to start your learning journey</p>
+            </div>
+            
+            <div class="p-4 p-md-5">
+                {% if messages %}
+                <div class="mb-4">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-0" role="alert">
+                        <i class="fas {% if message.tags == 'success' %}fa-check-circle text-success{% else %}fa-info-circle text-info{% endif %} me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <form method="post" id="registrationForm">
+                    {% csrf_token %}
+
+                    <h5 class="fw-bold mb-4 text-dark border-bottom pb-2">Personal Information</h5>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <label class="form-label fw-bold text-dark">{{ form.first_name.label }}</label>
+                            <div class="input-group shadow-sm">
+                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                {{ form.first_name }}
+                            </div>
+                            {% if form.first_name.errors %}<div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark">{{ form.last_name.label }}</label>
+                            <div class="input-group shadow-sm">
+                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                {{ form.last_name }}
+                            </div>
+                            {% if form.last_name.errors %}<div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold mb-4 text-dark border-bottom pb-2 mt-4">Contact Details</h5>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <label class="form-label fw-bold text-dark">{{ form.email.label }}</label>
+                            <div class="input-group shadow-sm">
+                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                {{ form.email }}
+                            </div>
+                            {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark">{{ form.phone_number.label }}</label>
+                            <div class="input-group shadow-sm">
+                                <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                {{ form.phone_number }}
+                            </div>
+                            {% if form.phone_number.errors %}<div class="text-danger small mt-1">{{ form.phone_number.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold mb-4 text-dark border-bottom pb-2 mt-4">Security</h5>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <label class="form-label fw-bold text-dark">{{ form.password1.label }}</label>
+                            <div class="input-group shadow-sm">
+                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                {{ form.password1 }}
+                                <button type="button" class="input-group-text bg-white togglePassword" data-target="password1">
+                                    <i class="fas fa-eye text-muted"></i>
+                                </button>
+                            </div>
+                            {% if form.password1.errors %}<div class="text-danger small mt-1">{{ form.password1.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark">{{ form.password2.label }}</label>
+                            <div class="input-group shadow-sm">
+                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                {{ form.password2 }}
+                                <button type="button" class="input-group-text bg-white togglePassword" data-target="password2">
+                                    <i class="fas fa-eye text-muted"></i>
+                                </button>
+                            </div>
+                            {% if form.password2.errors %}<div class="text-danger small mt-1">{{ form.password2.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="password-strength-bar">
+                            <div class="password-strength-fill" id="passwordStrengthFill"></div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-6 requirement" id="reqLength"><i class="fas fa-circle me-1 small"></i>8+ chars</div>
+                            <div class="col-6 requirement" id="reqUpper"><i class="fas fa-circle me-1 small"></i>1+ uppercase</div>
+                            <div class="col-6 requirement" id="reqLower"><i class="fas fa-circle me-1 small"></i>1+ lowercase</div>
+                            <div class="col-6 requirement" id="reqNumber"><i class="fas fa-circle me-1 small"></i>1+ number</div>
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold mb-4 text-dark border-bottom pb-2 mt-4">Additional Info</h5>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <label class="form-label fw-bold text-dark">{{ form.country.label }}</label>
+                            <div class="input-group shadow-sm">
+                                <span class="input-group-text"><i class="fas fa-globe"></i></span>
+                                {{ form.country }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark">{{ form.date_of_birth.label }}</label>
+                            <div class="input-group shadow-sm">
+                                <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                {{ form.date_of_birth }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-check mb-4 bg-light p-3 rounded-3 border">
+                        <div class="d-flex align-items-center">
+                            {{ form.terms_agreed }}
+                            <label class="form-check-label ms-2 mt-1" for="{{ form.terms_agreed.id_for_label }}">
+                                I agree to the <a href="#" class="text-primary fw-bold text-decoration-none">Terms of Service</a> and <a href="#" class="text-primary fw-bold text-decoration-none">Privacy Policy</a>
+                            </label>
+                        </div>
+                        {% if form.terms_agreed.errors %}<div class="text-danger small mt-2">{{ form.terms_agreed.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm py-3">
+                            Create Account
+                        </button>
+                    </div>
+                </form>
+
+                <div class="text-center text-muted small mt-4 pt-3 border-top">
+                    Already have an account? <a href="{% url 'Auth:login' %}" class="fw-bold text-primary text-decoration-none">Sign In</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.querySelectorAll('input:not([type="checkbox"]):not([type="radio"]), select').forEach(input => {
+        input.classList.add('form-control', 'border-start-0');
+    });
+
+    document.querySelectorAll('.togglePassword').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const targetName = this.getAttribute('data-target');
+            const input = document.querySelector(`input[name="${targetName}"]`);
+            const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+            input.setAttribute('type', type);
+            const icon = this.querySelector('i');
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+        });
+    });
+
+    const password1Input = document.querySelector('input[name="password1"]');
+    if(password1Input) {
+        password1Input.addEventListener('input', function () {
+            const password = this.value;
+            const strengthFill = document.getElementById('passwordStrengthFill');
+            
+            const hasLength = password.length >= 8;
+            const hasUpper = /[A-Z]/.test(password);
+            const hasLower = /[a-z]/.test(password);
+            const hasNumber = /\d/.test(password);
+
+            updateRequirement('reqLength', hasLength);
+            updateRequirement('reqUpper', hasUpper);
+            updateRequirement('reqLower', hasLower);
+            updateRequirement('reqNumber', hasNumber);
+
+            let score = 0;
+            if (hasLength) score++;
+            if (hasUpper) score++;
+            if (hasLower) score++;
+            if (hasNumber) score++;
+            if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score++;
+
+            strengthFill.style.width = `${(score / 5) * 100}%`;
+            
+            if (score <= 2) strengthFill.style.backgroundColor = 'var(--danger-color)';
+            else if (score <= 3) strengthFill.style.backgroundColor = 'var(--warning-color)';
+            else strengthFill.style.backgroundColor = 'var(--success-color)';
+        });
+    }
+
+    function updateRequirement(id, met) {
+        const el = document.getElementById(id);
+        if(!el) return;
+        const icon = el.querySelector('i');
+        if (met) {
+            el.classList.add('met');
+            icon.className = 'fas fa-check-circle me-1 small';
+        } else {
+            el.classList.remove('met');
+            icon.className = 'fas fa-circle me-1 small';
+        }
+    }
+
+    const dobField = document.querySelector('input[name="date_of_birth"]');
+    if (dobField && dobField.type === 'text') {
+        dobField.type = 'date';
+        dobField.max = new Date().toISOString().split('T')[0];
+    }
+</script>
+{% endblock %}

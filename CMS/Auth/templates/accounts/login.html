@@ -1,0 +1,189 @@
+{% extends 'courses/base.html' %}
+
+{% block title %}Sign In - Truster Lab{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-wrapper {
+        min-height: calc(100vh - 80px);
+        display: flex;
+        align-items: center;
+        background-color: var(--background-alt);
+        padding: 3rem 0;
+    }
+    
+    .auth-card {
+        max-width: 450px;
+        margin: 0 auto;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-xl);
+        background: var(--background);
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+    }
+    
+    .auth-header {
+        background-color: var(--primary);
+        color: white;
+        padding: 2.5rem 2rem 1.5rem;
+        text-align: center;
+        position: relative;
+    }
+    
+    .auth-icon {
+        width: 80px;
+        height: 80px;
+        background-color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: -60px auto 1.5rem;
+        box-shadow: var(--shadow-md);
+        position: relative;
+        z-index: 2;
+    }
+    
+    .auth-icon i {
+        color: var(--primary);
+        font-size: 2rem;
+    }
+    
+    .input-group-text {
+        background-color: transparent;
+        border-right: none;
+        color: var(--text-secondary);
+    }
+    
+    .form-control.border-start-0 {
+        padding-left: 0;
+    }
+    
+    .form-control:focus + .input-group-text,
+    .input-group-text:has(+ .form-control:focus) {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-icon">
+                    <i class="fas fa-sign-in-alt"></i>
+                </div>
+                <h2 class="fw-bold mb-2 text-white">Welcome Back</h2>
+                <p class="text-white-50 mb-0">Sign in to continue your learning journey</p>
+            </div>
+            
+            <div class="p-4 p-md-5">
+                {% if messages %}
+                <div class="mb-4">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-0" role="alert">
+                        <i class="fas {% if message.tags == 'success' %}fa-check-circle text-success{% else %}fa-info-circle text-info{% endif %} me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if form.errors %}
+                <div class="alert alert-danger bg-danger bg-opacity-10 border-0 text-danger p-3 rounded-3 mb-4 d-flex align-items-center">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    Please enter a correct email address and password.
+                </div>
+                {% endif %}
+
+                <form method="post" id="loginForm">
+                    {% csrf_token %}
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark">Email Address</label>
+                        <div class="input-group shadow-sm">
+                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                            <input type="email" class="form-control border-start-0" name="email" placeholder="you@example.com"
+                                value="{{ form.email.value|default_if_none:'' }}" required autocomplete="email">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark">Password</label>
+                        <div class="input-group shadow-sm">
+                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                            <input type="password" class="form-control border-start-0 border-end-0" name="password"
+                                placeholder="Enter your password" required autocomplete="current-password">
+                            <button type="button" class="input-group-text bg-white" id="togglePassword">
+                                <i class="fas fa-eye text-muted"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                            <label class="form-check-label text-muted small" for="remember">Remember me</label>
+                        </div>
+                        <a href="#" class="text-primary text-decoration-none small fw-medium">Forgot Password?</a>
+                    </div>
+
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm py-3">
+                            Sign In
+                        </button>
+                    </div>
+                </form>
+
+                <div class="position-relative my-4">
+                    <hr class="text-muted opacity-25">
+                    <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 small text-muted">OR</span>
+                </div>
+
+                <div class="d-flex justify-content-center gap-3 mb-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center border-light shadow-sm" style="width: 45px; height: 45px;">
+                        <i class="fab fa-google text-danger"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center border-light shadow-sm" style="width: 45px; height: 45px;">
+                        <i class="fab fa-github text-dark"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center border-light shadow-sm" style="width: 45px; height: 45px;">
+                        <i class="fab fa-linkedin-in text-primary"></i>
+                    </button>
+                </div>
+
+                <div class="text-center text-muted small mt-4">
+                    Don't have an account? <a href="{% url 'Auth:learner_register' %}" class="fw-bold text-primary text-decoration-none">Sign up</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.querySelector('input[name="password"]');
+
+    if (togglePassword) {
+        togglePassword.addEventListener('click', function () {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            const icon = this.querySelector('i');
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const emailInput = document.querySelector('input[name="email"]');
+        if (emailInput && !emailInput.value) {
+            emailInput.focus();
+        }
+    });
+</script>
+{% endblock %}

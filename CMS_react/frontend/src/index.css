@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #0A66C2;
+  --color-primary-hover: #0855A2;
+  --color-secondary: #FFC107;
+  --color-secondary-hover: #E0A800;
+  --color-background-white: #FFFFFF;
+  --color-background-slate: #F8FAFC;
+  --color-text-primary: #1F2937;
+  --color-text-secondary: #6B7280;
+  --color-border: #E5E7EB;
+  --color-success: #10B981;
+  --color-danger: #EF4444;
+  --font-sans: "Inter", "Outfit", sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-background-slate text-text-primary font-sans antialiased;
+    margin: 0;
+  }
+}

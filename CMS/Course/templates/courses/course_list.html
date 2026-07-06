@@ -1,0 +1,122 @@
+{% extends 'courses/base.html' %}
+
+{% block title %}Explore Courses - Truster Lab{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-5 align-items-center">
+        <div class="col-lg-6 mb-4 mb-lg-0">
+            <h1 class="fw-bold mb-2">Explore Courses</h1>
+            <p class="text-muted lead mb-0">Discover your next passion from our expert-curated collection.</p>
+        </div>
+        
+        <div class="col-lg-6">
+            <!-- Search/Filter -->
+            <div class="bg-white border rounded-pill d-flex p-2 shadow-sm">
+                <input type="text" class="form-control border-0 shadow-none px-4" placeholder="What do you want to learn today?">
+                <button class="btn btn-primary rounded-pill px-4 fw-bold">
+                    Search
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Filters -->
+    <div class="d-flex flex-wrap gap-2 mb-5 pb-3 border-bottom">
+        <button class="btn btn-dark rounded-pill px-4">All Courses</button>
+        <button class="btn btn-outline-secondary rounded-pill px-4 text-dark border-light">Development</button>
+        <button class="btn btn-outline-secondary rounded-pill px-4 text-dark border-light">Business</button>
+        <button class="btn btn-outline-secondary rounded-pill px-4 text-dark border-light">Design</button>
+        <button class="btn btn-outline-secondary rounded-pill px-4 text-dark border-light">Marketing</button>
+    </div>
+
+    {% if courses %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for course in courses %}
+        <div class="col">
+            <div class="card h-100 border-0 shadow-sm tl-card tl-card-hover overflow-hidden">
+                <div class="position-relative overflow-hidden">
+                    {% if course.thumbnail %}
+                    <img src="{{ course.thumbnail.url }}" class="card-img-top course-img" alt="{{ course.title }}"
+                        style="height: 200px; object-fit: cover; transition: transform 0.3s ease;">
+                    {% else %}
+                    <div class="card-img-top bg-light d-flex justify-content-center align-items-center"
+                        style="height: 200px;">
+                        <i class="fas fa-image fa-3x text-muted opacity-25"></i>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="position-absolute top-0 end-0 m-3">
+                        <span class="badge bg-white text-dark shadow-sm px-3 py-2">
+                            {{ course.difficulty }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="card-body p-4 d-flex flex-column">
+                    <h5 class="card-title fw-bold mb-2 text-dark">{{ course.title }}</h5>
+                    
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="d-flex text-secondary me-2 small">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                        <span class="text-muted small fw-medium">4.8 (120 reviews)</span>
+                    </div>
+
+                    <p class="card-text text-muted small mb-4 flex-grow-1" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                        {{ course.description }}
+                    </p>
+                    
+                    <ul class="list-unstyled d-flex flex-wrap gap-3 mb-4 small text-muted">
+                        <li><i class="far fa-clock me-1 text-primary"></i> 10h 30m</li>
+                        <li><i class="fas fa-layer-group me-1 text-primary"></i> {{ course.modules.count }} Modules</li>
+                    </ul>
+
+                    <div class="d-flex align-items-center border-top pt-3">
+                        {% if course.instructor.user.extended_profile.profile_picture %}
+                        <img src="{{ course.instructor.user.extended_profile.profile_picture.url }}" class="rounded-circle me-2 border" style="width: 32px; height: 32px; object-fit: cover;" alt="">
+                        {% else %}
+                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2 text-primary small" style="width: 32px; height: 32px;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        {% endif %}
+                        <span class="text-muted small fw-medium">{{ course.instructor.user.get_full_name|default:course.instructor.user.username }}</span>
+                        <div class="ms-auto fw-bold fs-5 text-primary">
+                            {% if course.is_free %}
+                                Free
+                            {% else %}
+                                {{ course.price }} {{ course.currency }}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-white p-3 border-top-0 text-center">
+                    <a href="{% url 'course_detail' course.id %}" class="btn btn-outline-primary w-100 rounded-pill fw-bold">
+                        View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5 mx-auto" style="max-width: 500px;">
+        <div class="mb-4 bg-light rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+            <i class="fas fa-search fa-3x text-muted opacity-50"></i>
+        </div>
+        <h3 class="fw-bold mb-3">No courses found</h3>
+        <p class="text-muted mb-0">We couldn't find any courses matching your criteria right now. Check back soon for new content!</p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .tl-card-hover:hover .course-img {
+        transform: scale(1.05);
+    }
+</style>
+{% endblock %}
