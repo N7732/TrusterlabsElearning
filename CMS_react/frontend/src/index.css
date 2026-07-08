@@ -21,3 +21,17 @@
     margin: 0;
   }
 }
+
+@layer utilities {
+  @keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .animate-ticker {
+    animation: ticker 30s linear infinite;
+  }
+  .mask-image-linear-right {
+    mask-image: linear-gradient(to right, black 80%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black 80%, transparent 100%);
+  }
+}

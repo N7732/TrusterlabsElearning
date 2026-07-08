@@ -23,7 +23,7 @@ class APIClient {
 
     let response = await fetch(url, { ...options, headers });
 
-    // Handle 401 Unauthorized (Token Expiration)
+    // Handle 401 Unauthorized (Token Expiration or Invalid Token)
     if (response.status === 401) {
       const refreshToken = localStorage.getItem('truster_lab_refresh');
       if (refreshToken) {
@@ -43,15 +43,17 @@ class APIClient {
             response = await fetch(url, { ...options, headers });
           } else {
             // Refresh failed, user needs to login again
-            localStorage.removeItem('truster_lab_token');
-            localStorage.removeItem('truster_lab_refresh');
-            localStorage.removeItem('truster_lab_user');
-            window.location.href = '/login';
+            this.forceLogout();
             throw new Error('Session expired. Please log in again.');
           }
         } catch (error) {
+          this.forceLogout();
           throw new Error('Session expired. Please log in again.');
         }
+      } else {
+        // No refresh token available, force logout
+        this.forceLogout();
+        throw new Error('Unauthorized. Please log in.');
       }
     }
 
@@ -74,6 +76,13 @@ class APIClient {
     return response.text();
   }
 
+  forceLogout() {
+    localStorage.removeItem('truster_lab_token');
+    localStorage.removeItem('truster_lab_refresh');
+    localStorage.removeItem('truster_lab_user');
+    window.location.href = '/login';
+  }
+
   get(endpoint, headers = {}) {
     return this.request(endpoint, { method: 'GET', headers });
   }
@@ -91,6 +100,15 @@ class APIClient {
     const isFormData = body instanceof FormData;
     return this.request(endpoint, { 
       method: 'PUT', 
+      headers, 
+      body: isFormData ? body : JSON.stringify(body) 
+    });
+  }
+
+  patch(endpoint, body, headers = {}) {
+    const isFormData = body instanceof FormData;
+    return this.request(endpoint, { 
+      method: 'PATCH', 
       headers, 
       body: isFormData ? body : JSON.stringify(body) 
     });

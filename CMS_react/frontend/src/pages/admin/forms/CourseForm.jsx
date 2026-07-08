@@ -20,7 +20,8 @@ const CourseForm = ({ isEditing, courseId }) => {
     access_type: 'paid', // 'free', 'paid', 'inquiry'
     price: '',
     difficulty: 'Beginner',
-    is_published: false,
+    course_status: 'draft',
+    is_locked: false,
     lesson_count: 1, // Only for creation
   });
   
@@ -56,7 +57,8 @@ const CourseForm = ({ isEditing, courseId }) => {
         access_type: data.is_free ? 'free' : (parseFloat(data.price) > 0 ? 'paid' : 'inquiry'),
         price: data.price || '',
         difficulty: data.difficulty || 'Beginner',
-        is_published: data.is_published || false,
+        course_status: data.course_status || 'draft',
+        is_locked: data.is_locked || false,
         existingThumbnail: data.thumbnail || null
       });
       // We don't fetch or set thumbnail directly as a file object.
@@ -125,7 +127,8 @@ const CourseForm = ({ isEditing, courseId }) => {
         data.append('price', '');
       }
       data.append('difficulty', formData.difficulty);
-      data.append('is_published', formData.is_published);
+      data.append('course_status', formData.course_status);
+      data.append('is_locked', formData.is_locked);
       if (thumbnail) {
         data.append('thumbnail', thumbnail);
       }
@@ -273,14 +276,25 @@ const CourseForm = ({ isEditing, courseId }) => {
                       <option value="Advanced">Advanced</option>
                     </select>
                   </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">Status</label>
+                    <select 
+                      name="course_status" value={formData.course_status} onChange={handleInputChange}
+                      className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#3E8E41] outline-none"
+                    >
+                      <option value="draft">Draft</option>
+                      <option value="published">Published</option>
+                      <option value="unpublished">Unpublished</option>
+                    </select>
+                  </div>
                   <div className="pt-6">
                     <label className="flex items-center space-x-3 cursor-pointer">
                       <input 
-                        type="checkbox" name="is_published" 
-                        checked={formData.is_published} onChange={handleInputChange}
+                        type="checkbox" name="is_locked" 
+                        checked={formData.is_locked} onChange={handleInputChange}
                         className="w-5 h-5 text-[#3E8E41] border-slate-300 rounded focus:ring-[#3E8E41]"
                       />
-                      <span className="font-bold text-slate-700">Publish immediately</span>
+                      <span className="font-bold text-slate-700">Lock Course Content</span>
                     </label>
                   </div>
                 </div>

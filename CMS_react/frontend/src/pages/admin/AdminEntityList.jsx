@@ -5,21 +5,12 @@ import Card, { CardContent } from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import { Search, Plus, Trash2, Edit } from 'lucide-react';
 
-// Maps URL paths to API endpoints and configuration
-const entityConfig = {
-  learners: { endpoint: '/auth/api/learners/', title: 'Learners', singular: 'Learner' },
-  instructors: { endpoint: '/auth/api/instructors/', title: 'Instructors', singular: 'Instructor' },
-  courses: { endpoint: '/api/courses/', title: 'Courses', singular: 'Course' },
-  modules: { endpoint: '/api/modules/', title: 'Modules', singular: 'Module' },
-  lessons: { endpoint: '/api/lessons/', title: 'Lessons', singular: 'Lesson' },
-  quizzes: { endpoint: '/api/quizes/', title: 'Quizzes', singular: 'Quiz' },
-  quiz_questions: { endpoint: '/api/quiz_questions/', title: 'Quiz Questions', singular: 'Quiz Question' },
-};
+import { adminConfig } from '../../config/adminConfig';
 
 const AdminEntityList = () => {
   const location = useLocation();
   const entityKey = location.pathname.split('/').pop();
-  const config = entityConfig[entityKey];
+  const config = adminConfig[entityKey];
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,7 +29,15 @@ const AdminEntityList = () => {
       setError(null);
       const result = await apiClient.get(config.endpoint);
       // Handle Django Rest Framework pagination format if present
-      setData(result.results || result || []);
+      let dataToSet = [];
+      if (Array.isArray(result)) {
+        dataToSet = result;
+      } else if (result && Array.isArray(result.results)) {
+        dataToSet = result.results;
+      } else if (result && typeof result === 'object') {
+        dataToSet = [result];
+      }
+      setData(dataToSet);
     } catch (err) {
       console.error(err);
       setError('Failed to load data. Make sure you have permission and the server is running.');
@@ -56,6 +55,16 @@ const AdminEntityList = () => {
       } catch (err) {
         alert('Failed to delete item. It may be referenced by other records.');
       }
+    }
+  };
+
+  const handleToggleLock = async (id, currentVal) => {
+    try {
+      await apiClient.patch(`${config.endpoint}${id}/`, { is_locked: !currentVal });
+      fetchData(); // Refresh list
+    } catch (err) {
+      console.error('Failed to toggle lock', err);
+      alert('Failed to update status.');
     }
   };
 
@@ -105,12 +114,14 @@ const AdminEntityList = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-2xl font-bold text-slate-800">Select {config.singular} to change</h2>
-        <Link to={`/admin/${entityKey}/new`}>
-          <Button className="bg-[#3E8E41] hover:bg-[#317033]">
-            <Plus size={18} className="mr-2" /> Add {config.singular}
-          </Button>
-        </Link>
+        <h2 className="text-2xl font-bold text-slate-800">Manage {config.label}</h2>
+        {config.canCreate && (
+          <Link to={`/admin/${entityKey}/new`}>
+            <Button className="bg-[#3E8E41] hover:bg-[#317033]">
+              <Plus size={18} className="mr-2" /> Add New
+            </Button>
+          </Link>
+        )}
       </div>
 
       <Card>
@@ -119,7 +130,7 @@ const AdminEntityList = () => {
             <div className="relative w-full max-w-md">
               <input 
                 type="text" 
-                placeholder={`Search ${config.title.toLowerCase()}...`}
+                placeholder={`Search ${config.label.toLowerCase()}...`}
                 className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#3E8E41] focus:border-transparent"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -127,7 +138,7 @@ const AdminEntityList = () => {
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
             </div>
             <div className="text-sm text-slate-500 font-medium">
-              {filteredData.length} {filteredData.length === 1 ? config.singular : config.title}
+              {filteredData.length} records
             </div>
           </div>
 
@@ -146,8 +157,8 @@ const AdminEntityList = () => {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-100 text-slate-600 text-xs uppercase tracking-wider border-b border-slate-200">
-                    {columns.map(col => (
-                      <th key={col} className="p-4 font-bold">{col.replace(/_/g, ' ')}</th>
+                    {config.columns.map(col => (
+                      <th key={col.field} className="p-4 font-bold">{col.label}</th>
                     ))}
                     <th className="p-4 font-bold text-right w-24">Actions</th>
                   </tr>
@@ -155,42 +166,69 @@ const AdminEntityList = () => {
                 <tbody className="text-sm divide-y divide-slate-100">
                   {filteredData.length === 0 ? (
                     <tr>
-                      <td colSpan={columns.length + 1} className="p-8 text-center text-slate-500">
-                        No {config.title.toLowerCase()} found.
+                      <td colSpan={config.columns.length + 1} className="p-8 text-center text-slate-500">
+                        No records found.
                       </td>
                     </tr>
                   ) : (
                     filteredData.map(item => (
                       <tr key={item.id} className="hover:bg-slate-50 transition-colors">
-                        {columns.map((col, idx) => (
-                          <td key={col} className="p-4 whitespace-nowrap text-slate-800">
-                            {idx === 0 || col === 'title' || col === 'name' || col === 'email' ? (
-                              <Link to={`/admin/${entityKey}/${item.id}`} className="text-[#0A66C2] font-medium hover:underline">
-                                {String(item[col] || '-')}
-                              </Link>
-                            ) : (
-                              <span className="text-slate-600">
-                                {typeof item[col] === 'boolean' 
-                                  ? (item[col] ? 'Yes' : 'No') 
-                                  : String(item[col]).substring(0, 50) || '-'}
-                              </span>
-                            )}
-                          </td>
-                        ))}
+                        {config.columns.map((col, idx) => {
+                          if (col.field === 'is_locked') {
+                            const isLocked = !!item[col.field];
+                            return (
+                              <td key={col.field} className="p-4 whitespace-nowrap">
+                                <button
+                                  onClick={() => handleToggleLock(item.id, isLocked)}
+                                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${isLocked ? 'bg-red-500' : 'bg-green-500'}`}
+                                  title={isLocked ? "Unlock" : "Lock"}
+                                >
+                                  <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${isLocked ? 'translate-x-4' : 'translate-x-1'}`} />
+                                </button>
+                                <span className="ml-2 text-xs font-medium text-slate-500">{isLocked ? 'Locked' : 'Unlocked'}</span>
+                              </td>
+                            );
+                          }
+                          
+                          return (
+                            <td key={col.field} className="p-4 whitespace-nowrap text-slate-800">
+                              {idx === 0 || col.field === 'title' || col.field === 'name' || col.field === 'email' ? (
+                                <Link 
+                                  to={entityKey === 'trainings' ? `/admin/trainings/${item.id}/dashboard` : `/admin/${entityKey}/${item.id}`} 
+                                  className="text-[#0A66C2] font-medium hover:underline"
+                                >
+                                  {String(item[col.field] || '-')}
+                                </Link>
+                              ) : (
+                                <span className="text-slate-600">
+                                  {typeof item[col.field] === 'boolean' 
+                                    ? (item[col.field] ? 'Yes' : 'No') 
+                                    : (typeof item[col.field] === 'string' && item[col.field].match(/^\d{4}-\d{2}-\d{2}T/) 
+                                        ? new Date(item[col.field]).toLocaleString() 
+                                        : String(item[col.field] || '-').substring(0, 100))}
+                                </span>
+                              )}
+                            </td>
+                          );
+                        })}
                         <td className="p-4 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <Link 
-                              to={`/admin/${entityKey}/${item.id}`}
-                              className="p-1.5 text-slate-400 hover:text-[#0A66C2] rounded hover:bg-blue-50 transition-colors inline-block"
-                            >
-                              <Edit size={16} />
-                            </Link>
-                            <button 
-                              onClick={() => handleDelete(item.id)}
-                              className="p-1.5 text-slate-400 hover:text-red-500 rounded hover:bg-red-50 transition-colors"
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                            {config.canEdit && (
+                              <Link 
+                                to={entityKey === 'trainings' ? `/admin/trainings/${item.id}/dashboard` : `/admin/${entityKey}/${item.id}`}
+                                className="p-1.5 text-slate-400 hover:text-[#0A66C2] rounded hover:bg-blue-50 transition-colors inline-block"
+                              >
+                                <Edit size={16} />
+                              </Link>
+                            )}
+                            {config.canDelete && (
+                              <button 
+                                onClick={() => handleDelete(item.id)}
+                                className="p-1.5 text-slate-400 hover:text-red-500 rounded hover:bg-red-50 transition-colors"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>

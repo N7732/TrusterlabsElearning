@@ -13,8 +13,8 @@ class CoursePrerequisiteInline(admin.TabularInline):
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ('title', 'instructor', 'difficulty', 'is_published', 'is_free', 'created_at')
-    list_filter = ('is_published', 'is_free', 'difficulty', 'created_at')
+    list_display = ('title', 'instructor', 'difficulty', 'course_status', 'is_locked', 'is_free', 'created_at')
+    list_filter = ('course_status', 'is_locked', 'is_free', 'difficulty', 'created_at')
     search_fields = ('title', 'description')
     prepopulated_fields = {'slug': ('title',)}
     inlines = [CoursePrerequisiteInline, ModuleInline]

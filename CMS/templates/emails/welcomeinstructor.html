@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Welcome to TrusterLab, Instructor!</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f8;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f6f8; padding: 40px 0;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                    <!-- Header -->
+                    <tr>
+                        <td align="center" style="background-color: #0b162c; padding: 30px 0; border-bottom: 4px solid #D4AF37;">
+                            <img src="https://via.placeholder.com/250x70/0b162c/D4AF37?text=TrusterLab" alt="TrusterLab" style="display: block; max-height: 60px;" />
+                        </td>
+                    </tr>
+                    
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding: 40px 40px 20px 40px;">
+                            <h1 style="color: #0b162c; font-size: 24px; margin-bottom: 20px;">Welcome to the Faculty, {{ user.first_name }}!</h1>
+                            <p style="color: #4a5568; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+                                We are honored to welcome you as an official Instructor at TrusterLab. Your expertise will be invaluable in shaping the next generation of cybersecurity leaders.
+                            </p>
+                            
+                            <p style="color: #4a5568; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+                                An Instructor account has been automatically provisioned for you. Below are your login credentials:
+                            </p>
+                            
+                            <!-- Credentials Box -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
+                                <tr>
+                                    <td align="left" style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 25px; border-radius: 6px;">
+                                        <p style="color: #4a5568; font-size: 15px; margin: 0 0 10px 0;"><strong>Email Address:</strong> <span style="color: #0b162c;">{{ user.email }}</span></p>
+                                        <p style="color: #4a5568; font-size: 15px; margin: 0;"><strong>Temporary Password:</strong> <span style="color: #e53e3e; font-family: monospace; background-color: #fff5f5; padding: 4px 8px; border-radius: 4px;">{{ temporary_password }}</span></p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="color: #4a5568; font-size: 14px; line-height: 1.6; margin-bottom: 30px; background-color: #fffaf0; border-left: 3px solid #D4AF37; padding: 10px;">
+                                <em>Security Notice: Please log in immediately and change your temporary password through your account settings.</em>
+                            </p>
+                            
+                            <!-- Call to Action -->
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td align="center" style="padding: 10px 0 30px 0;">
+                                        <a href="{{ login_url }}" style="background-color: #0b162c; color: #ffffff; text-decoration: none; padding: 14px 30px; font-weight: bold; font-size: 16px; border-radius: 4px; display: inline-block;">Log In to Portal</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td align="center" style="background-color: #0b162c; padding: 20px; color: #a0aec0; font-size: 12px;">
+                            <p style="margin: 0;">&copy; {% now "Y" %} TrusterLab. Built for Africa.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

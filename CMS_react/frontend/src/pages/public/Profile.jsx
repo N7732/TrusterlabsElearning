@@ -5,6 +5,7 @@ import { apiClient } from '../../api/apiClient';
 const Profile = () => {
   const { user } = useAuth();
   const [profileData, setProfileData] = useState(null);
+  const [membershipData, setMembershipData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -16,8 +17,18 @@ const Profile = () => {
       setLoading(true);
       const data = await apiClient.get('/auth/api/auth/profile/');
       setProfileData(data);
+      
+      // Also try to fetch membership using user email
+      if (user?.email) {
+        const memRes = await apiClient.get(`/api/membership/memberships/?email=${user.email}`);
+        if (memRes && Array.isArray(memRes) && memRes.length > 0) {
+          setMembershipData(memRes[0]);
+        } else if (memRes && memRes.results && memRes.results.length > 0) {
+          setMembershipData(memRes.results[0]);
+        }
+      }
     } catch (err) {
-      console.error('Failed to load profile', err);
+      console.error('Failed to load profile or membership', err);
     } finally {
       setLoading(false);
     }
@@ -77,6 +88,22 @@ const Profile = () => {
                     <p className="text-slate-700">Student account active.</p>
                   </div>
                 )}
+                
+                <div>
+                  <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-2">Membership Status</h3>
+                  {membershipData ? (
+                    <div className="bg-[#273B76]/5 border border-[#273B76]/10 p-4 rounded-lg">
+                      <p className="text-slate-700 font-medium">Active Member</p>
+                      <p className="text-slate-600 text-sm mt-1">Membership ID: <span className="font-bold text-[#273B76]">{membershipData.MembershipID}</span></p>
+                      <p className="text-slate-500 text-xs mt-1">Duration: {membershipData.duration_days} days</p>
+                    </div>
+                  ) : (
+                    <div className="bg-slate-50 border border-slate-200 p-4 rounded-lg">
+                      <p className="text-slate-600">You do not have an active membership.</p>
+                      <a href="/membership" className="text-blue-600 hover:underline text-sm mt-2 inline-block">Learn about Memberships &rarr;</a>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>

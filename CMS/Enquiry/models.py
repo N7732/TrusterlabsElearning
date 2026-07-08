@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from Auth.models import User
 
 # Create your models here.
@@ -9,6 +10,7 @@ class Requrement(models.Model):
     email = models.EmailField(max_length=100, blank=True, null=True)
     course = models.ForeignKey('Course.Course', on_delete=models.CASCADE, null=True, blank=True)
     status = models.CharField(max_length=20, default='pending', choices=[('pending', 'Pending'), ('enrolled', 'Enrolled')])
+    created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f"Inquiry by {self.user.username} for {self.course.title if self.course else 'Unknown'}"

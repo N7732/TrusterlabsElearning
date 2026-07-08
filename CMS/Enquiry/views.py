@@ -10,6 +10,20 @@ class RequirementViewSet(viewsets.ModelViewSet):
     queryset = Requrement.objects.all()
     serializer_class = RequirementSerializer
 
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Requrement.objects.all().order_by('-created_at')
+        if not user.is_authenticated:
+            return Requrement.objects.none()
+            
+        if user.user_type == 'admin' or user.is_superuser:
+            return queryset
+            
+        if user.user_type == 'instructor' and self.request.query_params.get('my_enquiries') == 'true':
+            return queryset.filter(course__instructor=user.instructor_profile)
+            
+        return queryset.filter(user=user)
+
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 

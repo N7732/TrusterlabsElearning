@@ -1,3 +1,4 @@
+from unittest.util import _MAX_LENGTH
 from django.db import models
 from django.utils.text import slugify
 
@@ -7,10 +8,17 @@ class Course(models.Model):
         ('Intermediate', 'Intermediate'),
         ('Advanced', 'Advanced'),
     ]
+    Course_Status_choice=[
+        ("published", "Published"),
+        ("draft", "Draft"),
+        ("unpublished", "Unpublished")
+    ]
     title = models.CharField(max_length=150)
     slug = models.SlugField(max_length=150,unique=True, blank=True)
     description = models.TextField()
-    is_published = models.BooleanField(default=False)
+    course_status = models.CharField(max_length=40,choices=Course_Status_choice, default="draft")
+    is_locked = models.BooleanField(default=False, help_text="If true, the course content is locked and cannot be accessed by learners.")
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     thumbnail = models.ImageField(upload_to='course_thumbnails/', blank=True, null=True)
@@ -194,6 +202,7 @@ class Quizes(models.Model):
     time_limit = models.PositiveIntegerField(help_text="Time limit in minutes for the quiz/exam. Set to 0 for no time limit.", default=0)
     order = models.PositiveBigIntegerField(default=0, help_text="Order of the quiz/exam in the module/course.")
     is_locked = models.BooleanField(default=False, help_text="If true, the quiz/exam is locked and cannot be attempted.")
+    is_published = models.BooleanField(default=False, help_text="If false, the quiz/exam will not be visible to learners.")
 
     class Meta:
         ordering = ['order']
@@ -233,6 +242,7 @@ class QuizQuestion(models.Model):
     ])
 
     order = models.PositiveBigIntegerField(default=0)
+    marks = models.PositiveIntegerField(default=1, help_text="Marks awarded for this question")
 
     class Meta:
         ordering = ['order']
@@ -240,6 +250,23 @@ class QuizQuestion(models.Model):
     def __str__(self):
         return f"Question for Quiz: {self.quiz.title}"
     
+class QuizSubmission(models.Model):
+    learner = models.ForeignKey('Auth.Learner', related_name='quiz_submissions', on_delete=models.CASCADE)
+    quiz = models.ForeignKey(Quizes, related_name='submissions', on_delete=models.CASCADE)
+    score = models.PositiveIntegerField(default=0)
+    total_marks = models.PositiveIntegerField(default=0)
+    passed = models.BooleanField(default=False)
+    answers_data = models.JSONField(null=True, blank=True, help_text="Stored answers submitted by the learner")
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-submitted_at']
+        verbose_name = "Quiz Submission"
+        verbose_name_plural = "Quiz Submissions"
+
+    def __str__(self):
+        return f"{self.learner} - {self.quiz.title} - Score: {self.score}/{self.total_marks}"
+
 class Enrollment(models.Model):
     status = models.CharField (max_length=20, choices=[
         ('active', 'Active'),

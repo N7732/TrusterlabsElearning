@@ -5,6 +5,12 @@ import ModuleForm from './forms/ModuleForm';
 import LessonForm from './forms/LessonForm';
 import QuizForm from './forms/QuizForm';
 import QuizQuestionForm from './forms/QuizQuestionForm';
+import GenericForm from './forms/GenericForm';
+import PartnerForm from './forms/PartnerForm';
+import SiteSettingForm from './forms/SiteSettingForm';
+import TrainingForm from './forms/TrainingForm';
+import ClassworkForm from './forms/ClassworkForm';
+import ExamForm from './forms/ExamForm';
 
 const AdminEntityForm = () => {
   const { entity, id } = useParams();
@@ -23,14 +29,18 @@ const AdminEntityForm = () => {
       return <QuizForm isEditing={isEditing} quizId={entityId} />;
     case 'quiz_questions':
       return <QuizQuestionForm isEditing={isEditing} questionId={entityId} />;
+    case 'partners':
+      return <PartnerForm isEditing={isEditing} partnerId={entityId} />;
+    case 'site_settings':
+      return <SiteSettingForm isEditing={isEditing} settingId={entityId} />;
+    case 'trainings':
+      return <TrainingForm isEditing={isEditing} trainingId={entityId} />;
+    case 'classwork':
+      return <ClassworkForm isEditing={isEditing} classworkId={entityId} />;
+    case 'exams':
+      return <ExamForm isEditing={isEditing} examId={entityId} />;
     default:
-      // For entities we haven't built explicit forms for yet (like learners, instructors, enrollments)
-      return (
-        <div className="p-8 text-center text-slate-500">
-          <h2 className="text-xl font-bold mb-2">Form not available</h2>
-          <p>The form to edit {entity} has not been implemented yet.</p>
-        </div>
-      );
+      return <GenericForm entityId={entity} itemId={entityId} isEditing={isEditing} />;
   }
 };
 

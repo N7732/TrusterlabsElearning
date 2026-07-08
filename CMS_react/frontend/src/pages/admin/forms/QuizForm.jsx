@@ -22,6 +22,8 @@ const QuizForm = ({ isEditing, quizId }) => {
     module: '', // ID of the module
     max_attempts: 1,
     time_limit: 0,
+    is_published: false,
+    is_locked: false,
   });
 
   useEffect(() => {
@@ -69,6 +71,8 @@ const QuizForm = ({ isEditing, quizId }) => {
         module: data.module || '',
         max_attempts: data.max_attempts || 1,
         time_limit: data.time_limit || 0,
+        is_published: !!data.is_published,
+        is_locked: !!data.is_locked,
       });
     } catch (err) {
       setError('Failed to load quiz data.');
@@ -78,8 +82,11 @@ const QuizForm = ({ isEditing, quizId }) => {
   };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({ 
+      ...prev, 
+      [name]: type === 'checkbox' ? checked : value 
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -204,6 +211,32 @@ const QuizForm = ({ isEditing, quizId }) => {
                   placeholder="0 for unlimited"
                 />
               </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input 
+                  type="checkbox" name="is_published"
+                  checked={formData.is_published} onChange={handleInputChange}
+                  className="w-5 h-5 text-green-500 rounded focus:ring-green-500"
+                />
+                <div>
+                  <span className="block font-bold text-slate-700">Published</span>
+                  <span className="text-xs text-slate-500">Make this quiz visible to learners.</span>
+                </div>
+              </label>
+
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input 
+                  type="checkbox" name="is_locked"
+                  checked={formData.is_locked} onChange={handleInputChange}
+                  className="w-5 h-5 text-red-500 rounded focus:ring-red-500"
+                />
+                <div>
+                  <span className="block font-bold text-slate-700">Locked</span>
+                  <span className="text-xs text-slate-500">Prevent learners from taking this quiz.</span>
+                </div>
+              </label>
             </div>
 
             <Button 

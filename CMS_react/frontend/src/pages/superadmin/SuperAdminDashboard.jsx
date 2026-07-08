@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Card, { CardContent } from '../../components/common/Card';
 import { 
   GraduationCap, Users, BookOpen, DollarSign, 
@@ -8,35 +9,11 @@ import {
 import { apiClient } from '../../api/apiClient';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const chartData = [
-  { name: 'May 1', enrollments: 320 },
-  { name: 'May 8', enrollments: 650 },
-  { name: 'May 15', enrollments: 450 },
-  { name: 'May 22', enrollments: 980 },
-  { name: 'May 29', enrollments: 680 },
-  { name: 'Jun 5',  enrollments: 1100 },
-  { name: 'Jun 12', enrollments: 1450 }
-];
+// Removed static data to use dynamic state
 
-const topCourses = [
-  { id: 1, title: 'UI/UX Design Fundamentals', enrollments: 652, progress: 85 },
-  { id: 2, title: 'Advanced JavaScript', enrollments: 489, progress: 65 },
-  { id: 3, title: 'Digital Marketing Mastery', enrollments: 378, progress: 45 },
-  { id: 4, title: 'Python for Data Science', enrollments: 310, progress: 35 },
-];
+// Removed static recent activity to use dynamic state
 
-const recentActivity = [
-  { id: 1, type: 'user', text: <>New learner <strong>John Doe</strong> enrolled in <strong>UI/UX Design</strong></>, time: '2 min ago', icon: <Users size={14} className="text-blue-500" /> },
-  { id: 2, type: 'course', text: <>Course <strong>Advanced JavaScript</strong> was published</>, time: '15 min ago', icon: <BookOpen size={14} className="text-green-500" /> },
-  { id: 3, type: 'lesson', text: <>Instructor <strong>Sarah Smith</strong> added a new lesson</>, time: '1 hour ago', icon: <FilePlus size={14} className="text-purple-500" /> },
-  { id: 4, type: 'inquiry', text: <>New inquiry from <strong>Michael Brown</strong></>, time: '2 hours ago', icon: <MessageSquare size={14} className="text-blue-500" /> },
-];
-
-const systemAlerts = [
-  { id: 1, title: 'All systems operational', desc: 'Everything is running smoothly', type: 'success', time: '', icon: <CheckCircle size={18} className="text-green-500" /> },
-  { id: 2, title: 'High server load detected', desc: 'CPU usage is at 85%', type: 'warning', time: '10 min ago', icon: <AlertCircle size={18} className="text-orange-500" /> },
-  { id: 3, title: 'Database backup completed', desc: 'Backup size: 2.4 GB', type: 'info', time: '1 hour ago', icon: <Database size={18} className="text-blue-500" /> },
-];
+// Removed static alerts to use dynamic state
 
 // Helper icons
 function MessageSquare(props) {
@@ -47,22 +24,35 @@ function CheckCircle(props) {
 }
 
 const SuperAdminDashboard = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     courses: 54,
     modules: 0,
     lessons: 0,
     enquiries: 0,
   });
+  const [dashboardData, setDashboardData] = useState({
+    chartData: [],
+    topCourses: [],
+    total_enrollments: 0,
+    new_enrollments: 0
+  });
+  const [timeFilter, setTimeFilter] = useState('month');
+  const [recentActivities, setRecentActivities] = useState([]);
+  const [systemAlerts, setSystemAlerts] = useState([]);
 
   useEffect(() => {
     // Quick fetches to get counts
     const fetchStats = async () => {
       try {
-        const [cRes, mRes, lRes, eRes] = await Promise.all([
-          apiClient.get('/api/courses/'),
-          apiClient.get('/api/modules/'),
-          apiClient.get('/api/lessons/'),
-          apiClient.get('/enquiry/'),
+        const [cRes, mRes, lRes, eRes, dashboardStats, notificationsRes, alertsRes] = await Promise.all([
+          apiClient.get('/api/courses/').catch(() => null),
+          apiClient.get('/api/modules/').catch(() => null),
+          apiClient.get('/api/lessons/').catch(() => null),
+          apiClient.get('/enquiry/').catch(() => null),
+          apiClient.get(`/settings/dashboard-stats/?filter=${timeFilter}`).catch(() => null),
+          apiClient.get('/settings/notifications/').catch(() => null),
+          apiClient.get('/settings/system-alerts/').catch(() => null),
         ]);
         
         setStats({
@@ -71,12 +61,30 @@ const SuperAdminDashboard = () => {
           lessons: lRes?.length || lRes?.results?.length || 0,
           enquiries: eRes?.length || eRes?.results?.length || 0,
         });
+
+        if (dashboardStats && dashboardStats.data) {
+          setDashboardData({
+            chartData: dashboardStats.data.chartData || [],
+            topCourses: dashboardStats.data.topCourses || [],
+            total_enrollments: dashboardStats.data.total_enrollments || 0,
+            new_enrollments: dashboardStats.data.new_enrollments || 0
+          });
+        }
+        
+        if (notificationsRes) {
+          const notifs = notificationsRes.data?.results || notificationsRes.data || [];
+          setRecentActivities(notifs.slice(0, 5));
+        }
+        
+        if (alertsRes && alertsRes.data) {
+          setSystemAlerts(alertsRes.data);
+        }
       } catch (error) {
         console.error("Failed to load stats", error);
       }
     };
     fetchStats();
-  }, []);
+  }, [timeFilter]);
 
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto pb-12">
@@ -210,15 +218,22 @@ const SuperAdminDashboard = () => {
           <CardContent className="p-6 h-full flex flex-col">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-bold text-slate-800">Enrollment Overview</h3>
-              <button className="flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 rounded-lg px-3 py-1.5">
-                This Month <ChevronDown size={14} />
-              </button>
+              <select 
+                value={timeFilter} 
+                onChange={(e) => setTimeFilter(e.target.value)}
+                className="text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 rounded-lg px-2 py-1.5 bg-white outline-none cursor-pointer"
+              >
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+                <option value="year">This Year</option>
+                <option value="all">All Time</option>
+              </select>
             </div>
             
             <div className="flex flex-col md:flex-row gap-6 flex-1">
               <div className="flex-1 min-h-[250px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <AreaChart data={dashboardData.chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorEnrollments" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2}/>
@@ -238,15 +253,15 @@ const SuperAdminDashboard = () => {
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
                   <p className="text-xs font-semibold text-slate-500 mb-1">Total Enrollments</p>
                   <div className="flex items-baseline gap-2">
-                    <h4 className="text-2xl font-black text-slate-800">1,248</h4>
-                    <span className="text-xs font-bold text-green-500 flex items-center"><ArrowUp size={12} /> 12%</span>
+                    <h4 className="text-2xl font-black text-slate-800">{dashboardData.total_enrollments}</h4>
+                    <span className="text-xs font-bold text-green-500 flex items-center"><ArrowUp size={12} /> Live</span>
                   </div>
                 </div>
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
                   <p className="text-xs font-semibold text-slate-500 mb-1">New Enrollments</p>
                   <div className="flex items-baseline gap-2">
-                    <h4 className="text-2xl font-black text-slate-800">320</h4>
-                    <span className="text-xs font-bold text-green-500 flex items-center"><ArrowUp size={12} /> 10%</span>
+                    <h4 className="text-2xl font-black text-slate-800">{dashboardData.new_enrollments}</h4>
+                    <span className="text-xs font-bold text-green-500 flex items-center"><ArrowUp size={12} /> Filtered</span>
                   </div>
                 </div>
               </div>
@@ -259,13 +274,13 @@ const SuperAdminDashboard = () => {
           <CardContent className="p-6 flex-1 flex flex-col">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-bold text-slate-800">Top Courses</h3>
-              <button className="flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 rounded-lg px-3 py-1.5">
-                All Courses <ChevronDown size={14} />
+              <button onClick={() => navigate('/superadmin/entity/courses')} className="flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 rounded-lg px-3 py-1.5 transition-colors hover:bg-slate-50">
+                All Courses <ArrowRight size={14} />
               </button>
             </div>
             
             <div className="flex-1 flex flex-col gap-4">
-              {topCourses.map((course, index) => (
+              {dashboardData.topCourses.map((course, index) => (
                 <div key={course.id} className="flex items-center gap-3">
                   <div className="w-6 text-sm font-bold text-slate-400 text-center">{index + 1}</div>
                   <div className="w-12 h-8 bg-slate-900 rounded overflow-hidden relative shrink-0">
@@ -285,9 +300,12 @@ const SuperAdminDashboard = () => {
                   </div>
                 </div>
               ))}
+              {dashboardData.topCourses.length === 0 && (
+                 <p className="text-slate-500 text-sm py-4">No enrollments yet to rank courses.</p>
+              )}
             </div>
             
-            <button className="w-full mt-6 text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center justify-center gap-2 py-2">
+            <button onClick={() => navigate('/courses')} className="w-full mt-6 text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center justify-center gap-2 py-2 transition-colors hover:bg-blue-50 rounded-lg">
               View All Courses <ArrowRight size={16} />
             </button>
           </CardContent>
@@ -303,26 +321,38 @@ const SuperAdminDashboard = () => {
           <CardContent className="p-6 flex-1 flex flex-col">
              <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-bold text-slate-800">Recent Activity</h3>
-              <button className="flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 rounded-lg px-3 py-1.5">
-                All Activities <ChevronDown size={14} />
-              </button>
             </div>
             
             <div className="flex-1 flex flex-col gap-5">
-              {recentActivity.map(activity => (
-                <div key={activity.id} className="flex gap-3">
-                  <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 mt-0.5">
-                    {activity.icon}
+              {recentActivities.map(activity => {
+                let IconComp = Info;
+                let iconColor = "text-slate-500";
+                if (activity.notification_type === 'course') { IconComp = BookOpen; iconColor = "text-green-500"; }
+                if (activity.notification_type === 'enquiry') { IconComp = Users; iconColor = "text-blue-500"; }
+                if (activity.notification_type === 'contact') { IconComp = MessageSquare; iconColor = "text-purple-500"; }
+                
+                const date = new Date(activity.created_at);
+                const timeStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+                return (
+                  <div key={activity.id} className="flex gap-3">
+                    <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 mt-0.5">
+                      <IconComp size={14} className={iconColor} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-700">{activity.title}</p>
+                      <p className="text-xs text-slate-600 leading-snug mt-0.5">{activity.message}</p>
+                      <p className="text-[10px] text-slate-400 font-medium mt-1">{timeStr}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-slate-600 leading-snug">{activity.text}</p>
-                    <p className="text-xs text-slate-400 font-medium mt-1">{activity.time}</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
+              {recentActivities.length === 0 && (
+                <p className="text-slate-500 text-sm py-4">No recent activity found.</p>
+              )}
             </div>
             
-            <button className="w-full mt-6 text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center justify-center gap-2 py-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors">
+            <button onClick={() => navigate('/superadmin/entity/notifications')} className="w-full mt-6 text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center justify-center gap-2 py-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors">
               View All Activity <ArrowRight size={16} />
             </button>
           </CardContent>
@@ -333,35 +363,39 @@ const SuperAdminDashboard = () => {
           <CardContent className="p-6 flex-1 flex flex-col">
              <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-bold text-slate-800">System Alerts</h3>
-              <button className="flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 rounded-lg px-3 py-1.5">
-                All Alerts <ChevronDown size={14} />
-              </button>
             </div>
             
-            <div className="flex-1 flex flex-col gap-3">
-              {systemAlerts.map(alert => (
-                <div key={alert.id} className={`p-4 rounded-xl flex gap-3 ${
-                  alert.type === 'success' ? 'bg-green-50' : 
-                  alert.type === 'warning' ? 'bg-orange-50' : 'bg-blue-50'
-                }`}>
-                  <div className="mt-0.5 shrink-0">
-                    {alert.icon}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex justify-between items-start">
-                      <h4 className={`text-sm font-bold ${
-                        alert.type === 'success' ? 'text-green-700' : 
-                        alert.type === 'warning' ? 'text-orange-700' : 'text-blue-700'
-                      }`}>{alert.title}</h4>
-                      {alert.time && <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap ml-2">{alert.time}</span>}
+            <div className="flex-1 flex flex-col gap-4">
+              {systemAlerts.map(alert => {
+                let IconComp = Info;
+                let iconClass = "text-blue-500";
+                let bgClass = "bg-blue-50";
+                if (alert.type === 'success') { IconComp = CheckCircle; iconClass = "text-green-600"; bgClass = "bg-green-50"; }
+                if (alert.type === 'warning') { IconComp = AlertCircle; iconClass = "text-orange-600"; bgClass = "bg-orange-50"; }
+                
+                return (
+                  <div key={alert.id} className={`flex gap-4 p-4 rounded-xl ${bgClass}`}>
+                    <div className="shrink-0 mt-0.5">
+                      <IconComp size={20} className={iconClass} />
                     </div>
-                    <p className="text-xs text-slate-500 mt-1">{alert.desc}</p>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start gap-2 mb-1">
+                        <h4 className={`text-sm font-bold ${alert.type === 'success' ? 'text-green-700' : alert.type === 'warning' ? 'text-orange-700' : 'text-blue-700'}`}>
+                          {alert.title}
+                        </h4>
+                        <span className="text-[10px] font-medium text-slate-400 shrink-0">{alert.time}</span>
+                      </div>
+                      <p className="text-xs text-slate-500 leading-relaxed">{alert.desc}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
+              {systemAlerts.length === 0 && (
+                <p className="text-slate-500 text-sm py-4">Loading system alerts...</p>
+              )}
             </div>
             
-            <button className="w-full mt-6 text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center justify-center gap-2 py-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors">
+            <button onClick={() => navigate('/superadmin')} className="w-full mt-6 text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center justify-center gap-2 py-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors">
               View All Alerts <ArrowRight size={16} />
             </button>
           </CardContent>
@@ -375,28 +409,28 @@ const SuperAdminDashboard = () => {
             </div>
             
             <div className="flex-1 grid grid-cols-2 gap-4">
-              <button className="flex flex-col items-center justify-center gap-3 p-4 border border-slate-100 bg-slate-50 rounded-xl hover:bg-blue-50 hover:border-blue-100 transition-colors group">
+              <button onClick={() => navigate('/admin/courses/new')} className="flex flex-col items-center justify-center gap-3 p-4 border border-slate-100 bg-slate-50 rounded-xl hover:bg-blue-50 hover:border-blue-100 transition-colors group">
                 <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-colors">
                   <Plus size={20} />
                 </div>
                 <span className="text-sm font-bold text-slate-700">Create Course</span>
               </button>
               
-              <button className="flex flex-col items-center justify-center gap-3 p-4 border border-slate-100 bg-slate-50 rounded-xl hover:bg-blue-50 hover:border-blue-100 transition-colors group">
+              <button onClick={() => navigate('/admin/instructors/new')} className="flex flex-col items-center justify-center gap-3 p-4 border border-slate-100 bg-slate-50 rounded-xl hover:bg-blue-50 hover:border-blue-100 transition-colors group">
                 <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-colors">
                   <Users size={20} />
                 </div>
                 <span className="text-sm font-bold text-slate-700">Add Instructor</span>
               </button>
 
-              <button className="flex flex-col items-center justify-center gap-3 p-4 border border-slate-100 bg-slate-50 rounded-xl hover:bg-blue-50 hover:border-blue-100 transition-colors group">
+              <button onClick={() => navigate('/admin/modules/new')} className="flex flex-col items-center justify-center gap-3 p-4 border border-slate-100 bg-slate-50 rounded-xl hover:bg-blue-50 hover:border-blue-100 transition-colors group">
                 <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-colors">
                   <FilePlus size={20} />
                 </div>
                 <span className="text-sm font-bold text-slate-700">Create Lesson</span>
               </button>
 
-              <button className="flex flex-col items-center justify-center gap-3 p-4 border border-slate-100 bg-slate-50 rounded-xl hover:bg-blue-50 hover:border-blue-100 transition-colors group">
+              <button onClick={() => navigate('/admin/enrollments')} className="flex flex-col items-center justify-center gap-3 p-4 border border-slate-100 bg-slate-50 rounded-xl hover:bg-blue-50 hover:border-blue-100 transition-colors group">
                 <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-colors">
                   <BarChart2 size={20} />
                 </div>

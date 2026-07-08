@@ -12,7 +12,11 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from django.contrib import messages
-from .models import Course, Module, Lesson, Quizes, QuizQuestion, Enrollment, LessonProgress, CourseResource
+from .models import Course, Module, Lesson, Quizes, QuizQuestion, Enrollment, LessonProgress, CourseResource, QuizSubmission
+from Auth.views import send_course_enrollment_email
+import logging
+
+logger = logging.getLogger(__name__)
 from .serializer import (
     CourseSerializer, ModuleSerializer, LessonSerializer, QuizesSerializer, QuizQuestionSerializer,
     EnrollmentSerializer, CourseResourceSerializer
@@ -32,6 +36,22 @@ User = get_user_model()
 class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
+    
+    def get_queryset(self):
+        user = self.request.user
+        
+        if user.is_authenticated and user.user_type == 'instructor' and self.request.query_params.get('my_courses') == 'true':
+            return Course.objects.filter(instructor=user.instructor_profile)
+
+        if user.is_authenticated and (user.user_type == 'admin' or user.is_superuser or user.user_type == 'instructor'):
+            return Course.objects.all()
+            
+        from django.db.models import Q
+        if user.is_authenticated and getattr(user, 'learner_profile', None):
+            enrolled_course_ids = Enrollment.objects.filter(learner=user.learner_profile, status='active').values_list('course_id', flat=True)
+            return Course.objects.filter(Q(course_status='published') | Q(id__in=enrolled_course_ids))
+            
+        return Course.objects.filter(course_status='published')
     
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
@@ -111,6 +131,13 @@ class CourseViewSet(viewsets.ModelViewSet):
         # Enroll
         status_val = 'active' if course.is_free else 'pending'
         Enrollment.objects.create(learner=learner, course=course, status=status_val)
+        
+        if status_val == 'active':
+            try:
+                send_course_enrollment_email(learner, course)
+            except Exception as e:
+                logger.error(f"Failed to send enrollment email to {user.email}: {e}")
+                
         return Response({'status': 'Enrolled successfully', 'enrollment_status': status_val}, status=status.HTTP_201_CREATED)
 
 class ModuleViewSet(viewsets.ModelViewSet):
@@ -128,6 +155,57 @@ class QuizesViewSet(viewsets.ModelViewSet):
     serializer_class = QuizesSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
+    @action(detail=True, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def my_submission(self, request, pk=None):
+        quiz = self.get_object()
+        learner = getattr(request.user, 'learner_profile', None)
+        
+        if not learner:
+            return Response({"error": "Only registered learners can view submissions."}, status=status.HTTP_403_FORBIDDEN)
+            
+        submission = QuizSubmission.objects.filter(learner=learner, quiz=quiz).first()
+        if submission:
+            from .serializer import QuizSubmissionSerializer
+            return Response(QuizSubmissionSerializer(submission).data)
+            
+        return Response({"message": "No submission found"}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def submit_quiz(self, request, pk=None):
+        quiz = self.get_object()
+        learner = getattr(request.user, 'learner_profile', None)
+        
+        if not learner:
+            return Response({"error": "Only registered learners can submit quizzes."}, status=status.HTTP_403_FORBIDDEN)
+            
+        submitted_answers = request.data.get('answers', {})
+        total_score = 0
+        total_possible = 0
+        
+        for question in quiz.questions.all():
+            total_possible += question.marks
+            submitted = submitted_answers.get(str(question.id))
+            if submitted and submitted.upper() == question.correct_option.upper():
+                total_score += question.marks
+                
+        passed = total_score > 0  # Basic threshold, can be adjusted
+        
+        submission = QuizSubmission.objects.create(
+            learner=learner,
+            quiz=quiz,
+            score=total_score,
+            total_marks=total_possible,
+            passed=passed,
+            answers_data=submitted_answers
+        )
+        
+        return Response({
+            "message": "Quiz submitted successfully!",
+            "score": total_score,
+            "total_marks": total_possible,
+            "passed": passed
+        })
+
 class QuizQuestionViewSet(viewsets.ModelViewSet):
     queryset = QuizQuestion.objects.all()
     serializer_class = QuizQuestionSerializer
@@ -139,22 +217,66 @@ class CourseResourceViewSet(viewsets.ModelViewSet):
     serializer_class = CourseResourceSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-class EnrollmentViewSet(viewsets.ReadOnlyModelViewSet):
+class EnrollmentViewSet(viewsets.ModelViewSet):
     serializer_class = EnrollmentSerializer
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        learner = getattr(self.request.user, 'learner_profile', None)
+        user = self.request.user
+        
+        if user.user_type == 'instructor' and self.request.query_params.get('my_enrollments') == 'true':
+            return Enrollment.objects.filter(course__instructor=user.instructor_profile)
+            
+        if user.user_type == 'admin' or user.is_superuser:
+            return Enrollment.objects.all()
+            
+        learner = getattr(user, 'learner_profile', None)
         if learner:
             return Enrollment.objects.filter(learner=learner)
         return Enrollment.objects.none()
+
+    @action(detail=False, methods=['post'], url_path='bulk_enroll')
+    def bulk_enroll(self, request):
+        user = request.user
+        course_id = request.data.get('course_id')
+        emails = request.data.get('emails', [])
+        
+        if not course_id or not emails:
+            return Response({'detail': 'course_id and emails list are required.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        course = get_object_or_404(Course, id=course_id)
+        
+        if user.user_type == 'instructor' and course.instructor != user.instructor_profile:
+            return Response({'detail': 'You do not have permission to enroll students in this course.'}, status=status.HTTP_403_FORBIDDEN)
+            
+        from Auth.models import User
+        enrolled_count = 0
+        not_found = []
+        
+        for email in emails:
+            email = email.strip()
+            if not email: continue
+            try:
+                learner_user = User.objects.get(email=email, user_type='learner')
+                if hasattr(learner_user, 'learner_profile'):
+                    Enrollment.objects.get_or_create(learner=learner_user.learner_profile, course=course, defaults={'status': 'active'})
+                    enrolled_count += 1
+                else:
+                    not_found.append(email)
+            except User.DoesNotExist:
+                not_found.append(email)
+                
+        return Response({
+            'detail': f'Successfully enrolled {enrolled_count} students.',
+            'not_found': not_found
+        })
 
 
 
 # Create your views here.
 
 def home(request):
-    courses = Course.objects.filter(is_published=True)[:6]
+    courses = Course.objects.filter(course_status='published')[:6]
     return render(request, 'courses/home.html', {'courses': courses})
 
 def course(request):
@@ -219,7 +341,7 @@ def create_course(request):
     return render(request, 'courses/create_course.html')
 
 def course_list(request):
-    courses = Course.objects.all()
+    courses = Course.objects.filter(course_status='published')
     return render(request, 'courses/course_list.html', {'courses': courses})
 
 @login_required
@@ -249,6 +371,11 @@ def lesson_detail(request, lesson_id):
 
     # Access Control
     has_access = False
+    
+    if course.is_locked:
+        messages.error(request, "This course content is currently locked by the administrator.")
+        return redirect('course_detail', course_id=course.id)
+
     # 1. Instructor of the course
     if request.user.is_authenticated and request.user.user_type == 'instructor':
         if hasattr(request.user, 'instructor_profile') and course.instructor == request.user.instructor_profile:
@@ -382,6 +509,10 @@ def quiz_detail(request, quiz_id):
     if quiz.is_locked:
         messages.error(request, "This quiz/exam is currently locked by the instructor.")
         return redirect('course_detail', course_id=course.id)
+        
+    if course.is_locked:
+        messages.error(request, "This course content is currently locked by the administrator.")
+        return redirect('course_detail', course_id=course.id)
     
     # Access Control
     has_access = False
@@ -449,6 +580,10 @@ def enroll_course(request, course_id):
     Enrollment.objects.create(learner=learner, course=course, status=status)
     
     if status == 'active':
+        try:
+            send_course_enrollment_email(learner, course)
+        except Exception as e:
+            logger.error(f"Failed to send enrollment email to {request.user.email}: {e}")
         messages.success(request, "Enrolled successfully! You can start learning.")
     else:
         messages.info(request, "Enrollment requested. Please wait for instructor approval.")
@@ -468,6 +603,12 @@ def approve_enrollment(request, enrollment_id):
         
     enrollment.status = 'active'
     enrollment.save()
+    
+    try:
+        send_course_enrollment_email(enrollment.learner, course)
+    except Exception as e:
+        logger.error(f"Failed to send enrollment approval email to {enrollment.learner.user.email}: {e}")
+        
     messages.success(request, f"Approved enrollment for {enrollment.learner.user.username}.")
     return redirect('instructor_dashboard')
 

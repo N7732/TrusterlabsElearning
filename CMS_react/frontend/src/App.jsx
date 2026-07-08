@@ -8,6 +8,7 @@ import AdminEntityList from './pages/admin/AdminEntityList';
 import AdminEntityForm from './pages/admin/AdminEntityForm';
 import AdminAddInstructor from './pages/admin/AdminAddInstructor';
 import AdminEnrollments from './pages/admin/AdminEnrollments';
+import TrainingDashboard from './pages/admin/TrainingDashboard';
 import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
               <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="instructors/new" element={<AdminAddInstructor />} />
               <Route path="enrollments" element={<AdminEnrollments />} />
+              <Route path="trainings/:id/dashboard" element={<TrainingDashboard />} />
               <Route path=":entity" element={<AdminEntityList />} />
               <Route path=":entity/:id" element={<AdminEntityForm />} />
             </Route>

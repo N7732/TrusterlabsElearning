@@ -15,11 +15,16 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
                 pass
         return super().validate(attrs)
 class LearnerSerializer(serializers.ModelSerializer):
+    full_name = serializers.CharField(source='user.get_full_name', read_only=True)
+
     class Meta:
         model = Learner
         fields = '__all__'
 
 class InstructorSerializer(serializers.ModelSerializer):
+    full_name = serializers.CharField(source='user.get_full_name', read_only=True)
+    email = serializers.EmailField(source='user.email', read_only=True)
+
     class Meta:
         model = Instructor
         fields = '__all__'

@@ -271,7 +271,7 @@ class CustomPasswordResetView(PasswordResetView):
 
     subject = "Password Reset Requested"
     template_name = 'Resent_emali/password_reset_form.html'
-    email_template_name = 'Resent_emali/password_reset_email.html'
+    email_template_name = 'emails/password_reset_email.html'
     success_url = reverse_lazy('Auth:password_reset_done')
 
     def form_valid(self, form):
@@ -351,7 +351,7 @@ def send_welcome_email(user):
         'user': user,
         'settings': settings,
     }
-    html_message = render_to_string('Resent_emali/welcome_email.html', context)
+    html_message = render_to_string('emails/welcome_email.html', context)
     text_content = strip_tags(html_message)
     email_message = EmailMultiAlternatives(
         subject=subject,
@@ -370,7 +370,7 @@ def send_course_enrollment_email(learner, course):
         'course': course,
         'settings': settings,
     }
-    html_message = render_to_string('Resent_emali/course_enrollment_email.html', context)
+    html_message = render_to_string('emails/enrolled.html', context)
     text_content = strip_tags(html_message)
     email_message = EmailMultiAlternatives(
         subject=subject,
@@ -399,20 +399,59 @@ def instructor_invitation_email(instructor, invitation):
     email_message.attach_alternative(html_message, "text/html")
     email_message.send()
 
-def instructor_welcome_email(instructor):
-    subject = "Welcome to Our E-Learning Platform as an Instructor!"
+def instructor_welcome_email(user, temporary_password="Set by admin"):
+    subject = "Welcome to the Faculty!"
     context = {
-        'instructor': instructor,
-        'specialization': instructor.specialization,
+        'user': user,
+        'temporary_password': temporary_password,
+        'login_url': settings.LOGIN_URL,
         'settings': settings,
     }
-    html_message = render_to_string('Resent_emali/instructor_welcome_email.html', context)
+    html_message = render_to_string('emails/welcomeinstructor.html', context)
     text_content = strip_tags(html_message)
     email_message = EmailMultiAlternatives(
         subject=subject,
         body=text_content,
         from_email=settings.EMAIL_HOST_USER,
-        to=[instructor.email],
+        to=[user.email],
+    )
+    email_message.attach_alternative(html_message, "text/html")
+    email_message.send()
+
+def send_membership_approved_email(membership):
+    subject = "Your TrusterLab Membership is Approved!"
+    context = {
+        'user': {'first_name': membership.Fullname.split()[0] if membership.Fullname else 'Member'},
+        'membership': {'membership_id': membership.MembershipID},
+        'profile_url': settings.LOGIN_URL,
+        'settings': settings,
+    }
+    html_message = render_to_string('emails/membership_approved.html', context)
+    text_content = strip_tags(html_message)
+    email_message = EmailMultiAlternatives(
+        subject=subject,
+        body=text_content,
+        from_email=settings.EMAIL_HOST_USER,
+        to=[membership.email],
+    )
+    email_message.attach_alternative(html_message, "text/html")
+    email_message.send()
+
+def send_webinar_registration_email(registration):
+    subject = f"Webinar Registration Confirmed: {registration.webinar.title}"
+    context = {
+        'user': {'first_name': registration.full_name.split()[0] if registration.full_name else 'Participant'},
+        'registration': registration,
+        'webinar': registration.webinar,
+        'settings': settings,
+    }
+    html_message = render_to_string('emails/webinar_registration.html', context)
+    text_content = strip_tags(html_message)
+    email_message = EmailMultiAlternatives(
+        subject=subject,
+        body=text_content,
+        from_email=settings.EMAIL_HOST_USER,
+        to=[registration.email],
     )
     email_message.attach_alternative(html_message, "text/html")
     email_message.send()
@@ -460,7 +499,7 @@ def update_email_to_student(course, request=None):
         'request': request,
     }
     
-    html_message = render_to_string('Resent_emali/new_course_notification_email.html', context)
+    html_message = render_to_string('emails/newcourse_published.html', context)
     text_content = strip_tags(html_message)
     
     # Send in bulk using BCC to protect privacy
@@ -490,7 +529,7 @@ def update_email_to_student(course, request=None):
         'settings': settings,
     }
         
-    html_message = render_to_string('Resent_emali/new_course_notification_email.html', context)
+    html_message = render_to_string('emails/newcourse_published.html', context)
     text_content = strip_tags(html_message)
     email_message = EmailMultiAlternatives(
         subject=subject,
@@ -522,6 +561,11 @@ class LearnerRegisterAPIView(APIView):
         serializer = LearnerRegistrationSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
+            try:
+                send_welcome_email(user)
+            except Exception as e:
+                logger.error(f"Failed to send welcome email to {user.email}: {e}")
+                
             refresh = RefreshToken.for_user(user)
             return Response({
                 "message": "Learner registered successfully",
@@ -556,6 +600,12 @@ class AdminInstructorCreationAPIView(APIView):
         serializer = AdminInstructorCreationSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
+            temp_password = request.data.get('password', 'Set by admin')
+            try:
+                instructor_welcome_email(user, temp_password)
+            except Exception as e:
+                logger.error(f"Failed to send instructor welcome email to {user.email}: {e}")
+                
             return Response({
                 "message": "Instructor created successfully by admin",
                 "user": UserSerializer(user).data

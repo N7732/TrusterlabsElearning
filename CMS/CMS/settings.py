@@ -64,6 +64,10 @@ INSTALLED_APPS = [
     'Course',
     'payment',
     'Enquiry',
+    'Training',
+    'SuperSetting',
+    'Research',
+    'Membership',
     'rest_framework',
 ]
 
@@ -87,6 +91,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # For serving static files in production
+    'SuperSetting.middleware.AuditLogMiddleware',  # Automatically logs system actions
 ]
 
 ROOT_URLCONF = 'CMS.urls'
@@ -192,3 +197,12 @@ CORS_ALLOWED_ORIGINS = [
 # Media files (Uploads)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

@@ -25,6 +25,10 @@ urlpatterns = [
     path('api/v1/', include('payment.urls')),
     path('', include('Course.urls')),
     path('enquiry/', include('Enquiry.urls')),
+    path('training/', include('Training.urls')),
+    path('settings/', include('SuperSetting.urls')),
+    path('api/research/', include('Research.urls')),
+    path('api/membership/', include('Membership.urls')),
 ]
 
 if settings.DEBUG:

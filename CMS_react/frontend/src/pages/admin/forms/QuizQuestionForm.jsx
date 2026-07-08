@@ -23,6 +23,7 @@ const QuizQuestionForm = ({ isEditing, questionId }) => {
     option_d: '',
     correct_option: 'A',
     order: 0,
+    marks: 1,
   });
 
   useEffect(() => {
@@ -54,6 +55,7 @@ const QuizQuestionForm = ({ isEditing, questionId }) => {
         option_d: data.option_d || '',
         correct_option: data.correct_option || 'A',
         order: data.order || 0,
+        marks: data.marks || 1,
       });
     } catch (err) {
       setError('Failed to load question data.');
@@ -186,6 +188,16 @@ const QuizQuestionForm = ({ isEditing, questionId }) => {
                   type="number" name="order" min="0" required
                   value={formData.order} onChange={handleInputChange}
                   className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#F0C800] outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Marks (Points)</label>
+                <input 
+                  type="number" name="marks" min="1" required
+                  value={formData.marks} onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#F0C800] outline-none"
+                  help="Points awarded for getting this correct."
                 />
               </div>
             </div>

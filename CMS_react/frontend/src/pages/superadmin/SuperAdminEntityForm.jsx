@@ -6,9 +6,12 @@ import LessonForm from '../admin/forms/LessonForm';
 import ModuleForm from '../admin/forms/ModuleForm';
 import QuizForm from '../admin/forms/QuizForm';
 import QuizQuestionForm from '../admin/forms/QuizQuestionForm';
-// For entities without custom forms, we could render a generic fallback
-// import GenericForm from './GenericForm';
-
+import GenericForm from '../admin/forms/GenericForm';
+import PartnerForm from '../admin/forms/PartnerForm';
+import SiteSettingForm from '../admin/forms/SiteSettingForm';
+import TrainingForm from '../admin/forms/TrainingForm';
+import ClassworkForm from '../admin/forms/ClassworkForm';
+import ExamForm from '../admin/forms/ExamForm';
 const SuperAdminEntityForm = () => {
   const { entityId, id } = useParams();
   const navigate = useNavigate();
@@ -32,19 +35,18 @@ const SuperAdminEntityForm = () => {
       return <QuizForm isEditing={isEditing} quizId={isEditing ? id : null} />;
     case 'quiz_questions':
       return <QuizQuestionForm isEditing={isEditing} questionId={isEditing ? id : null} />;
+    case 'partners':
+      return <PartnerForm isEditing={isEditing} partnerId={isEditing ? id : null} />;
+    case 'site_settings':
+      return <SiteSettingForm isEditing={isEditing} settingId={isEditing ? id : null} />;
+    case 'trainings':
+      return <TrainingForm isEditing={isEditing} trainingId={isEditing ? id : null} />;
+    case 'classwork':
+      return <ClassworkForm isEditing={isEditing} classworkId={isEditing ? id : null} />;
+    case 'exams':
+      return <ExamForm isEditing={isEditing} examId={isEditing ? id : null} />;
     default:
-      return (
-        <div className="p-8">
-          <h2 className="text-2xl font-bold mb-4">Edit {config.label}</h2>
-          <p className="text-slate-500 mb-6">Custom form for {entityId} is under construction.</p>
-          <button 
-            onClick={() => navigate(-1)}
-            className="px-4 py-2 bg-slate-200 rounded-md hover:bg-slate-300"
-          >
-            Go Back
-          </button>
-        </div>
-      );
+      return <GenericForm entityId={entityId} itemId={isEditing ? id : null} isEditing={isEditing} />;
   }
 };
 
