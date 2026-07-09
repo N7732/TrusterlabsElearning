@@ -36,11 +36,17 @@ class UserSerializer(serializers.ModelSerializer):
 
 class LearnerRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
+    username = serializers.CharField(required=False)
     
     class Meta:
         model = User
         fields = ['username', 'email', 'password', 'first_name', 'last_name']
         
+    def validate(self, attrs):
+        if 'username' not in attrs and 'email' in attrs:
+            attrs['username'] = attrs['email']
+        return super().validate(attrs)
+
     def create(self, validated_data):
         validated_data['user_type'] = 'learner'
         validated_data['password'] = make_password(validated_data['password'])
@@ -52,10 +58,16 @@ class InstructorRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     bio = serializers.CharField(write_only=True, required=False)
     specialization = serializers.CharField(write_only=True, required=False)
+    username = serializers.CharField(required=False)
 
     class Meta:
         model = User
         fields = ['username', 'email', 'password', 'first_name', 'last_name', 'bio', 'specialization']
+        
+    def validate(self, attrs):
+        if 'username' not in attrs and 'email' in attrs:
+            attrs['username'] = attrs['email']
+        return super().validate(attrs)
         
     def create(self, validated_data):
         bio = validated_data.pop('bio', '')
@@ -71,10 +83,16 @@ class AdminInstructorCreationSerializer(serializers.ModelSerializer):
     can_create_courses = serializers.BooleanField(write_only=True, required=False, default=True)
     can_update_courses = serializers.BooleanField(write_only=True, required=False, default=True)
     can_delete_courses = serializers.BooleanField(write_only=True, required=False, default=True)
+    username = serializers.CharField(required=False)
 
     class Meta:
         model = User
         fields = ['username', 'email', 'password', 'first_name', 'last_name', 'can_create_courses', 'can_update_courses', 'can_delete_courses']
+        
+    def validate(self, attrs):
+        if 'username' not in attrs and 'email' in attrs:
+            attrs['username'] = attrs['email']
+        return super().validate(attrs)
         
     def create(self, validated_data):
         can_create = validated_data.pop('can_create_courses', True)
