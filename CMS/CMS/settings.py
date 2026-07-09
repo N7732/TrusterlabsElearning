@@ -120,8 +120,12 @@ WSGI_APPLICATION = 'CMS.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME', 'postgres'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
 
@@ -191,7 +195,9 @@ LOGOUT_REDIRECT_URL = 'Auth:login'
 # CORS Config
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "http://localhost:5173",
+    "https://frontend-omega-five-21.vercel.app",
+    "https://trusterlabselearning.onrender.com",
+    "https://frontend-6od8rks2q-n7732s-projects.vercel.app"
 ]
 
 # Media files (Uploads)
