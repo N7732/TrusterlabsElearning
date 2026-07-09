@@ -35,6 +35,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     'payment-gateway-api-2c52.onrender.com',
+    'trusterlabselearning.onrender.com',
     'localhost', #for local testing
     '127.0.0.1' , #For local testing
 ]
