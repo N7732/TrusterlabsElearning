@@ -1,8 +1,8 @@
 import React from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { ProtectedRoute } from './ProtectedRoute';
-import Navbar from '../Components/common/Navbar';
-import Footer from '../Components/common/Footer';
+import Navbar from '../components/common/Navbar';
+import Footer from '../components/common/Footer';
 
 // Public Pages (to be created)
 import Home from '../pages/public/Home';
