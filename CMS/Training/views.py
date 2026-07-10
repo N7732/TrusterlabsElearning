@@ -72,14 +72,30 @@ class TrainingViewSet(viewsets.ModelViewSet):
         training = self.get_object()
         user = request.user
         
+        from datetime import date
+        today = date.today()
+        
+        if training.application_open_date and today < training.application_open_date:
+            return Response({'detail': 'Applications for this training are not open yet.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        if training.application_close_date and today > training.application_close_date:
+            return Response({'detail': 'Applications for this training have closed.'}, status=status.HTTP_400_BAD_REQUEST)
+        
         # Check if already applied
         if TrainingParticipants.objects.filter(training=training, participant=user).exists():
             return Response({'detail': 'You have already applied for this training.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        full_name = request.data.get('application_full_name', '')
+        phone = request.data.get('application_phone_number', '')
+        email = request.data.get('application_email', '')
         
         # Create application within an atomic transaction
         participant = TrainingParticipants.objects.create(
             training=training,
             participant=user,
+            application_full_name=full_name,
+            application_phone_number=phone,
+            application_email=email,
             admission_status='PENDING'
         )
         
@@ -120,6 +136,40 @@ class TrainingViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(training)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['post'], url_path='manage-participants')
+    @transaction.atomic
+    def manage_participants(self, request, pk=None):
+        training = self.get_object()
+        participant_ids = request.data.get('participant_ids', [])
+        action_type = request.data.get('action') # 'ADMIT', 'REJECT', 'REMOVE'
+        
+        if not participant_ids or not action_type:
+            return Response({'detail': 'participant_ids and action are required.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        participants = TrainingParticipants.objects.filter(training=training, id__in=participant_ids)
+        
+        if action_type == 'ADMIT':
+            participants.update(admission_status='ADMITTED')
+        elif action_type == 'REJECT':
+            participants.update(admission_status='REJECTED')
+        elif action_type == 'REMOVE':
+            participants.delete()
+        else:
+            return Response({'detail': 'Invalid action.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        return Response({'detail': 'Participants updated successfully.'}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='my-trainings')
+    def my_trainings(self, request):
+        user = request.user
+        if not user.is_authenticated:
+            return Response({'detail': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        # Get trainings where user is a participant
+        trainings = Training.objects.filter(participants__participant=user).distinct()
+        serializer = self.get_serializer(trainings, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class TrainingClassworkViewSet(viewsets.ModelViewSet):
     queryset = TrainingClasswork.objects.all()
@@ -157,6 +207,33 @@ class TrainingClassworkViewSet(viewsets.ModelViewSet):
         
         serializer = TrainingClassworkSubmissionSerializer(submission)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['get', 'post'], url_path='submissions')
+    @transaction.atomic
+    def manage_submissions(self, request, pk=None):
+        classwork = self.get_object()
+        
+        if request.method == 'GET':
+            submissions = TrainingClassworkSubmission.objects.filter(classwork=classwork)
+            serializer = TrainingClassworkSubmissionSerializer(submissions, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+            
+        elif request.method == 'POST':
+            # This is for grading
+            submission_id = request.data.get('submission_id')
+            score = request.data.get('score')
+            
+            if not submission_id or score is None:
+                return Response({'detail': 'submission_id and score are required.'}, status=status.HTTP_400_BAD_REQUEST)
+                
+            try:
+                submission = TrainingClassworkSubmission.objects.get(id=submission_id, classwork=classwork)
+                submission.score = score
+                submission.save()
+                serializer = TrainingClassworkSubmissionSerializer(submission)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except TrainingClassworkSubmission.DoesNotExist:
+                return Response({'detail': 'Submission not found.'}, status=status.HTTP_404_NOT_FOUND)
 
 class TrainingFinalExamViewSet(viewsets.ModelViewSet):
     queryset = TrainingFinalExam.objects.all()

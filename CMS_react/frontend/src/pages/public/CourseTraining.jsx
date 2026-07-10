@@ -10,6 +10,14 @@ const CourseTraining = () => {
   const [enrollLoading, setEnrollLoading] = useState(null);
   const [message, setMessage] = useState({ text: '', type: '' });
   
+  const [applicationModalOpen, setApplicationModalOpen] = useState(false);
+  const [selectedTraining, setSelectedTraining] = useState(null);
+  const [formData, setFormData] = useState({
+    application_full_name: '',
+    application_phone_number: '',
+    application_email: ''
+  });
+  
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -29,19 +37,27 @@ const CourseTraining = () => {
     }
   };
 
-  const handleEnroll = async (id) => {
+  const handleOpenApplication = (session) => {
     if (!isAuthenticated) {
       navigate('/login', { state: { from: location.pathname } });
       return;
     }
+    setSelectedTraining(session);
+    setApplicationModalOpen(true);
+  };
 
-    setEnrollLoading(id);
+  const handleApply = async (e) => {
+    e.preventDefault();
+    setEnrollLoading(selectedTraining.id);
     setMessage({ text: '', type: '' });
     try {
-      await apiClient.post(`/training/trainings/${id}/apply/`, {});
+      await apiClient.post(`/training/trainings/${selectedTraining.id}/apply/`, formData);
       setMessage({ text: 'Application submitted successfully! Your admission status is now pending.', type: 'success' });
+      setApplicationModalOpen(false);
+      setFormData({ application_full_name: '', application_phone_number: '', application_email: '' });
     } catch (error) {
-      setMessage({ text: error.message || 'Failed to apply for training.', type: 'error' });
+      setMessage({ text: error.message || 'Failed to apply for training. It might be closed or you already applied.', type: 'error' });
+      setApplicationModalOpen(false);
     } finally {
       setEnrollLoading(null);
     }
@@ -103,9 +119,19 @@ const CourseTraining = () => {
                 
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-3">
-                    <span className="text-xs font-bold px-3 py-1 rounded-full border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
-                      Open for Enrollment
-                    </span>
+                    {session.application_open_date && new Date(session.application_open_date) > new Date() ? (
+                      <span className="text-xs font-bold px-3 py-1 rounded-full border bg-amber-500/10 text-amber-400 border-amber-500/20">
+                        Applications Opening Soon
+                      </span>
+                    ) : session.application_close_date && new Date(session.application_close_date) < new Date() ? (
+                      <span className="text-xs font-bold px-3 py-1 rounded-full border bg-red-500/10 text-red-400 border-red-500/20">
+                        Applications Closed
+                      </span>
+                    ) : (
+                      <span className="text-xs font-bold px-3 py-1 rounded-full border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+                        Accepting Applications
+                      </span>
+                    )}
                   </div>
                   <h4 className="text-2xl font-bold text-white mb-4 group-hover:text-[#D4AF37] transition-colors">{session.title}</h4>
                   
@@ -124,15 +150,15 @@ const CourseTraining = () => {
                 <div className="flex flex-col sm:flex-row lg:flex-col gap-4 lg:min-w-[200px] shrink-0 border-t lg:border-t-0 lg:border-l border-white/10 pt-6 lg:pt-0 lg:pl-8">
                   <div className="flex-1 lg:flex-none">
                     <p className="text-xs text-gray-500 uppercase tracking-widest mb-1">Availability</p>
-                    <p className="text-white font-bold text-lg">{session.max_participants} <span className="text-sm font-normal text-gray-400">max seats</span></p>
+                    <p className="text-white font-bold text-lg">{session.max_participants || 'Unlimited'} <span className="text-sm font-normal text-gray-400">seats</span></p>
                   </div>
                   <button 
-                    onClick={() => handleEnroll(session.id)}
+                    onClick={() => handleOpenApplication(session)}
                     disabled={enrollLoading === session.id}
                     className="bg-[#D4AF37] hover:bg-[#c29e2f] disabled:opacity-50 disabled:cursor-not-allowed text-black font-bold py-3 px-6 rounded-lg transition-colors w-full text-sm flex items-center justify-center gap-2"
                   >
                     {enrollLoading === session.id ? <Loader2 className="animate-spin" size={16} /> : null}
-                    {enrollLoading === session.id ? 'Enrolling...' : 'Enroll Now'}
+                    {enrollLoading === session.id ? 'Loading...' : 'Apply Now'}
                   </button>
                 </div>
 
@@ -151,6 +177,69 @@ const CourseTraining = () => {
         </div>
 
       </section>
+
+      {/* Application Modal */}
+      {applicationModalOpen && selectedTraining && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#111827] rounded-xl shadow-xl max-w-md w-full border border-white/10 flex flex-col overflow-hidden relative">
+            <button onClick={() => setApplicationModalOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
+            
+            <div className="p-6 border-b border-white/10">
+              <h2 className="text-xl font-bold text-white mb-2">Apply for Training</h2>
+              <p className="text-[#D4AF37] font-medium text-sm">{selectedTraining.title}</p>
+            </div>
+            
+            <form onSubmit={handleApply} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-gray-400 mb-1">Full Name</label>
+                <input 
+                  type="text" 
+                  required
+                  className="w-full bg-[#030712] border border-white/10 rounded-md p-2.5 text-white focus:border-[#D4AF37] focus:outline-none"
+                  value={formData.application_full_name}
+                  onChange={(e) => setFormData({...formData, application_full_name: e.target.value})}
+                  placeholder="John Doe"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-bold text-gray-400 mb-1">Email Address</label>
+                <input 
+                  type="email" 
+                  required
+                  className="w-full bg-[#030712] border border-white/10 rounded-md p-2.5 text-white focus:border-[#D4AF37] focus:outline-none"
+                  value={formData.application_email}
+                  onChange={(e) => setFormData({...formData, application_email: e.target.value})}
+                  placeholder="john@example.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-400 mb-1">Phone Number</label>
+                <input 
+                  type="tel" 
+                  required
+                  className="w-full bg-[#030712] border border-white/10 rounded-md p-2.5 text-white focus:border-[#D4AF37] focus:outline-none"
+                  value={formData.application_phone_number}
+                  onChange={(e) => setFormData({...formData, application_phone_number: e.target.value})}
+                  placeholder="+1 (555) 000-0000"
+                />
+              </div>
+
+              <div className="pt-4">
+                <button 
+                  type="submit"
+                  disabled={enrollLoading === selectedTraining.id}
+                  className="w-full bg-[#D4AF37] hover:bg-[#c29e2f] text-black font-bold py-3 px-6 rounded-lg transition-colors flex justify-center items-center gap-2"
+                >
+                  {enrollLoading === selectedTraining.id ? <Loader2 className="animate-spin" size={16} /> : null}
+                  Submit Application
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );

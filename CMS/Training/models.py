@@ -9,6 +9,8 @@ class Training(models.Model):
     date_updated = models.DateTimeField(auto_now=True)
     starting_date = models.DateField()
     ending_date = models.DateField()
+    application_open_date = models.DateField(null=True, blank=True)
+    application_close_date = models.DateField(null=True, blank=True)
     instructor = models.ForeignKey('Auth.Instructor', on_delete=models.CASCADE, related_name='trainings', null=True, blank=True)
 
 
@@ -31,11 +33,15 @@ class TrainingParticipants(models.Model):
     )
     training = models.ForeignKey(Training, on_delete=models.CASCADE, related_name='participants')
     participant = models.ForeignKey(User, on_delete=models.CASCADE)
+    application_full_name = models.CharField(max_length=255, blank=True, null=True)
+    application_phone_number = models.CharField(max_length=50, blank=True, null=True)
+    application_email = models.EmailField(blank=True, null=True)
     admission_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
     date_applied = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.participant.get_full_name()} - {self.admission_status}"
+        name = self.application_full_name or self.participant.get_full_name()
+        return f"{name} - {self.admission_status}"
     
 
 class TrainingClasswork(models.Model):
@@ -52,7 +58,8 @@ class TrainingClasswork(models.Model):
 class TrainingClassworkSubmission(models.Model):
     classwork = models.ForeignKey(TrainingClasswork, on_delete=models.CASCADE, related_name='submissions')
     participant = models.ForeignKey(User, on_delete=models.CASCADE)
-    submission_file = models.FileField(upload_to='classwork_submissions/')
+    submission_file = models.FileField(upload_to='classwork_submissions/', null=True, blank=True)
+    score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     submission_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

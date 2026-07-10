@@ -23,7 +23,11 @@ class TrainingParticipantsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TrainingParticipants
-        fields = ['id', 'training', 'participant', 'admission_status', 'date_applied', 'participant_detail']
+        fields = [
+            'id', 'training', 'participant', 'admission_status', 'date_applied',
+            'participant_detail', 'application_full_name', 'application_phone_number',
+            'application_email'
+        ]
         read_only_fields = ['admission_status', 'date_applied']
 
 class TrainingClassworkSerializer(serializers.ModelSerializer):
@@ -36,7 +40,7 @@ class TrainingClassworkSubmissionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TrainingClassworkSubmission
-        fields = ['id', 'classwork', 'participant', 'submission_file', 'submission_date', 'participant_name']
+        fields = ['id', 'classwork', 'participant', 'submission_file', 'submission_date', 'participant_name', 'score']
         read_only_fields = ['participant']
 
 class TrainingFinalExamSerializer(serializers.ModelSerializer):
@@ -62,6 +66,7 @@ class TrainingSerializer(serializers.ModelSerializer):
         model = Training
         fields = [
             'id', 'title', 'description', 'starting_date', 'ending_date',
+            'application_open_date', 'application_close_date',
             'date_created', 'date_updated', 'courses', 'participants',
             'classworks', 'final_exams'
         ]

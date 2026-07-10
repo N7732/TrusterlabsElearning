@@ -15,6 +15,7 @@ import CourseTraining from '../pages/public/CourseTraining';
 import Admission from '../pages/public/Admission';
 import MemberPortal from '../pages/public/MemberPortal';
 import LearnerDashboard from '../pages/learner/LearnerDashboard';
+import LearnerTrainingDetail from '../pages/learner/LearnerTrainingDetail';
 import Profile from '../pages/public/Profile';
 import AboutUs from '../pages/public/AboutUs';
 import Membership from '../pages/public/Membership';
@@ -70,6 +71,7 @@ const AppRoutes = () => {
           {/* Learner Protected Routes */}
           <Route element={<ProtectedRoute allowedRoles={['learner', 'admin']} />}>
             <Route path="/learner/dashboard" element={<LearnerDashboard />} />
+            <Route path="/learner/trainings/:id" element={<LearnerTrainingDetail />} />
           </Route>
 
           {/* User Profile */}

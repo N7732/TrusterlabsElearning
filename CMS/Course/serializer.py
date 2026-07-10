@@ -72,9 +72,36 @@ class QuizesSerializer(serializers.ModelSerializer):
 
 class EnrollmentSerializer(serializers.ModelSerializer):
     course_details = CourseSerializer(source='course', read_only=True)
+    learner_name = serializers.SerializerMethodField()
+    learner_email = serializers.SerializerMethodField()
+    learner_phone = serializers.SerializerMethodField()
+    learner_joined = serializers.SerializerMethodField()
+    learner_user_id = serializers.IntegerField(source='learner.user.id', read_only=True)
+
     class Meta:
         model = Enrollment
         fields = '__all__'
+
+    def get_learner_name(self, obj):
+        if obj.learner and obj.learner.user:
+            name = f"{obj.learner.user.first_name} {obj.learner.user.last_name}".strip()
+            return name if name else obj.learner.user.username
+        return "Unknown"
+
+    def get_learner_email(self, obj):
+        if obj.learner and obj.learner.user:
+            return obj.learner.user.email
+        return None
+
+    def get_learner_phone(self, obj):
+        if obj.learner and hasattr(obj.learner, 'phone_number'):
+            return obj.learner.phone_number
+        return None
+
+    def get_learner_joined(self, obj):
+        if obj.learner and obj.learner.user:
+            return obj.learner.user.date_joined
+        return None
 
 class QuizSubmissionSerializer(serializers.ModelSerializer):
     class Meta:

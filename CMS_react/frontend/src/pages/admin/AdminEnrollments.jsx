@@ -17,6 +17,15 @@ const AdminEnrollments = () => {
     setSearchParams({ tab });
   };
   const [processingId, setProcessingId] = useState(null);
+  
+  // Profile modal state
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState(null);
+
+  const handleViewProfile = (enrollment) => {
+    setSelectedProfile(enrollment);
+    setProfileModalOpen(true);
+  };
 
   useEffect(() => {
     fetchEnrollments();
@@ -221,7 +230,12 @@ const AdminEnrollments = () => {
                                 {(enrollment.learner_name || enrollment.user?.username || 'U')[0].toUpperCase()}
                               </div>
                               <div>
-                                <div className="font-bold text-slate-800">{enrollment.learner_name || enrollment.user?.first_name || enrollment.user?.username || `User ID: ${enrollment.user || 'Unknown'}`}</div>
+                                <button 
+                                  onClick={() => handleViewProfile(enrollment)}
+                                  className="font-bold text-slate-800 hover:text-[#0A66C2] hover:underline text-left cursor-pointer"
+                                >
+                                  {enrollment.learner_name || enrollment.user?.first_name || enrollment.user?.username || `User ID: ${enrollment.user || 'Unknown'}`}
+                                </button>
                                 <div className="text-xs text-slate-500">{enrollment.learner_email || enrollment.user?.email || 'No email provided'}</div>
                               </div>
                             </div>
@@ -282,6 +296,59 @@ const AdminEnrollments = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Profile View Modal */}
+      {profileModalOpen && selectedProfile && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full flex flex-col overflow-hidden">
+            <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+              <h2 className="text-xl font-bold text-slate-800 flex items-center">
+                <UserCheck className="w-5 h-5 mr-2 text-[#0A66C2]" /> Learner Profile
+              </h2>
+              <button onClick={() => setProfileModalOpen(false)} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+            </div>
+            <div className="p-6">
+              <div className="flex items-center mb-6">
+                <div className="w-16 h-16 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 text-2xl font-bold shrink-0 mr-4">
+                  {(selectedProfile.learner_name || selectedProfile.user?.username || 'U')[0].toUpperCase()}
+                </div>
+                <div>
+                  <h3 className="font-bold text-xl text-slate-800">
+                    {selectedProfile.learner_name || selectedProfile.user?.first_name || selectedProfile.user?.username || `User ID: ${selectedProfile.user || 'Unknown'}`}
+                  </h3>
+                  <p className="text-slate-500 text-sm">Role: Student/Learner</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-500 uppercase">Email Address</label>
+                  <p className="text-slate-800">{selectedProfile.learner_email || selectedProfile.user?.email || 'No email provided'}</p>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-500 uppercase">Phone Number</label>
+                  <p className="text-slate-800">{selectedProfile.learner_phone || 'No phone provided'}</p>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-500 uppercase">Date Joined</label>
+                  <p className="text-slate-800">
+                    {selectedProfile.learner_joined 
+                      ? new Date(selectedProfile.learner_joined).toLocaleDateString() 
+                      : 'Unknown'}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-500 uppercase">Currently Viewing Enrollment</label>
+                  <p className="text-[#0A66C2] font-medium">{selectedProfile.course_details?.title || selectedProfile.course_title}</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-4 border-t border-slate-200 flex justify-end bg-slate-50">
+              <Button onClick={() => setProfileModalOpen(false)} variant="outline">Close Profile</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
