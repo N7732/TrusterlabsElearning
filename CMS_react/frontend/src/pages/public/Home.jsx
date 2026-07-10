@@ -11,7 +11,7 @@ const Home = () => {
     <div className="flex flex-col min-h-[calc(100vh-64px)]">
       {/* Hero Section */}
       <section 
-        className="relative pt-32 pb-40"
+        className="relative pt-8 pb-20"
         style={{
           backgroundImage: `url(${homeBg})`,
           backgroundSize: 'cover',
@@ -19,8 +19,8 @@ const Home = () => {
           backgroundRepeat: 'no-repeat'
         }}
       >
-        {/* Removed overlay to display original image as requested */}
-        
+        {/* Dark blue overlay to improve text readability */}
+        <div className="absolute inset-0 bg-[#0b162c]/70"></div>
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-left">
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-white tracking-tight mb-4 animate-fade-in-up leading-tight">
             Cybersecurity <br className="hidden sm:block" />
@@ -46,7 +46,7 @@ const Home = () => {
       </section>
 
       {/* Why Project-Based Learning */}
-      <section className="py-20 bg-[#0b162c] border-t border-[#D4AF37]/20">
+      <section className="pt-5 pb-20 bg-[#0b162c] border-t border-[#D4AF37]/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-extrabold text-white">Why Choose Truster Lab?</h2>

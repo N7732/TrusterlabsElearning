@@ -618,3 +618,70 @@ class UserProfileAPIView(APIView):
     def get(self, request):
         serializer = UserProfileSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_decode
+
+class PasswordResetRequestAPIView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email')
+        if not email:
+            return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            user = User.objects.get(email=email)
+            token = default_token_generator.make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            
+            # This matches the React route
+            frontend_url = request.META.get('HTTP_ORIGIN', 'http://localhost:3000')
+            reset_url = f"{frontend_url}/reset-password/{uid}/{token}"
+
+            context = {
+                'user': user,
+                'reset_url': reset_url,
+                'expiry_hours': 1,
+                'settings': settings,
+            }
+            html_message = render_to_string('emails/password_reset_email.html', context)
+            text_content = strip_tags(html_message)
+            email_message = EmailMultiAlternatives(
+                subject="Password Reset Requested",
+                body=text_content,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[user.email],
+            )
+            email_message.attach_alternative(html_message, "text/html")
+            email_message.send()
+        except User.DoesNotExist:
+            pass # Silently fail for security
+
+        return Response({'message': 'If an account with that email exists, we sent you a reset link.'}, status=status.HTTP_200_OK)
+
+
+class PasswordResetConfirmAPIView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        uidb64 = request.data.get('uid')
+        token = request.data.get('token')
+        new_password = request.data.get('new_password')
+        re_new_password = request.data.get('re_new_password')
+
+        if new_password != re_new_password:
+            return Response({'error': 'Passwords do not match.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            uid = urlsafe_base64_decode(uidb64).decode()
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+
+        if user is not None and default_token_generator.check_token(user, token):
+            user.set_password(new_password)
+            user.save()
+            return Response({'message': 'Password has been reset successfully.'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Invalid or expired token.'}, status=status.HTTP_400_BAD_REQUEST)

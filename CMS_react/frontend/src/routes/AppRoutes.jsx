@@ -7,6 +7,8 @@ import Footer from '../Components/common/Footer';
 // Public Pages (to be created)
 import Home from '../pages/public/Home';
 import AuthPage from '../pages/auth/AuthPage';
+import ForgotPassword from '../pages/auth/ForgotPassword';
+import ResetPassword from '../pages/auth/ResetPassword';
 import CourseCatalog from '../pages/public/CourseCatalog';
 import CoursePlayer from '../pages/public/CoursePlayer';
 import CourseTraining from '../pages/public/CourseTraining';
@@ -44,6 +46,8 @@ const AppRoutes = () => {
           <Route path="/about" element={<AboutUs />} />
           <Route path="/login" element={<AuthPage />} />
           <Route path="/register" element={<AuthPage />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
           <Route path="/courses" element={<CourseCatalog />} />
           <Route path="/training" element={<CourseTraining />} />
           <Route path="/admission" element={<Admission />} />

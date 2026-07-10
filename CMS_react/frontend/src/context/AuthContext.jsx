@@ -38,9 +38,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const registerLearner = async (userData) => {
-    await apiClient.post('/auth/api/auth/register/learner/', userData);
-    // After registration, login automatically
-    await login({ username: userData.email, password: userData.password });
+    const payload = { ...userData, username: userData.email };
+    await apiClient.post('/auth/api/auth/register/learner/', payload);
   };
 
   const logout = () => {

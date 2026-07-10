@@ -47,6 +47,44 @@ class ContactMessageViewSet(viewsets.ModelViewSet):
             return [AllowAny()]
         return [IsAdminUser()]
 
+    def perform_create(self, serializer):
+        message = serializer.save()
+        
+        # Create a dashboard notification
+        Notification.objects.create(
+            title="New Contact Message",
+            message=f"From {message.name}: {message.subject}",
+            notification_type="contact",
+            link="/superadmin/settings/messages"
+        )
+        
+        # Send emails
+        from django.core.mail import send_mail
+        from django.conf import settings
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        try:
+            # Auto-reply to user
+            send_mail(
+                subject="Thank you for contacting TrusterLab",
+                message=f"Hi {message.name},\n\nWe have received your message regarding '{message.subject}' and will get back to you shortly.\n\nBest,\nTrusterLab Team",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[message.email],
+                fail_silently=True,
+            )
+            
+            # Alert admin
+            send_mail(
+                subject=f"New Contact Form Submission: {message.subject}",
+                message=f"You have received a new message from {message.name} ({message.email}).\n\nMessage:\n{message.message}",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[settings.DEFAULT_FROM_EMAIL],
+                fail_silently=True,
+            )
+        except Exception as e:
+            logger.error(f"Failed to send contact emails: {e}")
+
 class SystemLogViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = SystemLog.objects.all().order_by('-created_at')
     serializer_class = SystemLogSerializer

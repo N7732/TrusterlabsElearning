@@ -17,7 +17,7 @@
 
 @layer base {
   body {
-    @apply bg-background-slate text-text-primary font-sans antialiased;
+    @apply bg-background-slate text-text-primary font-sans antialiased overscroll-none;
     margin: 0;
   }
 }

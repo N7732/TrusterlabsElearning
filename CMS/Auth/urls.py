@@ -17,7 +17,9 @@ from .views import (
     CustomPasswordChangeView, CustomPasswordChangeDoneView,
     LearnerRegisterAPIView, InstructorRegisterAPIView, UserProfileAPIView,
     AdminInstructorCreationAPIView,
-    CustomTokenObtainPairView
+    CustomTokenObtainPairView,
+    PasswordResetRequestAPIView,
+    PasswordResetConfirmAPIView
 )
 from rest_framework_simplejwt.views import (
     TokenRefreshView,
@@ -39,6 +41,8 @@ urlpatterns = [
     path('api/auth/profile/', UserProfileAPIView.as_view(), name='api_profile'),
     path('api/auth/login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/auth/password/reset/', PasswordResetRequestAPIView.as_view(), name='api_password_reset'),
+    path('api/auth/password/reset/confirm/', PasswordResetConfirmAPIView.as_view(), name='api_password_reset_confirm'),
     
     # Authentication
     path('login/', user_login, name='login'),

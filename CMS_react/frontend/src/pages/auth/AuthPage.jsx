@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
@@ -21,6 +21,7 @@ const AuthPage = () => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
 
   // Login State
   const [loginEmail, setLoginEmail] = useState('');
@@ -69,7 +70,8 @@ const AuthPage = () => {
         email: regData.email,
         password: regData.password,
       });
-      navigate(from, { replace: true });
+      setSuccessMsg('Account created successfully! Please sign in.');
+      navigate('/login', { replace: true, state: location.state });
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.');
     } finally {
@@ -79,6 +81,7 @@ const AuthPage = () => {
 
   const switchTab = (tab) => {
     setError('');
+    setSuccessMsg('');
     navigate(`/${tab}`, { replace: true, state: location.state });
   };
 
@@ -122,6 +125,12 @@ const AuthPage = () => {
                 {error}
               </div>
             )}
+            
+            {successMsg && (
+              <div className="bg-emerald-50 text-emerald-600 text-sm p-3 rounded-lg border border-emerald-100 mb-6">
+                {successMsg}
+              </div>
+            )}
 
             {activeTab === 'login' ? (
               /* LOGIN FORM */
@@ -154,9 +163,9 @@ const AuthPage = () => {
                     </label>
                   </div>
                   <div className="text-sm">
-                    <a href="#" className="font-medium text-[#273B76] hover:text-[#1a2850]">
+                    <Link to="/forgot-password" className="font-medium text-[#273B76] hover:text-[#1a2850]">
                       Forgot your password?
-                    </a>
+                    </Link>
                   </div>
                 </div>
                 <Button type="submit" fullWidth disabled={loading} className="!bg-[#FFD700] hover:!bg-[#F0C800] !text-black font-bold">

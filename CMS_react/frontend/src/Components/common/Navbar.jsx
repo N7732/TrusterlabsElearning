@@ -49,9 +49,9 @@ const Navbar = () => {
   }, []);
 
   return (
-    <>
+    <header className="sticky top-0 z-[100] w-full flex flex-col">
       <TopUtilityBar />
-      <nav className="bg-[#0b162c] sticky top-0 z-50 shadow-md">
+      <nav className="bg-[#0b162c] shadow-md relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 relative">
           <div className="flex items-center gap-2 sm:gap-4">
@@ -230,7 +230,7 @@ const Navbar = () => {
         </div>
       </div>
     </nav>
-    </>
+    </header>
   );
 };
 

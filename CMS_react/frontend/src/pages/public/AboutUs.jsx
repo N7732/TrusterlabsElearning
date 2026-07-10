@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Mail, Phone, MapPin, Loader2 } from 'lucide-react';
+import { Mail, Phone, MapPin, Loader2, Send } from 'lucide-react';
 import { apiClient, getImageUrl } from '../../api/apiClient';
 import image1 from '../../assets/image1.jpg';
 import image2 from '../../assets/image2.jpeg'; 
 import image3 from '../../assets/image3.png';
+import image4 from '../../assets/image4.png';
 
 const AboutUs = () => {
   const { hash } = useLocation();
   const [partners, setPartners] = useState([]);
   const [staffMembers, setStaffMembers] = useState([]);
-  const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', message: '' });
+  const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', subject: '', message: '' });
   const [formStatus, setFormStatus] = useState({ loading: false, success: false, error: '' });
 
   useEffect(() => {
@@ -49,7 +50,7 @@ const AboutUs = () => {
     e.preventDefault();
     setFormStatus({ loading: true, success: false, error: '' });
     
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.message) {
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.subject || !formData.message) {
       setFormStatus({ loading: false, success: false, error: 'Please fill out all fields.' });
       return;
     }
@@ -58,7 +59,7 @@ const AboutUs = () => {
       await apiClient.post('/settings/contact-messages/', {
         name: `${formData.firstName} ${formData.lastName}`,
         email: formData.email,
-        subject: `New Inquiry from ${formData.firstName}`,
+        subject: formData.subject,
         message: formData.message
       });
       setFormStatus({ loading: false, success: true, error: '' });
@@ -89,12 +90,13 @@ const AboutUs = () => {
     <div className="bg-[#030712] text-gray-300 font-['Work_Sans',sans-serif] min-h-screen pb-20">
       
       {/* 1. Our Story Section */}
-      <section id="our-story" className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative border-b border-white/10">
+      <section id="our-story" className="pt-16 pb-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative border-b border-white/10">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-cyber opacity-30 pointer-events-none z-0"></div>
         <div className="relative z-10">
           <div className="flex items-center gap-4 mb-8">
             <div className="h-[2px] w-12 bg-[#D4AF37]"></div>
             <h2 className="text-[#D4AF37] font-bold tracking-widest uppercase text-sm">Our Story</h2>
+            <div className="h-[2px] w-12 bg-[#D4AF37]"></div>
           </div>
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
@@ -110,14 +112,14 @@ const AboutUs = () => {
             </div>
             <div className="relative">
               <div className="absolute inset-0 bg-[#D4AF37] translate-x-4 translate-y-4 rounded-lg opacity-20"></div>
-              <img src={image1} alt="Our Story" className="relative z-10 w-full h-[400px] object-cover rounded-lg shadow-2xl border border-white/10" />
+              <img src={image4} alt="Our Story" className="relative z-10 w-full h-[400px] object-cover rounded-lg shadow-2xl border border-white/10" />
             </div>
           </div>
         </div>
       </section>
 
       {/* 2. Staff Section */}
-      <section id="staff" className="pt-24 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-b border-white/10">
+      <section id="staff" className="pt-12 pb-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-b border-white/10">
         <div className="flex items-center gap-4 mb-12 justify-center">
           <div className="h-[2px] w-12 bg-[#D4AF37]"></div>
           <h2 className="text-[#D4AF37] font-bold tracking-widest uppercase text-sm">Leadership & Experts</h2>
@@ -156,10 +158,11 @@ const AboutUs = () => {
       </section>
 
       {/* 3. Partners Section */}
-      <section id="partners" className="pt-24 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-b border-white/10">
+      <section id="partners" className="pt-12 pb-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-b border-white/10">
         <div className="flex items-center gap-4 mb-12">
           <div className="h-[2px] w-12 bg-[#D4AF37]"></div>
           <h2 className="text-[#D4AF37] font-bold tracking-widest uppercase text-sm">Our Network</h2>
+          <div className="h-[2px] w-12 bg-[#D4AF37]"></div>
         </div>
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className="order-2 md:order-1 grid grid-cols-2 gap-6">
@@ -198,61 +201,81 @@ const AboutUs = () => {
       </section>
 
       {/* 4. Contact Us Section */}
-      <section id="contact-us" className="pt-24 pb-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <section id="contact-us" className="pt-12 pb-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="flex items-center gap-4 mb-12 justify-center">
           <div className="h-[2px] w-12 bg-[#D4AF37]"></div>
           <h2 className="text-[#D4AF37] font-bold tracking-widest uppercase text-sm">Get in Touch</h2>
           <div className="h-[2px] w-12 bg-[#D4AF37]"></div>
         </div>
         
-        <div className="bg-[#111827] border border-white/10 rounded-2xl p-8 md:p-12 shadow-[0_0_40px_rgba(0,0,0,0.5)]">
-          <div className="grid md:grid-cols-5 gap-12">
-            <div className="md:col-span-2">
-              <h3 className="text-3xl font-bold text-white mb-6">Let's Secure Your Future</h3>
-              <p className="text-gray-400 mb-8">Whether you're looking for enterprise security solutions, expert consulting, or world-class training, our team is ready to assist you.</p>
+        <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
+          
+          {/* Left Block: Contact Information */}
+          <div className="bg-[#111827] border border-white/10 rounded-2xl p-8 md:p-10 shadow-[0_0_40px_rgba(0,0,0,0.5)] h-full flex flex-col">
+              <h3 className="text-2xl font-bold text-white mb-4">Contact Information</h3>
+              <div className="w-full h-[1px] bg-white/10 mb-8"></div>
               
-              <div className="space-y-6">
+              <div className="space-y-8 flex-grow">
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-[#D4AF37]/10 flex items-center justify-center shrink-0">
-                    <MapPin className="text-[#D4AF37]" size={20} />
+                  <div className="w-12 h-12 rounded-full bg-[#D4AF37]/10 flex items-center justify-center shrink-0">
+                    <MapPin className="text-[#D4AF37]" size={24} />
                   </div>
                   <div>
-                    <h4 className="text-white font-bold mb-1">Headquarters</h4>
+                    <h4 className="text-white font-bold mb-1">Location</h4>
                     <p className="text-gray-400 text-sm">Kigali, Rwanda<br/>Cybersecurity Hub, Silicon Avenue</p>
                   </div>
                 </div>
                 
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-[#D4AF37]/10 flex items-center justify-center shrink-0">
-                    <Phone className="text-[#D4AF37]" size={20} />
+                  <div className="w-12 h-12 rounded-full bg-[#D4AF37]/10 flex items-center justify-center shrink-0">
+                    <Phone className="text-[#D4AF37]" size={24} />
                   </div>
                   <div>
-                    <h4 className="text-white font-bold mb-1">Phone</h4>
+                    <h4 className="text-white font-bold mb-1">Phone Number</h4>
                     <p className="text-gray-400 text-sm">+250791756434</p>
+                    <p className="text-gray-500 text-xs mt-1">24/7 Support</p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-[#D4AF37]/10 flex items-center justify-center shrink-0">
-                    <Mail className="text-[#D4AF37]" size={20} />
+                  <div className="w-12 h-12 rounded-full bg-[#D4AF37]/10 flex items-center justify-center shrink-0">
+                    <Mail className="text-[#D4AF37]" size={24} />
                   </div>
                   <div>
-                    <h4 className="text-white font-bold mb-1">Email</h4>
+                    <h4 className="text-white font-bold mb-1">Email Address</h4>
                     <p className="text-gray-400 text-sm">trusteraccademic@gmail.com</p>
                   </div>
                 </div>
               </div>
-            </div>
+              
+              {/* Map */}
+              <div className="mt-8 rounded-xl overflow-hidden border border-white/10 h-48 sm:h-56 shrink-0">
+                <iframe 
+                  src="https://maps.google.com/maps?q=-1.9564633,30.1158998&t=&z=15&ie=UTF8&iwloc=&output=embed" 
+                  width="100%" 
+                  height="100%" 
+                  style={{ border: 0 }} 
+                  allowFullScreen="" 
+                  loading="lazy" 
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Location Map"
+                ></iframe>
+              </div>
+          </div>
             
-            <div className="md:col-span-3">
+          {/* Right Block: Direct Message */}
+          <div className="bg-[#111827] border border-white/10 rounded-2xl p-8 md:p-10 shadow-[0_0_40px_rgba(0,0,0,0.5)] h-full">
+              <h3 className="text-2xl font-bold text-white mb-2">Send a Direct Message</h3>
+              <p className="text-gray-400 text-sm mb-8">Fill out the form below and we will get back to you as soon as possible.</p>
+
               <form className="space-y-6" onSubmit={handleContactSubmit}>
                 {formStatus.success && (
-                  <div className="bg-emerald-500/10 border border-emerald-500/50 text-emerald-400 p-4 rounded-lg">
+                  <div className="bg-emerald-500/10 border border-emerald-500/50 text-emerald-400 p-4 rounded-lg text-sm">
                     Message sent successfully! We will get back to you soon.
                   </div>
                 )}
                 {formStatus.error && (
-                  <div className="bg-red-500/10 border border-red-500/50 text-red-400 p-4 rounded-lg">
+                  <div className="bg-red-500/10 border border-red-500/50 text-red-400 p-4 rounded-lg text-sm">
                     {formStatus.error}
                   </div>
                 )}
@@ -271,17 +294,27 @@ const AboutUs = () => {
                   <input type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full bg-[#030712] border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#D4AF37] transition-colors" placeholder="john@example.com" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">Message</label>
-                  <textarea name="message" value={formData.message} onChange={handleInputChange} rows="4" className="w-full bg-[#030712] border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#D4AF37] transition-colors resize-none" placeholder="How can we help you?"></textarea>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">Subject</label>
+                  <input type="text" name="subject" value={formData.subject} onChange={handleInputChange} className="w-full bg-[#030712] border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#D4AF37] transition-colors" placeholder="How can we help?" />
                 </div>
-                <button type="submit" disabled={formStatus.loading} className="bg-[#D4AF37] hover:bg-[#c29e2f] disabled:opacity-50 flex items-center justify-center gap-2 text-black font-bold py-3 px-8 rounded-lg transition-colors w-full sm:w-auto">
-                  {formStatus.loading && <Loader2 className="animate-spin" size={18} />}
-                  {formStatus.loading ? 'Sending...' : 'Send Message'}
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">Message</label>
+                  <textarea name="message" value={formData.message} onChange={handleInputChange} rows="4" className="w-full bg-[#030712] border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#D4AF37] transition-colors resize-none" placeholder="Write your message here..."></textarea>
+                </div>
+                <button type="submit" disabled={formStatus.loading} className="bg-[#D4AF37] hover:bg-[#c29e2f] disabled:opacity-50 flex items-center justify-center gap-2 text-black font-bold py-3 px-8 rounded-lg transition-colors w-full mt-4">
+                  {formStatus.loading ? (
+                    <>
+                      <Loader2 className="animate-spin" size={18} /> Sending...
+                    </>
+                  ) : (
+                    <>
+                      Send Message <Send size={18} className="ml-1" />
+                    </>
+                  )}
                 </button>
               </form>
             </div>
           </div>
-        </div>
       </section>
 
     </div>
