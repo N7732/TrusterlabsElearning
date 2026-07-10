@@ -89,9 +89,6 @@ const LearnerTrainingDetail = () => {
     );
   }
 
-    );
-  }
-
   const currentParticipant = training.participants?.find(p => p.participant === user?.id);
   const isAdmitted = currentParticipant?.admission_status === 'ADMITTED';
 
