@@ -29,7 +29,7 @@ const CourseTraining = () => {
     additional_info: ''
   });
   const [customLoading, setCustomLoading] = useState(false);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
