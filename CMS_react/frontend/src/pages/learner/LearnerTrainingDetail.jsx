@@ -184,7 +184,10 @@ const LearnerTrainingDetail = () => {
                     )}
                   </div>
 
-                  <p className="text-slate-600 text-sm mb-6 whitespace-pre-wrap">{cw.description}</p>
+                  <div 
+                    className="prose prose-sm prose-slate max-w-none text-slate-600 mb-6" 
+                    dangerouslySetInnerHTML={{ __html: cw.description }}
+                  ></div>
 
                   <div className="bg-[#F8F9FA] rounded-lg p-4 border border-slate-100">
                     <h4 className="text-sm font-bold text-slate-800 mb-3">Submit Your Work</h4>
