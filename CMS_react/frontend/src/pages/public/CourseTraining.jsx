@@ -180,7 +180,7 @@ const CourseTraining = () => {
 
       {/* Application Modal */}
       {applicationModalOpen && selectedTraining && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[999] p-4">
           <div className="bg-[#111827] rounded-xl shadow-xl max-w-md w-full border border-white/10 flex flex-col overflow-hidden relative">
             <button onClick={() => setApplicationModalOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
             
