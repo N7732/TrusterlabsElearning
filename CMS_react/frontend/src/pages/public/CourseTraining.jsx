@@ -18,6 +18,17 @@ const CourseTraining = () => {
     application_email: ''
   });
   
+  const [customTrainingModalOpen, setCustomTrainingModalOpen] = useState(false);
+  const [customFormData, setCustomFormData] = useState({
+    full_name: '',
+    email: '',
+    phone_number: '',
+    training_type: 'Professional Training',
+    college: '',
+    learning_fields: '',
+    additional_info: ''
+  });
+  const [customLoading, setCustomLoading] = useState(false);
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -60,6 +71,30 @@ const CourseTraining = () => {
       setApplicationModalOpen(false);
     } finally {
       setEnrollLoading(null);
+    }
+  };
+
+  const handleCustomApply = async (e) => {
+    e.preventDefault();
+    setCustomLoading(true);
+    setMessage({ text: '', type: '' });
+    try {
+      await apiClient.post(`/training/custom-requests/`, customFormData);
+      setMessage({ text: 'Custom training request submitted successfully! We will contact you soon.', type: 'success' });
+      setCustomTrainingModalOpen(false);
+      setCustomFormData({
+        full_name: '',
+        email: '',
+        phone_number: '',
+        training_type: 'Professional Training',
+        college: '',
+        learning_fields: '',
+        additional_info: ''
+      });
+    } catch (error) {
+      setMessage({ text: error.message || 'Failed to submit request.', type: 'error' });
+    } finally {
+      setCustomLoading(false);
     }
   };
 
@@ -220,9 +255,12 @@ const CourseTraining = () => {
         
         {/* Contact CTA */}
         <div className="mt-16 bg-[#0a1930] border border-[#D4AF37]/20 rounded-xl p-8 text-center max-w-3xl mx-auto">
-          <h4 className="text-xl font-bold text-white mb-3">Looking for Corporate Training?</h4>
-          <p className="text-gray-400 mb-6 text-sm">We provide customized training sessions tailored to your organization's specific tech stack and compliance requirements.</p>
-          <button className="border border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37]/10 font-bold py-2.5 px-6 rounded-lg transition-colors">
+          <h4 className="text-xl font-bold text-white mb-3">Looking for Corporate Training or Internships?</h4>
+          <p className="text-gray-400 mb-6 text-sm">We provide customized training sessions and academic internships tailored to your specific requirements.</p>
+          <button 
+            onClick={() => setCustomTrainingModalOpen(true)}
+            className="border border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37]/10 font-bold py-2.5 px-6 rounded-lg transition-colors"
+          >
             Request Custom Training
           </button>
         </div>
@@ -288,6 +326,121 @@ const CourseTraining = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Training Application Modal */}
+      {customTrainingModalOpen && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[999] p-4">
+          <div className="bg-[#111827] rounded-xl shadow-xl max-w-md w-full border border-white/10 flex flex-col overflow-hidden relative max-h-[90vh]">
+            <button onClick={() => setCustomTrainingModalOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl leading-none z-10">&times;</button>
+            
+            <div className="p-6 border-b border-white/10 shrink-0">
+              <h2 className="text-xl font-bold text-white mb-2">Request Custom Training</h2>
+              <p className="text-gray-400 text-sm">Fill out the form below and our team will get back to you.</p>
+            </div>
+            
+            <div className="overflow-y-auto p-6">
+              <form onSubmit={handleCustomApply} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-bold text-gray-400 mb-1">Full Name</label>
+                  <input 
+                    type="text" 
+                    required
+                    className="w-full bg-[#030712] border border-white/10 rounded-md p-2.5 text-white focus:border-[#D4AF37] focus:outline-none"
+                    value={customFormData.full_name}
+                    onChange={(e) => setCustomFormData({...customFormData, full_name: e.target.value})}
+                    placeholder="John Doe"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-bold text-gray-400 mb-1">Email Address</label>
+                  <input 
+                    type="email" 
+                    required
+                    className="w-full bg-[#030712] border border-white/10 rounded-md p-2.5 text-white focus:border-[#D4AF37] focus:outline-none"
+                    value={customFormData.email}
+                    onChange={(e) => setCustomFormData({...customFormData, email: e.target.value})}
+                    placeholder="john@example.com"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-gray-400 mb-1">Phone Number</label>
+                  <input 
+                    type="tel" 
+                    required
+                    className="w-full bg-[#030712] border border-white/10 rounded-md p-2.5 text-white focus:border-[#D4AF37] focus:outline-none"
+                    value={customFormData.phone_number}
+                    onChange={(e) => setCustomFormData({...customFormData, phone_number: e.target.value})}
+                    placeholder="+1 (555) 000-0000"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-gray-400 mb-1">Request Type</label>
+                  <select
+                    className="w-full bg-[#030712] border border-white/10 rounded-md p-2.5 text-white focus:border-[#D4AF37] focus:outline-none"
+                    value={customFormData.training_type}
+                    onChange={(e) => setCustomFormData({...customFormData, training_type: e.target.value})}
+                  >
+                    <option value="Professional Training">Professional Training</option>
+                    <option value="Academic Internship">Academic Internship</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                {customFormData.training_type === 'Academic Internship' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-400 mb-1">College/University</label>
+                      <input 
+                        type="text" 
+                        required
+                        className="w-full bg-[#030712] border border-white/10 rounded-md p-2.5 text-white focus:border-[#D4AF37] focus:outline-none"
+                        value={customFormData.college}
+                        onChange={(e) => setCustomFormData({...customFormData, college: e.target.value})}
+                        placeholder="Your University"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-400 mb-1">Learning Fields / Major</label>
+                      <input 
+                        type="text" 
+                        required
+                        className="w-full bg-[#030712] border border-white/10 rounded-md p-2.5 text-white focus:border-[#D4AF37] focus:outline-none"
+                        value={customFormData.learning_fields}
+                        onChange={(e) => setCustomFormData({...customFormData, learning_fields: e.target.value})}
+                        placeholder="E.g. Computer Science, Cybersecurity"
+                      />
+                    </div>
+                  </>
+                )}
+
+                <div>
+                  <label className="block text-sm font-bold text-gray-400 mb-1">Additional Information (Optional)</label>
+                  <textarea 
+                    className="w-full bg-[#030712] border border-white/10 rounded-md p-2.5 text-white focus:border-[#D4AF37] focus:outline-none min-h-[100px]"
+                    value={customFormData.additional_info}
+                    onChange={(e) => setCustomFormData({...customFormData, additional_info: e.target.value})}
+                    placeholder="Tell us more about your requirements..."
+                  />
+                </div>
+
+                <div className="pt-4">
+                  <button 
+                    type="submit"
+                    disabled={customLoading}
+                    className="w-full bg-[#D4AF37] hover:bg-[#c29e2f] text-black font-bold py-3 px-6 rounded-lg transition-colors flex justify-center items-center gap-2"
+                  >
+                    {customLoading ? <Loader2 className="animate-spin" size={16} /> : null}
+                    Submit Request
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}

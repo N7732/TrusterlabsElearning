@@ -12,7 +12,8 @@ from .models import (
     TrainingClasswork,
     TrainingClassworkSubmission,
     TrainingFinalExam,
-    TrainingFinalExamSubmission
+    TrainingFinalExamSubmission,
+    CustomTrainingRequest
 )
 # pyrefly: ignore [missing-import]
 from .serializers import (
@@ -21,7 +22,8 @@ from .serializers import (
     TrainingClassworkSerializer,
     TrainingClassworkSubmissionSerializer,
     TrainingFinalExamSerializer,
-    TrainingFinalExamSubmissionSerializer
+    TrainingFinalExamSubmissionSerializer,
+    CustomTrainingRequestSerializer
 )
 
 class TrainingViewSet(viewsets.ModelViewSet):
@@ -271,3 +273,12 @@ class TrainingFinalExamViewSet(viewsets.ModelViewSet):
         
         serializer = TrainingFinalExamSubmissionSerializer(submission)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+class CustomTrainingRequestViewSet(viewsets.ModelViewSet):
+    queryset = CustomTrainingRequest.objects.all().order_by('-created_at')
+    serializer_class = CustomTrainingRequestSerializer
+
+    def get_permissions(self):
+        if self.action == 'create':
+            return [AllowAny()]
+        return [IsAdminUser()]

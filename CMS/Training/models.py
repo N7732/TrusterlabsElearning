@@ -85,3 +85,30 @@ class TrainingFinalExamSubmission(models.Model):
 
     def __str__(self):
         return f"{self.participant.get_full_name()} - {self.exam.title}"
+
+class CustomTrainingRequest(models.Model):
+    STATUS_CHOICES = (
+        ('PENDING', 'Pending'),
+        ('REVIEWED', 'Reviewed'),
+        ('APPROVED', 'Approved'),
+        ('REJECTED', 'Rejected'),
+    )
+    
+    TRAINING_TYPE_CHOICES = (
+        ('Professional Training', 'Professional Training'),
+        ('Academic Internship', 'Academic Internship'),
+        ('Other', 'Other'),
+    )
+
+    full_name = models.CharField(max_length=255)
+    email = models.EmailField()
+    phone_number = models.CharField(max_length=20)
+    training_type = models.CharField(max_length=50, choices=TRAINING_TYPE_CHOICES)
+    college = models.CharField(max_length=255, null=True, blank=True)
+    learning_fields = models.TextField(null=True, blank=True)
+    additional_info = models.TextField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.full_name} - {self.training_type} ({self.status})"

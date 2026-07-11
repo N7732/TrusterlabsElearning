@@ -6,7 +6,8 @@ from .models import (
     TrainingClasswork,
     TrainingClassworkSubmission,
     TrainingFinalExam,
-    TrainingFinalExamSubmission
+    TrainingFinalExamSubmission,
+    CustomTrainingRequest
 )
 from Auth.serializer import UserSerializer
 from Course.serializer import CourseSerializer
@@ -70,3 +71,8 @@ class TrainingSerializer(serializers.ModelSerializer):
             'date_created', 'date_updated', 'courses', 'participants',
             'classworks', 'final_exams'
         ]
+
+class CustomTrainingRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomTrainingRequest
+        fields = '__all__'

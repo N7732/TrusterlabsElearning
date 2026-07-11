@@ -115,13 +115,22 @@ const AdminEntityList = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold text-slate-800">Manage {config.label}</h2>
-        {config.canCreate && (
-          <Link to={`/admin/${entityKey}/new`}>
-            <Button className="bg-[#3E8E41] hover:bg-[#317033]">
-              <Plus size={18} className="mr-2" /> Add New
-            </Button>
-          </Link>
-        )}
+        <div className="flex gap-2 flex-wrap">
+          {entityKey === 'trainings' && (
+            <Link to={`/admin/custom-training-requests`}>
+              <Button className="bg-[#0A66C2] hover:bg-blue-700">
+                Custom Requests
+              </Button>
+            </Link>
+          )}
+          {config.canCreate && (
+            <Link to={`/admin/${entityKey}/new`}>
+              <Button className="bg-[#3E8E41] hover:bg-[#317033]">
+                <Plus size={18} className="mr-2" /> Add New
+              </Button>
+            </Link>
+          )}
+        </div>
       </div>
 
       <Card>
