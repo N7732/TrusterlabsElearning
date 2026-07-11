@@ -45,7 +45,7 @@ const LearnerDashboard = () => {
             onClick={() => setActiveTab('courses')}
             className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${
               activeTab === 'courses' 
-                ? 'border-[#77C159] text-[#77C159]' 
+                ? 'border-[#0A66C2] text-[#0A66C2]' 
                 : 'border-transparent text-slate-500 hover:text-slate-700'
             }`}
           >
@@ -55,7 +55,7 @@ const LearnerDashboard = () => {
             onClick={() => setActiveTab('trainings')}
             className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${
               activeTab === 'trainings' 
-                ? 'border-[#77C159] text-[#77C159]' 
+                ? 'border-[#0A66C2] text-[#0A66C2]' 
                 : 'border-transparent text-slate-500 hover:text-slate-700'
             }`}
           >
@@ -71,7 +71,7 @@ const LearnerDashboard = () => {
 
         {loading ? (
           <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#77C159]"></div>
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0A66C2]"></div>
           </div>
         ) : activeTab === 'courses' ? (
           enrollments.length === 0 ? (
@@ -81,7 +81,7 @@ const LearnerDashboard = () => {
               <p className="text-slate-500 max-w-md mx-auto mb-6">
                 Browse our catalog to find a course that interests you.
               </p>
-              <Link to="/courses" className="inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-[#77C159] hover:bg-[#68AA4E]">
+              <Link to="/courses" className="inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-[#0A66C2] hover:bg-[#004182]">
                 Explore Courses
               </Link>
             </div>
@@ -95,7 +95,7 @@ const LearnerDashboard = () => {
                 
                 return (
                   <Link to={isPending ? '#' : `/course/${course.id}`} key={enrollment.id} className="block group">
-                    <div className={`bg-[#F8F9FA] border border-slate-200 rounded-sm overflow-hidden flex flex-col h-full hover:shadow-md transition-shadow relative border-b-2 ${isPending ? 'border-b-amber-500' : 'border-b-[#77C159]'}`}>
+                    <div className={`bg-[#F8F9FA] border border-slate-200 rounded-sm overflow-hidden flex flex-col h-full hover:shadow-md transition-shadow relative border-b-2 ${isPending ? 'border-b-amber-500' : 'border-b-[#0A66C2]'}`}>
                       
                       <div className="relative h-44 w-full bg-slate-300 overflow-hidden">
                         <img 
@@ -106,17 +106,11 @@ const LearnerDashboard = () => {
                         />
                         <div className="absolute inset-0 bg-black/20"></div>
                         
-                        <div className={`absolute top-3 left-3 text-slate-900 text-[10px] font-bold px-2 py-1 uppercase tracking-wider rounded-sm ${isPending ? 'bg-amber-500' : 'bg-[#77C159]'}`}>
+                        <div className={`absolute top-3 left-3 text-slate-900 text-[10px] font-bold px-2 py-1 uppercase tracking-wider rounded-sm ${isPending ? 'bg-amber-500' : 'bg-[#0A66C2]'}`}>
                           {isPending ? 'PENDING APPROVAL' : 'ENROLLED'}
                         </div>
     
-                        {!isPending && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-12 h-12 rounded-full border-2 border-white flex items-center justify-center bg-black/20 backdrop-blur-sm">
-                              <Play className="w-5 h-5 text-white ml-1 fill-white" />
-                            </div>
-                          </div>
-                        )}
+
                       </div>
                       
                       <div className="p-4 flex flex-col flex-grow">
@@ -138,7 +132,7 @@ const LearnerDashboard = () => {
                             <span>Progress: {enrollment.progress}%</span>
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-1.5">
-                            <div className="bg-[#77C159] h-1.5 rounded-full" style={{ width: `${enrollment.progress}%` }}></div>
+                            <div className="bg-[#0A66C2] h-1.5 rounded-full" style={{ width: `${enrollment.progress}%` }}></div>
                           </div>
                         </div>
                       </div>
@@ -157,7 +151,7 @@ const LearnerDashboard = () => {
               <p className="text-slate-500 max-w-md mx-auto mb-6">
                 Explore our instructor-led training sessions.
               </p>
-              <Link to="/training" className="inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-[#77C159] hover:bg-[#68AA4E]">
+              <Link to="/training" className="inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-[#0A66C2] hover:bg-[#004182]">
                 View Trainings
               </Link>
             </div>
