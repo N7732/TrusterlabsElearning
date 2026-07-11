@@ -92,7 +92,23 @@ const CourseTraining = () => {
             <p className="text-gray-400 text-sm">Enrollment is currently open for the following cohorts.</p>
           </div>
           <div className="hidden sm:block">
-            <span className="text-[#D4AF37] text-sm font-semibold flex items-center gap-2 cursor-pointer hover:text-white transition-colors">
+            <span 
+              onClick={() => {
+                if (!isAuthenticated) {
+                  navigate('/login', { state: { from: location.pathname } });
+                  return;
+                }
+                const isAdmittedToAny = sessions.some(session => 
+                  session.participants?.some(p => p.participant === user?.id && p.admission_status === 'ADMITTED')
+                );
+                if (isAdmittedToAny) {
+                  navigate('/learner/dashboard');
+                } else {
+                  setMessage({ text: 'You must be admitted to a training session to view your courses.', type: 'error' });
+                }
+              }}
+              className="text-[#D4AF37] text-sm font-semibold flex items-center gap-2 cursor-pointer hover:text-white transition-colors"
+            >
               View All Courses <ArrowRight size={16} />
             </span>
           </div>
