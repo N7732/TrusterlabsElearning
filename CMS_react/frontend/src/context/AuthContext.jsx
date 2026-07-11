@@ -22,6 +22,7 @@ export const AuthProvider = ({ children }) => {
       const data = await apiClient.get('/auth/api/auth/profile/');
       setUser(data);
       localStorage.setItem('truster_lab_user', JSON.stringify(data));
+      return data;
     } catch (error) {
       console.error('Failed to fetch profile:', error);
       logout();
@@ -34,7 +35,7 @@ export const AuthProvider = ({ children }) => {
     const data = await apiClient.post('/auth/api/auth/login/', credentials);
     localStorage.setItem('truster_lab_token', data.access);
     localStorage.setItem('truster_lab_refresh', data.refresh);
-    await fetchProfile();
+    return await fetchProfile();
   };
 
   const registerLearner = async (userData) => {

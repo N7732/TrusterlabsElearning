@@ -43,8 +43,19 @@ const AuthPage = () => {
     setError('');
     setLoading(true);
     try {
-      await login({ username: loginEmail, password: loginPassword });
-      navigate(from, { replace: true });
+      const userData = await login({ username: loginEmail, password: loginPassword });
+      
+      let redirectPath = from;
+      if (from === '/' || from === '/login') {
+        if (userData?.is_superuser || userData?.user_type === 'admin') {
+          redirectPath = '/admin/dashboard';
+        } else if (userData?.user_type === 'instructor') {
+          redirectPath = '/instructor';
+        } else {
+          redirectPath = '/learner/dashboard';
+        }
+      }
+      navigate(redirectPath, { replace: true });
     } catch (err) {
       setError(err.message || 'Invalid email or password');
     } finally {
