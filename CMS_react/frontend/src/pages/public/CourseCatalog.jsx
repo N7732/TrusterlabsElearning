@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { apiClient, getImageUrl } from '../../api/apiClient';
-import { Search, Filter, Play, Building2, BookOpen, Clock, MoreVertical } from 'lucide-react';
+import { Search, Filter, Building2, BookOpen, Clock, MoreVertical } from 'lucide-react';
 import image3 from '../../assets/image3.png';
 
 const CourseCatalog = () => {
@@ -114,12 +114,7 @@ const CourseCatalog = () => {
                       {course.level || 'BEGINNER'}
                     </div>
 
-                    {/* Play Button Overlay */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="w-14 h-14 rounded-full border-2 border-[#D4AF37] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-                        <Play className="w-6 h-6 text-[#D4AF37] ml-1 fill-[#D4AF37]" />
-                      </div>
-                    </div>
+
                   </div>
                   
                   {/* Content Body */}
