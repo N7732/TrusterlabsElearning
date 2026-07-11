@@ -32,6 +32,47 @@ const CoursePlayer = () => {
   const [quizResult, setQuizResult] = useState(null);
   const [submittingQuiz, setSubmittingQuiz] = useState(false);
 
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isTranslatorOpen, setIsTranslatorOpen] = useState(false);
+
+  const toggleFullScreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => console.log(err));
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  };
+
+  const toggleSpeech = () => {
+    if ('speechSynthesis' in window) {
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+      } else {
+        const textToRead = document.querySelector('.prose-container')?.innerText || activeLesson?.description || activeLesson?.title || "No content to read.";
+        const utterance = new SpeechSynthesisUtterance(textToRead);
+        window.speechSynthesis.speak(utterance);
+      }
+    } else {
+      alert("Text-to-speech is not supported in this browser.");
+    }
+  };
+
+  const toggleTranslator = () => {
+    setIsTranslatorOpen(!isTranslatorOpen);
+    if (!window.googleTranslateElementInit && !document.getElementById('google-translate-script')) {
+      window.googleTranslateElementInit = () => {
+        new window.google.translate.TranslateElement({ pageLanguage: 'en' }, 'google_translate_element');
+      };
+      const script = document.createElement('script');
+      script.id = 'google-translate-script';
+      script.src = "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  };
+
   useEffect(() => {
     if (courseId) {
       const stored = localStorage.getItem(`course_progress_${courseId}`);
@@ -199,7 +240,7 @@ const CoursePlayer = () => {
   if (loading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-[#F9F9F9]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#5CC85C]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3b82f6]"></div>
       </div>
     );
   }
@@ -260,7 +301,7 @@ const CoursePlayer = () => {
               {isFree && (
                 <button 
                   onClick={() => isAuthenticated ? enrollUser() : navigate('/login')}
-                  className="w-full py-4 bg-[#3E8E41] hover:bg-[#317033] text-white rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all"
+                  className="w-full py-4 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all"
                 >
                   Enroll Now for Free
                 </button>
@@ -292,10 +333,10 @@ const CoursePlayer = () => {
   }
 
   return (
-    <div className="flex h-screen w-full bg-white font-sans overflow-hidden text-slate-800">
+    <div className={`flex h-screen w-full font-sans overflow-hidden ${isDarkMode ? 'bg-slate-900 text-slate-200' : 'bg-white text-slate-800'}`}>
       
       {/* LEFT SIDEBAR */}
-      <div className="w-[320px] flex-shrink-0 border-r border-slate-200 flex flex-col h-full bg-white relative z-20">
+      <div className={`w-[320px] flex-shrink-0 border-r flex flex-col h-full relative z-20 ${isDarkMode ? 'border-slate-800 bg-slate-900' : 'border-slate-200 bg-white'}`}>
         
         {/* Back Button / Header */}
         <div className="h-14 flex items-center px-4 border-b border-slate-800 bg-slate-900 text-white shrink-0">
@@ -311,16 +352,16 @@ const CoursePlayer = () => {
 
         
         {/* Tabs */}
-        <div className="flex border-b border-slate-200 h-14 shrink-0">
+        <div className={`flex border-b h-14 shrink-0 ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}>
           <button 
-            className={`flex-1 flex items-center justify-center gap-2 font-semibold text-[13px] ${activeTab === 'outline' ? 'text-[#3E8E41] border-b-2 border-[#3E8E41]' : 'text-slate-600 hover:text-slate-900'}`}
+            className={`flex-1 flex items-center justify-center gap-2 font-semibold text-[13px] ${activeTab === 'outline' ? 'text-[#2563eb] border-b-2 border-[#2563eb]' : 'text-slate-600 hover:text-slate-900'}`}
             onClick={() => setActiveTab('outline')}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
             Course Outline
           </button>
           <button 
-            className={`flex-1 flex items-center justify-center gap-2 font-semibold text-[13px] ${activeTab === 'resources' ? 'text-[#3E8E41] border-b-2 border-[#3E8E41]' : 'text-slate-600 hover:text-slate-900'}`}
+            className={`flex-1 flex items-center justify-center gap-2 font-semibold text-[13px] ${activeTab === 'resources' ? 'text-[#2563eb] border-b-2 border-[#2563eb]' : 'text-slate-600 hover:text-slate-900'}`}
             onClick={() => setActiveTab('resources')}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
@@ -337,7 +378,7 @@ const CoursePlayer = () => {
                   <input 
                     type="text" 
                     placeholder="Search course outline" 
-                    className="w-full border border-slate-200 rounded text-sm py-2 pl-3 pr-8 focus:outline-none focus:border-[#3E8E41]"
+                    className="w-full border border-slate-200 rounded text-sm py-2 pl-3 pr-8 focus:outline-none focus:border-[#2563eb]"
                   />
                   <Search className="w-4 h-4 text-slate-400 absolute right-3 top-2.5" />
                 </div>
@@ -346,7 +387,7 @@ const CoursePlayer = () => {
                 <div className="mt-6 flex items-center gap-3">
                   <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-[#5CC85C] transition-all duration-500 ease-in-out" 
+                      className="h-full bg-[#3b82f6] transition-all duration-500 ease-in-out" 
                       style={{ width: `${modules.reduce((acc, mod) => acc + (mod.lessons?.length || 0), 0) === 0 ? 0 : Math.round((completedLessons.length / modules.reduce((acc, mod) => acc + (mod.lessons?.length || 0), 0)) * 100)}%` }}
                     ></div>
                   </div>
@@ -362,14 +403,14 @@ const CoursePlayer = () => {
                   <div key={module.id} className="border-b border-slate-100">
                     {/* Module Header */}
                     <div 
-                      className={`p-4 cursor-pointer flex flex-col gap-3 transition-colors ${module.isOpen ? 'bg-[#F2FAF2]' : 'hover:bg-slate-50'}`}
+                      className={`p-4 cursor-pointer flex flex-col gap-3 transition-colors ${module.isOpen ? 'bg-[#f0f9ff]' : 'hover:bg-slate-50'}`}
                       onClick={() => toggleModule(module.id)}
                     >
                       <div className="flex justify-between items-start gap-2">
                         <h3 className="font-bold text-[13px] leading-snug text-slate-800">
                           {module.title}
                         </h3>
-                        <div className={`w-6 h-6 rounded flex items-center justify-center shrink-0 ${module.isOpen ? 'bg-[#5CC85C] text-white' : 'bg-[#EBF7EB] text-[#3E8E41]'}`}>
+                        <div className={`w-6 h-6 rounded flex items-center justify-center shrink-0 ${module.isOpen ? 'bg-[#3b82f6] text-white' : 'bg-[#eff6ff] text-[#2563eb]'}`}>
                           {module.isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                         </div>
                       </div>
@@ -378,7 +419,7 @@ const CoursePlayer = () => {
                       <div className="flex items-center gap-3">
                         <div className="flex-1 h-1 bg-slate-200 rounded-full overflow-hidden">
                           <div 
-                            className="h-full bg-[#5CC85C] transition-all duration-500 ease-in-out" 
+                            className="h-full bg-[#3b82f6] transition-all duration-500 ease-in-out" 
                             style={{ width: `${(module.lessons?.length || 0) === 0 ? 0 : Math.round(((module.lessons?.filter(l => completedLessons.includes(l.id)).length || 0) / (module.lessons?.length || 0)) * 100)}%` }}
                           ></div>
                         </div>
@@ -397,11 +438,11 @@ const CoursePlayer = () => {
                             <div 
                               key={lesson.id} 
                               onClick={() => selectLesson(lesson)}
-                              className={`px-4 py-3 flex items-start gap-3 border-l-4 cursor-pointer ${isActive ? 'border-[#5CC85C] bg-[#EBF7EB]' : 'border-transparent hover:bg-slate-50'}`}
+                              className={`px-4 py-3 flex items-start gap-3 border-l-4 cursor-pointer ${isActive ? 'border-[#3b82f6] bg-[#eff6ff]' : 'border-transparent hover:bg-slate-50'}`}
                             >
                               <div className="mt-0.5 shrink-0">
                                 {completedLessons.includes(lesson.id) ? (
-                                  <CheckCircle className="w-[18px] h-[18px] text-[#5CC85C]" />
+                                  <CheckCircle className="w-[18px] h-[18px] text-[#3b82f6]" />
                                 ) : (
                                   <div className="w-[18px] h-[18px] rounded-full border-2 border-slate-300"></div>
                                 )}
@@ -500,7 +541,7 @@ const CoursePlayer = () => {
                       rel="noopener noreferrer"
                       className="flex items-center gap-3 p-3 border border-slate-200 rounded hover:bg-slate-50 transition-colors"
                     >
-                      <div className="bg-[#EBF7EB] text-[#3E8E41] p-2 rounded">
+                      <div className="bg-[#eff6ff] text-[#2563eb] p-2 rounded">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                       </div>
                       <span className="text-sm font-medium text-slate-700 truncate">{res.title}</span>
@@ -516,10 +557,10 @@ const CoursePlayer = () => {
       </div>
 
       {/* MAIN CONTENT */}
-      <div className="flex-1 flex flex-col h-full bg-[#F9F9F9] relative z-10 overflow-hidden">
+      <div className={`flex-1 flex flex-col h-full relative z-10 overflow-hidden ${isDarkMode ? 'bg-slate-800' : 'bg-[#F9F9F9]'}`}>
         
         {/* Top Header */}
-        <div className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 shrink-0 shadow-sm z-20">
+        <div className={`h-14 border-b flex items-center justify-between px-4 shrink-0 shadow-sm z-20 relative ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
           <div className="flex items-center gap-3 max-w-[70%]">
             <button className="p-1 hover:bg-slate-100 rounded text-slate-600 shrink-0">
               <Menu className="w-5 h-5" />
@@ -528,15 +569,18 @@ const CoursePlayer = () => {
               {activeLesson ? activeLesson.title : courseData.title}
             </h2>
           </div>
-          <div className="flex items-center gap-2 sm:gap-4 text-slate-600 shrink-0">
-            <button className="p-1.5 hover:bg-slate-100 rounded-full"><Moon className="w-[18px] h-[18px] fill-current" /></button>
-            <div className="hidden sm:block w-px h-4 bg-slate-300 mx-1"></div>
-            <button className="hidden sm:block p-1.5 hover:bg-slate-100 rounded-full"><Search className="w-[18px] h-[18px]" /></button>
-            <button className="hidden sm:flex p-1.5 hover:bg-slate-100 rounded items-center gap-1.5 text-xs font-bold uppercase">
-              <Languages className="w-[18px] h-[18px]" /> EN
-            </button>
-            <button className="p-1.5 hover:bg-slate-100 rounded-full"><Accessibility className="w-[18px] h-[18px]" /></button>
-            <button className="p-1.5 hover:bg-slate-100 rounded-full"><Maximize className="w-[18px] h-[18px]" /></button>
+          <div className={`flex items-center gap-2 sm:gap-4 shrink-0 ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+            <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-1.5 rounded-full ${isDarkMode ? 'hover:bg-slate-800 text-slate-300' : 'hover:bg-slate-100'}`}><Moon className="w-[18px] h-[18px] fill-current" /></button>
+            <div className={`hidden sm:block w-px h-4 mx-1 ${isDarkMode ? 'bg-slate-700' : 'bg-slate-300'}`}></div>
+            <button className={`hidden sm:block p-1.5 rounded-full ${isDarkMode ? 'hover:bg-slate-800 text-slate-300' : 'hover:bg-slate-100'}`}><Search className="w-[18px] h-[18px]" /></button>
+            <div className="relative">
+              <button onClick={toggleTranslator} className={`hidden sm:flex p-1.5 rounded items-center gap-1.5 text-xs font-bold uppercase ${isDarkMode ? 'hover:bg-slate-800 text-slate-300' : 'hover:bg-slate-100'}`}>
+                <Languages className="w-[18px] h-[18px]" /> EN
+              </button>
+              <div id="google_translate_element" className="absolute top-10 right-0 z-50 bg-white p-2 shadow rounded min-w-[150px]" style={{ display: isTranslatorOpen ? 'block' : 'none' }}></div>
+            </div>
+            <button onClick={toggleSpeech} className={`p-1.5 rounded-full ${isDarkMode ? 'hover:bg-slate-800 text-slate-300' : 'hover:bg-slate-100'}`}><Accessibility className="w-[18px] h-[18px]" /></button>
+            <button onClick={toggleFullScreen} className={`p-1.5 rounded-full ${isDarkMode ? 'hover:bg-slate-800 text-slate-300' : 'hover:bg-slate-100'}`}><Maximize className="w-[18px] h-[18px]" /></button>
           </div>
         </div>
 
@@ -549,7 +593,7 @@ const CoursePlayer = () => {
               {prevLesson && (
                 <button 
                   onClick={() => handleNavigate(prevLesson)}
-                  className="fixed left-[320px] top-1/2 -translate-y-1/2 w-8 h-12 bg-white border border-[#5CC85C] border-l-0 rounded-r shadow-sm flex items-center justify-center text-[#5CC85C] z-30 hover:bg-[#F2FAF2] transition-colors cursor-pointer"
+                  className="fixed left-[320px] top-1/2 -translate-y-1/2 w-8 h-12 bg-white border border-[#3b82f6] border-l-0 rounded-r shadow-sm flex items-center justify-center text-[#3b82f6] z-30 hover:bg-[#f0f9ff] transition-colors cursor-pointer"
                 >
                   <ChevronLeft className="w-6 h-6" />
                 </button>
@@ -557,7 +601,7 @@ const CoursePlayer = () => {
               {nextLesson && (
                 <button 
                   onClick={() => handleNavigate(nextLesson)}
-                  className="fixed right-0 top-1/2 -translate-y-1/2 w-8 h-12 bg-white border border-[#5CC85C] border-r-0 rounded-l shadow-sm flex items-center justify-center text-[#5CC85C] z-30 hover:bg-[#F2FAF2] transition-colors cursor-pointer"
+                  className="fixed right-0 top-1/2 -translate-y-1/2 w-8 h-12 bg-white border border-[#3b82f6] border-r-0 rounded-l shadow-sm flex items-center justify-center text-[#3b82f6] z-30 hover:bg-[#f0f9ff] transition-colors cursor-pointer"
                 >
                   <ChevronRight className="w-6 h-6" />
                 </button>
@@ -637,7 +681,7 @@ const CoursePlayer = () => {
 
               {/* Text Content */}
               {activeLesson.max_attempts !== undefined ? (
-                <div className="max-w-4xl mx-auto px-8 sm:px-12 py-16 bg-[#F9F9F9] min-h-[50vh]">
+                <div className={`max-w-4xl mx-auto px-8 sm:px-12 py-16 min-h-[50vh] ${isDarkMode ? 'bg-slate-800' : 'bg-[#F9F9F9]'}`}>
                   {activeLesson.is_locked && !isAdmin ? (
                     <div className="bg-red-50 text-red-600 p-8 rounded-xl border border-red-100 text-center shadow-sm">
                       <h3 className="text-xl font-bold mb-2">Access Denied</h3>
@@ -696,21 +740,21 @@ const CoursePlayer = () => {
                             {activeLesson.questions.map((q, i) => (
                               <div key={q.id} className="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
                                 <h4 className="text-lg font-bold text-slate-800 mb-6 flex justify-between items-start">
-                                  <span><span className="text-[#3E8E41] mr-2">Question {i + 1}.</span> {q.question_text}</span>
+                                  <span><span className="text-[#2563eb] mr-2">Question {i + 1}.</span> {q.question_text}</span>
                                   <span className="text-sm font-bold bg-slate-100 text-slate-500 px-3 py-1 rounded-full whitespace-nowrap">{q.marks || 1} Mark(s)</span>
                                 </h4>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                   {['A', 'B', 'C', 'D'].map(opt => (
-                                    <label key={opt} className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-colors group ${quizAnswers[q.id] === opt ? 'border-[#5CC85C] bg-[#F2FAF2]' : 'border-slate-200 hover:bg-slate-50'}`}>
+                                    <label key={opt} className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-colors group ${quizAnswers[q.id] === opt ? 'border-[#3b82f6] bg-[#f0f9ff]' : 'border-slate-200 hover:bg-slate-50'}`}>
                                       <input 
                                         type="radio" 
                                         name={`question-${q.id}`} 
                                         value={opt} 
                                         checked={quizAnswers[q.id] === opt}
                                         onChange={() => setQuizAnswers(prev => ({ ...prev, [q.id]: opt }))}
-                                        className="mt-1 w-4 h-4 text-[#5CC85C] border-slate-300 focus:ring-[#5CC85C]" 
+                                        className="mt-1 w-4 h-4 text-[#3b82f6] border-slate-300 focus:ring-[#3b82f6]" 
                                       />
-                                      <span className={`font-medium ${quizAnswers[q.id] === opt ? 'text-[#3E8E41]' : 'text-slate-700 group-hover:text-slate-900'}`}>
+                                      <span className={`font-medium ${quizAnswers[q.id] === opt ? 'text-[#2563eb]' : 'text-slate-700 group-hover:text-slate-900'}`}>
                                         {q[`option_${opt.toLowerCase()}`]}
                                       </span>
                                     </label>
@@ -722,7 +766,7 @@ const CoursePlayer = () => {
                               <button 
                                 onClick={handleQuizSubmit}
                                 disabled={submittingQuiz || Object.keys(quizAnswers).length === 0}
-                                className="px-8 py-4 bg-[#3E8E41] disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow hover:bg-[#317033] transition-colors flex items-center gap-2"
+                                className="px-8 py-4 bg-[#2563eb] disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow hover:bg-[#1d4ed8] transition-colors flex items-center gap-2"
                               >
                                 {submittingQuiz ? "Submitting..." : "Submit Quiz"}
                               </button>
@@ -740,8 +784,8 @@ const CoursePlayer = () => {
               ) : (
                 <>
                   {activeLesson.content && (
-                    <div className="max-w-4xl mx-auto px-8 sm:px-12 py-16 bg-[#F9F9F9] min-h-[50vh]">
-                      <h2 className="text-3xl font-extrabold text-slate-900 mb-8">
+                    <div className={`max-w-4xl mx-auto px-8 sm:px-12 py-16 min-h-[50vh] ${isDarkMode ? 'bg-slate-800 text-slate-200' : 'bg-[#F9F9F9] text-slate-900'}`}>
+                      <h2 className={`text-3xl font-extrabold mb-8 ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>
                         {activeLesson.title}
                       </h2>
                       <div className="prose-container">
@@ -755,7 +799,7 @@ const CoursePlayer = () => {
                           }
                         `}</style>
                         <div 
-                          className="prose prose-slate max-w-none text-slate-800 text-[15px] leading-relaxed"
+                          className={`prose max-w-none text-[15px] leading-relaxed ${isDarkMode ? 'prose-invert text-slate-300' : 'prose-slate text-slate-800'}`}
                           dangerouslySetInnerHTML={{ __html: activeLesson.content }}
                         ></div>
                       </div>
@@ -788,7 +832,7 @@ const CoursePlayer = () => {
                       markLessonComplete(activeLesson.id);
                       handleNavigate(nextLesson);
                     }}
-                    className="flex items-center gap-2 px-6 py-3 bg-[#5CC85C] text-white rounded-lg font-semibold hover:bg-[#4BB64B] transition-colors shadow-sm"
+                    className="flex items-center gap-2 px-6 py-3 bg-[#3b82f6] text-white rounded-lg font-semibold hover:bg-[#2563eb] transition-colors shadow-sm"
                   >
                     Complete & Continue
                     <ChevronRight className="w-5 h-5" />
@@ -798,7 +842,7 @@ const CoursePlayer = () => {
                   <button 
                     onClick={() => markLessonComplete(activeLesson.id)}
                     disabled={completedLessons.includes(activeLesson?.id)}
-                    className="flex items-center gap-2 px-6 py-3 bg-[#5CC85C] text-white rounded-lg font-semibold hover:bg-[#4BB64B] transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 px-6 py-3 bg-[#3b82f6] text-white rounded-lg font-semibold hover:bg-[#2563eb] transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {completedLessons.includes(activeLesson?.id) ? 'Course Completed' : 'Finish Course'}
                     <CheckCircle className="w-5 h-5" />
