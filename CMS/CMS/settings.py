@@ -26,10 +26,10 @@ load_dotenv(os.path.join(BASE_DIR, '.env'))
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-zq$+97%!p2ih7t*)yylexlfk18n&wpyee)&mc0a6_6$dkh#z=z'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-zq$+97%!p2ih7t*)yylexlfk18n&wpyee)&mc0a6_6$dkh#z=z')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 
 ALLOWED_HOSTS = [
@@ -77,8 +77,16 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
-    ],  
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/day',
+        'user': '1000/day'
+    }
 }
 
 MIDDLEWARE = [
@@ -193,7 +201,7 @@ LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'Auth:login'
 
 # CORS Config
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOW_ALL_ORIGINS = True (Removed for security)
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://frontend-omega-five-21.vercel.app",

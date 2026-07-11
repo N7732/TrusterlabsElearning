@@ -62,10 +62,13 @@ const AboutUs = () => {
         subject: formData.subject,
         message: formData.message
       });
+      
       setFormStatus({ loading: false, success: true, error: '' });
-      setFormData({ firstName: '', lastName: '', email: '', message: '' });
-    } catch (err) {
-      setFormStatus({ loading: false, success: false, error: 'Failed to send message. Please try again later.' });
+      setFormData({ firstName: '', lastName: '', email: '', subject: '', message: '' });
+      
+    } catch (error) {
+      console.error('Contact Form Error:', error);
+      setFormStatus({ loading: false, success: false, error: error.message || 'Failed to send message. Please try again later.' });
     }
   };
 

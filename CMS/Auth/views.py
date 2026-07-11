@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from .models import Learner, Instructor, User
 from .form import LearnerForm, InstructorForm, AccountProfileForm, LearnerRegistrationForm, LoginForm, InstructorRegistrationForm
 from .serializer import LearnerSerializer, InstructorSerializer, AdminInstructorCreationSerializer
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -17,6 +17,7 @@ class LearnerViewSet(viewsets.ModelViewSet):
     """
     queryset = Learner.objects.all()
     serializer_class = LearnerSerializer
+    permission_classes = [permissions.IsAdminUser]
 
 class InstructorViewSet(viewsets.ModelViewSet):
     """
@@ -24,6 +25,7 @@ class InstructorViewSet(viewsets.ModelViewSet):
     """
     queryset = Instructor.objects.all()
     serializer_class = InstructorSerializer
+    permission_classes = [permissions.IsAdminUser]
 
 def learn_registration(request):
     """
@@ -591,7 +593,7 @@ class InstructorRegisterAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class AdminInstructorCreationAPIView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAdminUser]
 
     def post(self, request):
         if request.user.user_type != 'admin' and not request.user.is_superuser:
@@ -654,7 +656,12 @@ class PasswordResetRequestAPIView(APIView):
                 to=[user.email],
             )
             email_message.attach_alternative(html_message, "text/html")
-            email_message.send()
+            try:
+                email_message.send()
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).error(f"Failed to send password reset email: {e}")
+                return Response({'detail': 'Failed to send reset email due to server configuration. Please contact support.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except User.DoesNotExist:
             pass # Silently fail for security
 

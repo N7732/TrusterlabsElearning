@@ -7,6 +7,7 @@ from .serializer import RequirementSerializer
 from Course.models import Enrollment, Course
 
 class RequirementViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated]
     queryset = Requrement.objects.all()
     serializer_class = RequirementSerializer
 

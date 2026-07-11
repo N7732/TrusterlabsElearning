@@ -6,7 +6,8 @@ from .models import (
     TrainingClasswork,
     TrainingClassworkSubmission,
     TrainingFinalExam,
-    TrainingFinalExamSubmission
+    TrainingFinalExamSubmission,
+    CustomTrainingRequest
 )
 
 class TrainingCoursesInline(admin.TabularInline):
@@ -46,3 +47,10 @@ class TrainingFinalExamAdmin(admin.ModelAdmin):
 class TrainingFinalExamSubmissionAdmin(admin.ModelAdmin):
     list_display = ('participant', 'exam', 'score', 'submission_date')
     list_filter = ('exam__training', 'exam')
+
+@admin.register(CustomTrainingRequest)
+class CustomTrainingRequestAdmin(admin.ModelAdmin):
+    list_display = ('full_name', 'email', 'training_type', 'status', 'created_at')
+    list_filter = ('status', 'training_type')
+    search_fields = ('full_name', 'email', 'phone_number')
+

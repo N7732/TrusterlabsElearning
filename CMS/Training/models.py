@@ -1,6 +1,14 @@
 from django.db import models
+
+
 from Course.models import Course, Quizes
+
+
 from Auth.models import User
+
+
+
+
 
 class Training(models.Model):
     title = models.CharField(max_length=255)
@@ -13,10 +21,15 @@ class Training(models.Model):
     application_close_date = models.DateField(null=True, blank=True)
     instructor = models.ForeignKey('Auth.Instructor', on_delete=models.CASCADE, related_name='trainings', null=True, blank=True)
 
-
     def __str__(self):
         return self.title
+
+
     
+
+
+
+
 
 class TrainingCourses(models.Model):
     training = models.ForeignKey(Training, on_delete=models.CASCADE, related_name='courses')
@@ -25,8 +38,12 @@ class TrainingCourses(models.Model):
     def __str__(self):
         return self.course.title
 
+
 class TrainingParticipants(models.Model):
+
+
     STATUS_CHOICES = (
+
         ('PENDING', 'Pending'),
         ('ADMITTED', 'Admitted'),
         ('REJECTED', 'Rejected'),
@@ -38,32 +55,79 @@ class TrainingParticipants(models.Model):
     application_email = models.EmailField(blank=True, null=True)
     admission_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
     date_applied = models.DateTimeField(auto_now_add=True)
-
     def __str__(self):
         name = self.application_full_name or self.participant.get_full_name()
         return f"{name} - {self.admission_status}"
+
+
     
+
+
+
+
 
 class TrainingClasswork(models.Model):
+
+
     training = models.ForeignKey(Training, on_delete=models.CASCADE, related_name='classworks')
+
+
     title = models.CharField(max_length=255)
+
+
     description = models.TextField(blank=True, null=True)
+
+
     due_date = models.DateField()
+
+
     classwork_file = models.FileField(upload_to='classwork_files/', null=True, blank=True)
+
+
     linked_quiz = models.ForeignKey(Quizes, on_delete=models.SET_NULL, null=True, blank=True, related_name='linked_training_classworks')
 
-    def __str__(self):
-        return self.title
-    
-class TrainingClassworkSubmission(models.Model):
-    classwork = models.ForeignKey(TrainingClasswork, on_delete=models.CASCADE, related_name='submissions')
-    participant = models.ForeignKey(User, on_delete=models.CASCADE)
-    submission_file = models.FileField(upload_to='classwork_submissions/', null=True, blank=True)
-    score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    submission_date = models.DateTimeField(auto_now_add=True)
+
+
+
 
     def __str__(self):
+
+
+        return self.title
+
+
+    
+
+
+class TrainingClassworkSubmission(models.Model):
+
+
+    classwork = models.ForeignKey(TrainingClasswork, on_delete=models.CASCADE, related_name='submissions')
+
+
+    participant = models.ForeignKey(User, on_delete=models.CASCADE)
+
+
+    submission_file = models.FileField(upload_to='classwork_submissions/', null=True, blank=True)
+
+
+    score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+
+
+    submission_date = models.DateTimeField(auto_now_add=True)
+
+
+
+
+
+    def __str__(self):
+
+
         return f"{self.participant.get_full_name()} - {self.classwork.title}"
+
+
+
+
 
 class TrainingFinalExam(models.Model):
     training = models.ForeignKey(Training, on_delete=models.CASCADE, related_name='final_exams')
@@ -76,6 +140,7 @@ class TrainingFinalExam(models.Model):
     def __str__(self):
         return self.title
 
+
 class TrainingFinalExamSubmission(models.Model):
     exam = models.ForeignKey(TrainingFinalExam, on_delete=models.CASCADE, related_name='submissions')
     participant = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -86,14 +151,18 @@ class TrainingFinalExamSubmission(models.Model):
     def __str__(self):
         return f"{self.participant.get_full_name()} - {self.exam.title}"
 
+
+
 class CustomTrainingRequest(models.Model):
+
     STATUS_CHOICES = (
         ('PENDING', 'Pending'),
         ('REVIEWED', 'Reviewed'),
         ('APPROVED', 'Approved'),
         ('REJECTED', 'Rejected'),
+
     )
-    
+
     TRAINING_TYPE_CHOICES = (
         ('Professional Training', 'Professional Training'),
         ('Academic Internship', 'Academic Internship'),
@@ -111,4 +180,58 @@ class CustomTrainingRequest(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
+
         return f"{self.full_name} - {self.training_type} ({self.status})"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

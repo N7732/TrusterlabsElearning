@@ -46,7 +46,17 @@ const Membership = () => {
       setSuccess(true);
     } catch (err) {
       console.error("Membership registration error", err);
-      setErrorMsg(err.response?.data?.email?.[0] || err.response?.data?.detail || "An error occurred during registration. Please try again.");
+      let errorText = err.message || "An error occurred during registration. Please try again.";
+      try {
+        // Try parsing if it's a JSON string from apiClient
+        const parsed = JSON.parse(errorText);
+        if (parsed.email) errorText = parsed.email[0];
+        else if (parsed.detail) errorText = parsed.detail;
+        else if (typeof parsed === 'object') errorText = Object.values(parsed)[0]?.[0] || errorText;
+      } catch(e) {
+        // Not JSON, use as is
+      }
+      setErrorMsg(errorText);
     } finally {
       setLoading(false);
     }
@@ -170,10 +180,16 @@ const Membership = () => {
 
       {/* Registration Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-[#111827] border border-white/10 rounded-2xl w-full max-w-md overflow-hidden relative shadow-2xl">
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+          onClick={() => setShowModal(false)}
+        >
+          <div 
+            className="bg-[#111827] border border-white/10 rounded-2xl w-full max-w-md overflow-hidden relative shadow-2xl flex flex-col max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Modal Header */}
-            <div className="p-6 border-b border-white/10 flex justify-between items-center">
+            <div className="p-6 border-b border-white/10 flex justify-between items-center shrink-0">
               <h3 className="text-xl font-bold text-white">Join {selectedPlan?.name}</h3>
               <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white transition-colors">
                 <X size={24} />
@@ -181,7 +197,7 @@ const Membership = () => {
             </div>
 
             {/* Modal Body */}
-            <div className="p-6">
+            <div className="p-6 overflow-y-auto">
               {success ? (
                 <div className="text-center py-8">
                   <div className="mx-auto w-16 h-16 bg-[#D4AF37]/20 rounded-full flex items-center justify-center mb-4">
