@@ -152,14 +152,49 @@ const CourseTraining = () => {
                     <p className="text-xs text-gray-500 uppercase tracking-widest mb-1">Availability</p>
                     <p className="text-white font-bold text-lg">{session.max_participants || 'Unlimited'} <span className="text-sm font-normal text-gray-400">seats</span></p>
                   </div>
-                  <button 
-                    onClick={() => handleOpenApplication(session)}
-                    disabled={enrollLoading === session.id}
-                    className="bg-[#D4AF37] hover:bg-[#c29e2f] disabled:opacity-50 disabled:cursor-not-allowed text-black font-bold py-3 px-6 rounded-lg transition-colors w-full text-sm flex items-center justify-center gap-2"
-                  >
-                    {enrollLoading === session.id ? <Loader2 className="animate-spin" size={16} /> : null}
-                    {enrollLoading === session.id ? 'Loading...' : 'Apply Now'}
-                  </button>
+                  {(() => {
+                    const userParticipant = session.participants?.find(p => p.participant === user?.id);
+                    if (userParticipant) {
+                      if (userParticipant.admission_status === 'ADMITTED') {
+                        return (
+                          <button 
+                            onClick={() => navigate(`/learner/trainings/${session.id}`)}
+                            className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-lg transition-colors w-full text-sm"
+                          >
+                            Go to Training
+                          </button>
+                        );
+                      } else if (userParticipant.admission_status === 'REJECTED') {
+                        return (
+                          <button 
+                            disabled
+                            className="bg-red-500/20 text-red-500 font-bold py-3 px-6 rounded-lg cursor-not-allowed w-full text-sm border border-red-500/50"
+                          >
+                            Application Rejected
+                          </button>
+                        );
+                      } else {
+                        return (
+                          <button 
+                            onClick={() => navigate('/admission')}
+                            className="bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 font-bold py-3 px-6 rounded-lg transition-colors w-full text-sm border border-blue-500/50"
+                          >
+                            Application Pending
+                          </button>
+                        );
+                      }
+                    }
+                    return (
+                      <button 
+                        onClick={() => handleOpenApplication(session)}
+                        disabled={enrollLoading === session.id}
+                        className="bg-[#D4AF37] hover:bg-[#c29e2f] disabled:opacity-50 disabled:cursor-not-allowed text-black font-bold py-3 px-6 rounded-lg transition-colors w-full text-sm flex items-center justify-center gap-2"
+                      >
+                        {enrollLoading === session.id ? <Loader2 className="animate-spin" size={16} /> : null}
+                        {enrollLoading === session.id ? 'Loading...' : 'Apply Now'}
+                      </button>
+                    );
+                  })()}
                 </div>
 
               </div>

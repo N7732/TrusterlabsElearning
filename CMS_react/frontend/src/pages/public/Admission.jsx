@@ -1,15 +1,33 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { User, CheckCircle, Clock, AlertCircle, FileText, Download } from 'lucide-react';
+import { apiClient } from '../../api/apiClient';
+import { User, CheckCircle, Clock, AlertCircle, FileText, Download, XCircle, Loader2 } from 'lucide-react';
 import Button from '../../components/common/Button';
 
 const Admission = () => {
   const { isAuthenticated, user } = useAuth();
   const location = useLocation();
+  const [trainings, setTrainings] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Dummy application data (for authenticated users)
-  const applicationStatus = 'Pending'; // Could be 'Admitted', 'Pending', or 'None'
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchMyApplications();
+    }
+  }, [isAuthenticated]);
+
+  const fetchMyApplications = async () => {
+    try {
+      setLoading(true);
+      const data = await apiClient.get('/training/trainings/my-trainings/');
+      setTrainings(data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   if (!isAuthenticated) {
     return (
@@ -68,7 +86,11 @@ const Admission = () => {
           </div>
           
           <div className="p-8">
-            {applicationStatus === 'None' && (
+            {loading ? (
+              <div className="flex justify-center items-center py-10">
+                <Loader2 className="animate-spin text-[#D4AF37]" size={40} />
+              </div>
+            ) : trainings.length === 0 ? (
               <div className="text-center py-8">
                 <AlertCircle className="text-gray-500 mx-auto mb-4" size={48} />
                 <h4 className="text-xl font-bold text-white mb-2">No Application Found</h4>
@@ -77,55 +99,89 @@ const Admission = () => {
                   <Button className="bg-[#D4AF37] hover:bg-[#c29e2f] text-black border-none font-bold">Browse Training Sessions</Button>
                 </Link>
               </div>
-            )}
+            ) : (
+              <div className="space-y-12">
+                {trainings.map((training) => {
+                  const participant = training.participants?.find(p => p.participant === user?.id);
+                  if (!participant) return null;
 
-            {applicationStatus === 'Pending' && (
-              <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
-                <div className="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center shrink-0 border border-blue-500/30">
-                  <Clock className="text-blue-400" size={36} />
-                </div>
-                <div className="text-center md:text-left flex-1">
-                  <h4 className="text-2xl font-bold text-white mb-2">Under Review</h4>
-                  <p className="text-gray-400 mb-6">
-                    Your application for the <strong>Advanced Penetration Testing Bootcamp</strong> is currently being reviewed by our admissions team. You will be notified via email once a decision has been made.
-                  </p>
-                  <div className="bg-[#030712] rounded-lg p-4 border border-white/5">
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="text-gray-500 block mb-1">Application ID</span>
-                        <span className="text-white font-mono">TR-2026-8891</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-500 block mb-1">Submitted On</span>
-                        <span className="text-white">July 02, 2026</span>
-                      </div>
+                  return (
+                    <div key={training.id} className="border-b border-white/10 last:border-0 pb-8 last:pb-0">
+                      {participant.admission_status === 'PENDING' && (
+                        <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
+                          <div className="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center shrink-0 border border-blue-500/30">
+                            <Clock className="text-blue-400" size={36} />
+                          </div>
+                          <div className="text-center md:text-left flex-1">
+                            <h4 className="text-2xl font-bold text-white mb-2">Under Review</h4>
+                            <p className="text-gray-400 mb-6">
+                              Your application for the <strong>{training.title}</strong> is currently being reviewed by our admissions team. You will be notified via email once a decision has been made.
+                            </p>
+                            <div className="bg-[#030712] rounded-lg p-4 border border-white/5">
+                              <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                  <span className="text-gray-500 block mb-1">Application ID</span>
+                                  <span className="text-white font-mono">TR-{new Date().getFullYear()}-{participant.id}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-500 block mb-1">Submitted For</span>
+                                  <span className="text-white">{training.starting_date} to {training.ending_date}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {participant.admission_status === 'ADMITTED' && (
+                        <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
+                          <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center shrink-0 border border-emerald-500/30">
+                            <CheckCircle className="text-emerald-400" size={36} />
+                          </div>
+                          <div className="text-center md:text-left flex-1">
+                            <h4 className="text-2xl font-bold text-white mb-2">Congratulations! You're Admitted.</h4>
+                            <p className="text-gray-400 mb-6">
+                              Your application for the <strong>{training.title}</strong> course has been accepted. We are thrilled to welcome you to TrusterLabs Academy.
+                            </p>
+                            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                              <Link to={`/learner/trainings/${training.id}`}>
+                                <Button className="bg-[#D4AF37] hover:bg-[#c29e2f] text-black border-none font-bold">
+                                  Go to Training
+                                </Button>
+                              </Link>
+                              <Link to="/learner/dashboard">
+                                <Button variant="outline" className="border-white/20 text-white hover:bg-white/5">
+                                  Dashboard
+                                </Button>
+                              </Link>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {participant.admission_status === 'REJECTED' && (
+                        <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
+                          <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center shrink-0 border border-red-500/30">
+                            <XCircle className="text-red-400" size={36} />
+                          </div>
+                          <div className="text-center md:text-left flex-1">
+                            <h4 className="text-2xl font-bold text-white mb-2">Application Unsuccessful</h4>
+                            <p className="text-gray-400 mb-6">
+                              Unfortunately, your application for the <strong>{training.title}</strong> course has not been selected at this time.
+                            </p>
+                            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                              <Link to="/training">
+                                <Button variant="outline" className="border-white/20 text-white hover:bg-white/5">
+                                  Browse Other Trainings
+                                </Button>
+                              </Link>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {applicationStatus === 'Admitted' && (
-              <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
-                <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center shrink-0 border border-emerald-500/30">
-                  <CheckCircle className="text-emerald-400" size={36} />
-                </div>
-                <div className="text-center md:text-left flex-1">
-                  <h4 className="text-2xl font-bold text-white mb-2">Congratulations! You're Admitted.</h4>
-                  <p className="text-gray-400 mb-6">
-                    Your application for the <strong>Enterprise Incident Response Strategy</strong> course has been accepted. We are thrilled to welcome you to TrusterLabs Academy.
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                    <Button className="bg-[#D4AF37] hover:bg-[#c29e2f] text-black border-none font-bold flex items-center gap-2">
-                      <Download size={18} /> Download Admission Letter
-                    </Button>
-                    <Link to="/learner/dashboard">
-                      <Button variant="outline" className="border-white/20 text-white hover:bg-white/5">
-                        Go to Dashboard
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
+                  );
+                })}
               </div>
             )}
           </div>
