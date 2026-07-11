@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { apiClient } from '../../api/apiClient';
+import { apiClient, getImageUrl } from '../../api/apiClient';
 import { useAuth } from '../../context/AuthContext';
 import { BookOpen, Calendar, Clock, FileText, Upload, CheckCircle, Lock } from 'lucide-react';
 
@@ -140,13 +140,13 @@ const LearnerTrainingDetail = () => {
                     <div key={tc.id} className="border border-slate-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
                       <div className="h-32 bg-slate-100 relative">
                         {tc.course_detail?.thumbnail && (
-                          <img src={tc.course_detail.thumbnail} alt={tc.course_detail.title} className="w-full h-full object-cover" />
+                          <img src={getImageUrl(tc.course_detail.thumbnail)} alt={tc.course_detail.title} className="w-full h-full object-cover" />
                         )}
                       </div>
                       <div className="p-4">
                         <h3 className="font-bold text-slate-800 mb-1">{tc.course_detail?.title}</h3>
                         <button 
-                          onClick={() => navigate(`/learner/courses/${tc.course_detail?.id}`)}
+                          onClick={() => navigate(`/course/${tc.course_detail?.id}`)}
                           className="mt-4 w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 rounded transition-colors text-sm"
                         >
                           Access Module
