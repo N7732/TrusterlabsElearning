@@ -83,8 +83,23 @@ const CoursePlayer = () => {
       }
       fetchCourseDetails();
       checkEnrollment();
+      if (isAuthenticated) {
+        fetchProgress();
+      }
     }
-  }, [courseId]);
+  }, [courseId, isAuthenticated]);
+
+  const fetchProgress = async () => {
+    try {
+      const response = await apiClient.get(`/api/courses/${courseId}/progress/`);
+      if (response && response.completed_lessons) {
+        setCompletedLessons(response.completed_lessons);
+        localStorage.setItem(`course_progress_${courseId}`, JSON.stringify(response.completed_lessons));
+      }
+    } catch (err) {
+      console.error('Failed to fetch progress from server', err);
+    }
+  };
 
   const checkEnrollment = async () => {
     try {
@@ -207,13 +222,21 @@ const CoursePlayer = () => {
     }
   };
 
-  const markLessonComplete = (lessonId) => {
+  const markLessonComplete = async (lessonId) => {
     setCompletedLessons(prev => {
       if (prev.includes(lessonId)) return prev;
       const updated = [...prev, lessonId];
       localStorage.setItem(`course_progress_${courseId}`, JSON.stringify(updated));
       return updated;
     });
+
+    if (isAuthenticated) {
+      try {
+        await apiClient.post(`/api/lessons/${lessonId}/mark_complete/`);
+      } catch (err) {
+        console.error('Failed to save progress to server', err);
+      }
+    }
   };
 
   let prevLesson = null;

@@ -32,9 +32,33 @@ class TrainingParticipantsSerializer(serializers.ModelSerializer):
         read_only_fields = ['admission_status', 'date_applied']
 
 class TrainingClassworkSerializer(serializers.ModelSerializer):
+    my_submission = serializers.SerializerMethodField()
+
     class Meta:
         model = TrainingClasswork
         fields = '__all__'
+
+    def get_my_submission(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            # Check for direct classwork submission
+            submission = obj.submissions.filter(participant=request.user).first()
+            if submission:
+                return TrainingClassworkSubmissionSerializer(submission).data
+            
+            # If no classwork submission, check if there's a linked quiz submission
+            if obj.linked_quiz and hasattr(request.user, 'learner_profile'):
+                from Course.models import QuizSubmission
+                quiz_sub = QuizSubmission.objects.filter(learner=request.user.learner_profile, quiz=obj.linked_quiz).first()
+                if quiz_sub:
+                    return {
+                        'is_quiz': True,
+                        'score': quiz_sub.score,
+                        'total_marks': quiz_sub.total_marks,
+                        'passed': quiz_sub.passed,
+                        'submission_date': quiz_sub.submitted_at
+                    }
+        return None
 
 class TrainingClassworkSubmissionSerializer(serializers.ModelSerializer):
     participant_name = serializers.CharField(source='participant.get_full_name', read_only=True)
@@ -45,9 +69,31 @@ class TrainingClassworkSubmissionSerializer(serializers.ModelSerializer):
         read_only_fields = ['participant']
 
 class TrainingFinalExamSerializer(serializers.ModelSerializer):
+    my_submission = serializers.SerializerMethodField()
+
     class Meta:
         model = TrainingFinalExam
         fields = '__all__'
+
+    def get_my_submission(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            submission = obj.submissions.filter(participant=request.user).first()
+            if submission:
+                return TrainingFinalExamSubmissionSerializer(submission).data
+            
+            if obj.linked_exam and hasattr(request.user, 'learner_profile'):
+                from Course.models import QuizSubmission
+                quiz_sub = QuizSubmission.objects.filter(learner=request.user.learner_profile, quiz=obj.linked_exam).first()
+                if quiz_sub:
+                    return {
+                        'is_quiz': True,
+                        'score': quiz_sub.score,
+                        'total_marks': quiz_sub.total_marks,
+                        'passed': quiz_sub.passed,
+                        'submission_date': quiz_sub.submitted_at
+                    }
+        return None
 
 class TrainingFinalExamSubmissionSerializer(serializers.ModelSerializer):
     participant_name = serializers.CharField(source='participant.get_full_name', read_only=True)

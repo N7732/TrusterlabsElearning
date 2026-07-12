@@ -49,7 +49,7 @@ const LearnerTrainingDetail = () => {
       const formData = new FormData();
       formData.append('submission_file', file);
 
-      await apiClient.post(`/training/classworks/${classworkId}/submit/`, formData, {
+      await apiClient.post(`/training/classwork/${classworkId}/submit/`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       
@@ -190,38 +190,64 @@ const LearnerTrainingDetail = () => {
                   ></div>
 
                   <div className="bg-[#F8F9FA] rounded-lg p-4 border border-slate-100">
-                    <h4 className="text-sm font-bold text-slate-800 mb-3">Submit Your Work</h4>
+                    <h4 className="text-sm font-bold text-slate-800 mb-3">Your Submission</h4>
                     
-                    {cw.linked_quiz ? (
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm text-slate-600">This classwork requires completing a quiz.</p>
-                        <button 
-                          onClick={() => navigate(`/quiz/${cw.linked_quiz}`)}
-                          className="bg-[#77C159] hover:bg-[#68AA4E] text-white text-sm font-bold py-2 px-4 rounded transition-colors"
-                        >
-                          Take Quiz
-                        </button>
+                    {cw.my_submission ? (
+                      <div className="flex items-center justify-between bg-white p-4 border border-slate-200 rounded-lg">
+                        <div>
+                          <p className="text-sm font-medium text-slate-800">
+                            {cw.my_submission.is_quiz ? 'Quiz Completed' : 'Document Submitted'}
+                          </p>
+                          <p className="text-xs text-slate-500 mt-1">
+                            Submitted on {new Date(cw.my_submission.submission_date).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          {cw.my_submission.score !== null ? (
+                            <span className="inline-block px-3 py-1 bg-green-100 text-green-800 font-bold text-sm rounded-full">
+                              Score: {cw.my_submission.score} {cw.my_submission.total_marks ? `/ ${cw.my_submission.total_marks}` : ''}
+                            </span>
+                          ) : (
+                            <span className="inline-block px-3 py-1 bg-amber-100 text-amber-800 font-bold text-sm rounded-full">
+                              Not yet Graded!
+                            </span>
+                          )}
+                        </div>
                       </div>
                     ) : (
-                      <div className="flex flex-col sm:flex-row gap-3 items-center">
-                        <input 
-                          type="file" 
-                          onChange={(e) => handleFileChange(cw.id, e)}
-                          className="block w-full text-sm text-slate-500
-                            file:mr-4 file:py-2 file:px-4
-                            file:rounded-full file:border-0
-                            file:text-sm file:font-semibold
-                            file:bg-emerald-50 file:text-emerald-700
-                            hover:file:bg-emerald-100 cursor-pointer"
-                        />
-                        <button
-                          onClick={() => handleSubmitClasswork(cw.id)}
-                          disabled={!fileMap[cw.id] || uploadingMap[cw.id]}
-                          className="w-full sm:w-auto shrink-0 bg-[#0A66C2] hover:bg-blue-700 disabled:bg-slate-300 text-white text-sm font-bold py-2 px-6 rounded-full transition-colors flex items-center justify-center gap-2"
-                        >
-                          {uploadingMap[cw.id] ? 'Uploading...' : <><Upload className="w-4 h-4" /> Submit File</>}
-                        </button>
-                      </div>
+                      <>
+                        {cw.linked_quiz ? (
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm text-slate-600">This classwork requires completing a quiz.</p>
+                            <button 
+                              onClick={() => navigate(`/quiz/${cw.linked_quiz}`)}
+                              className="bg-[#77C159] hover:bg-[#68AA4E] text-white text-sm font-bold py-2 px-4 rounded transition-colors"
+                            >
+                              Take Quiz
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col sm:flex-row gap-3 items-center">
+                            <input 
+                              type="file" 
+                              onChange={(e) => handleFileChange(cw.id, e)}
+                              className="block w-full text-sm text-slate-500
+                                file:mr-4 file:py-2 file:px-4
+                                file:rounded-full file:border-0
+                                file:text-sm file:font-semibold
+                                file:bg-emerald-50 file:text-emerald-700
+                                hover:file:bg-emerald-100 cursor-pointer"
+                            />
+                            <button
+                              onClick={() => handleSubmitClasswork(cw.id)}
+                              disabled={!fileMap[cw.id] || uploadingMap[cw.id]}
+                              className="w-full sm:w-auto shrink-0 bg-[#0A66C2] hover:bg-blue-700 disabled:bg-slate-300 text-white text-sm font-bold py-2 px-6 rounded-full transition-colors flex items-center justify-center gap-2"
+                            >
+                              {uploadingMap[cw.id] ? 'Uploading...' : <><Upload className="w-4 h-4" /> Submit File</>}
+                            </button>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>

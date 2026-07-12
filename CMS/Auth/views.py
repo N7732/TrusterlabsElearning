@@ -269,6 +269,17 @@ import logging
 logger = logging.getLogger(__name__)
 User = get_user_model()
 
+
+import threading
+
+def send_email_async(email_message):
+    def send_it():
+        try:
+            email_message.send()
+        except Exception as e:
+            logger.error(f"Failed to send email: {e}")
+    threading.Thread(target=send_it).start()
+
 class CustomPasswordResetView(PasswordResetView):
 
     subject = "Password Reset Requested"
@@ -304,7 +315,7 @@ class CustomPasswordResetView(PasswordResetView):
                 to = [user.email],
                 )
             email_message.attach_alternative(html_message, "text/html")
-            email_message.send()
+            send_email_async(email_message)
         except User.DoesNotExist:
             pass # Do not reveal if email exists or not for security reasons
 
@@ -362,7 +373,7 @@ def send_welcome_email(user):
         to=[user.email],
     )
     email_message.attach_alternative(html_message, "text/html")
-    email_message.send()
+    send_email_async(email_message)
 
 
 def send_course_enrollment_email(learner, course):
@@ -381,7 +392,7 @@ def send_course_enrollment_email(learner, course):
         to=[learner.user.email],
     )
     email_message.attach_alternative(html_message, "text/html")
-    email_message.send()
+    send_email_async(email_message)
 
 def instructor_invitation_email(instructor, invitation):
     subject = "You're Invited to Join as an Instructor!"
@@ -399,7 +410,7 @@ def instructor_invitation_email(instructor, invitation):
         to=[instructor.email],
     )
     email_message.attach_alternative(html_message, "text/html")
-    email_message.send()
+    send_email_async(email_message)
 
 def instructor_welcome_email(user, temporary_password="Set by admin"):
     subject = "Welcome to the Faculty!"
@@ -418,7 +429,7 @@ def instructor_welcome_email(user, temporary_password="Set by admin"):
         to=[user.email],
     )
     email_message.attach_alternative(html_message, "text/html")
-    email_message.send()
+    send_email_async(email_message)
 
 def send_membership_approved_email(membership):
     subject = "Your TrusterLab Membership is Approved!"
@@ -437,7 +448,7 @@ def send_membership_approved_email(membership):
         to=[membership.email],
     )
     email_message.attach_alternative(html_message, "text/html")
-    email_message.send()
+    send_email_async(email_message)
 
 def send_webinar_registration_email(registration):
     subject = f"Webinar Registration Confirmed: {registration.webinar.title}"
@@ -456,7 +467,7 @@ def send_webinar_registration_email(registration):
         to=[registration.email],
     )
     email_message.attach_alternative(html_message, "text/html")
-    email_message.send()
+    send_email_async(email_message)
 
 
 def certificate_email(learner, course, certificate):
@@ -476,7 +487,7 @@ def certificate_email(learner, course, certificate):
         to=[learner.user.email],
     )
     email_message.attach_alternative(html_message, "text/html")
-    email_message.send()
+    send_email_async(email_message)
 
 def update_email_to_student(course, request=None):
     """
@@ -520,7 +531,7 @@ def update_email_to_student(course, request=None):
     email_message.attach_alternative(html_message, "text/html")
     
     try:
-        email_message.send()
+        send_email_async(email_message)
         logger.info(f"Successfully sent notification for '{course.title}' to {len(all_emails)} recipients.")
     except Exception as e:
         logger.error(f"Error sending course notification email: {str(e)}")
@@ -540,7 +551,7 @@ def update_email_to_student(course, request=None):
         to=[instructor.email],
     )
     email_message.attach_alternative(html_message, "text/html")
-    email_message.send()
+    send_email_async(email_message)
 
 # API Views for React Integration
 from rest_framework.views import APIView
@@ -657,7 +668,7 @@ class PasswordResetRequestAPIView(APIView):
             )
             email_message.attach_alternative(html_message, "text/html")
             try:
-                email_message.send()
+                send_email_async(email_message)
             except Exception as e:
                 import logging
                 logging.getLogger(__name__).error(f"Failed to send password reset email: {e}")
@@ -692,3 +703,57 @@ class PasswordResetConfirmAPIView(APIView):
             return Response({'message': 'Password has been reset successfully.'}, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid or expired token.'}, status=status.HTTP_400_BAD_REQUEST)
+
+from Course.models import QuizSubmission
+from Training.models import TrainingClassworkSubmission, TrainingFinalExamSubmission
+
+class LearnerGradesAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        grades = []
+
+        # 1. Quizzes (requires learner profile)
+        if hasattr(user, 'learner_profile'):
+            quiz_submissions = QuizSubmission.objects.filter(learner=user.learner_profile).select_related('quiz')
+            for qs in quiz_submissions:
+                grades.append({
+                    'id': f"quiz_{qs.id}",
+                    'title': qs.quiz.title,
+                    'type': 'Course Quiz',
+                    'score': qs.score,
+                    'total_marks': qs.total_marks,
+                    'status': 'Passed' if qs.passed else 'Failed',
+                    'date': qs.submitted_at
+                })
+
+        # 2. Training Classworks
+        classwork_submissions = TrainingClassworkSubmission.objects.filter(participant=user).select_related('classwork')
+        for cs in classwork_submissions:
+            grades.append({
+                'id': f"cw_{cs.id}",
+                'title': cs.classwork.title,
+                'type': 'Training Classwork',
+                'score': float(cs.score) if cs.score is not None else None,
+                'total_marks': None,
+                'status': 'Graded' if cs.score is not None else 'Pending Review',
+                'date': cs.submission_date
+            })
+
+        # 3. Training Final Exams
+        exam_submissions = TrainingFinalExamSubmission.objects.filter(participant=user).select_related('exam')
+        for es in exam_submissions:
+            grades.append({
+                'id': f"exam_{es.id}",
+                'title': es.exam.title,
+                'type': 'Training Final Exam',
+                'score': float(es.score) if es.score is not None else None,
+                'total_marks': None,
+                'status': 'Graded' if es.score is not None else 'Pending Review',
+                'date': es.submission_date
+            })
+
+        # Sort by date descending
+        grades.sort(key=lambda x: x['date'], reverse=True)
+        return Response(grades, status=status.HTTP_200_OK)

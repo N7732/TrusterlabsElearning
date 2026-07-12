@@ -19,7 +19,8 @@ from .views import (
     AdminInstructorCreationAPIView,
     CustomTokenObtainPairView,
     PasswordResetRequestAPIView,
-    PasswordResetConfirmAPIView
+    PasswordResetConfirmAPIView,
+    LearnerGradesAPIView
 )
 from rest_framework_simplejwt.views import (
     TokenRefreshView,
@@ -43,6 +44,7 @@ urlpatterns = [
     path('api/auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/auth/password/reset/', PasswordResetRequestAPIView.as_view(), name='api_password_reset'),
     path('api/auth/password/reset/confirm/', PasswordResetConfirmAPIView.as_view(), name='api_password_reset_confirm'),
+    path('api/my-grades/', LearnerGradesAPIView.as_view(), name='api_my_grades'),
     
     # Authentication
     path('login/', user_login, name='login'),

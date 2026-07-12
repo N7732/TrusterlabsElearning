@@ -140,6 +140,21 @@ class CourseViewSet(viewsets.ModelViewSet):
                 
         return Response({'status': 'Enrolled successfully', 'enrollment_status': status_val}, status=status.HTTP_201_CREATED)
 
+    @action(detail=True, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def progress(self, request, pk=None):
+        course = self.get_object()
+        user = request.user
+        learner = getattr(user, 'learner_profile', None)
+        if not learner:
+            return Response({'completed_lessons': []}, status=status.HTTP_200_OK)
+        
+        completed_lessons = LessonProgress.objects.filter(
+            learner=learner,
+            lesson__module__course=course,
+            is_completed=True
+        ).values_list('lesson_id', flat=True)
+        return Response({'completed_lessons': list(completed_lessons)}, status=status.HTTP_200_OK)
+
 class ModuleViewSet(viewsets.ModelViewSet):
     queryset = Module.objects.all()
     serializer_class = ModuleSerializer
@@ -149,6 +164,21 @@ class LessonViewSet(viewsets.ModelViewSet):
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def mark_complete(self, request, pk=None):
+        lesson = self.get_object()
+        user = request.user
+        learner = getattr(user, 'learner_profile', None)
+        if not learner:
+            return Response({'detail': 'Only learners can track progress.'}, status=status.HTTP_403_FORBIDDEN)
+        
+        LessonProgress.objects.update_or_create(
+            learner=learner,
+            lesson=lesson,
+            defaults={'is_completed': True}
+        )
+        return Response({'detail': 'Lesson marked as complete.'}, status=status.HTTP_200_OK)
 
 class QuizesViewSet(viewsets.ModelViewSet):
     queryset = Quizes.objects.all()

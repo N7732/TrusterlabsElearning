@@ -6,6 +6,7 @@ import { Play, Building2, BookOpen, Clock } from 'lucide-react';
 const LearnerDashboard = () => {
   const [enrollments, setEnrollments] = useState([]);
   const [trainings, setTrainings] = useState([]);
+  const [grades, setGrades] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('courses');
@@ -17,12 +18,14 @@ const LearnerDashboard = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [enrollData, trainingData] = await Promise.all([
+      const [enrollData, trainingData, gradesData] = await Promise.all([
         apiClient.get('/api/enrollments/'),
-        apiClient.get('/training/trainings/my-trainings/')
+        apiClient.get('/training/trainings/my-trainings/'),
+        apiClient.get('/api/my-grades/')
       ]);
       setEnrollments(enrollData.results || enrollData || []);
       setTrainings(trainingData.results || trainingData || []);
+      setGrades(gradesData.results || gradesData || []);
     } catch (err) {
       setError('Failed to load your learning dashboard.');
       console.error(err);
@@ -60,6 +63,16 @@ const LearnerDashboard = () => {
             }`}
           >
             My Trainings
+          </button>
+          <button
+            onClick={() => setActiveTab('grades')}
+            className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${
+              activeTab === 'grades' 
+                ? 'border-[#0A66C2] text-[#0A66C2]' 
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            My Grades
           </button>
         </div>
 
@@ -180,6 +193,70 @@ const LearnerDashboard = () => {
                   </div>
                 </Link>
               ))}
+            </div>
+          )
+        ) : activeTab === 'grades' ? (
+          grades.length === 0 ? (
+            <div className="text-center py-20 bg-white rounded-lg shadow-sm border border-slate-200">
+              <BookOpen className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+              <h2 className="text-xl font-bold text-slate-700 mb-2">No grades available yet</h2>
+              <p className="text-slate-500 max-w-md mx-auto mb-6">
+                Complete a quiz, classwork, or final exam to see your marks here.
+              </p>
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+              <table className="min-w-full divide-y divide-slate-200">
+                <thead className="bg-slate-50">
+                  <tr>
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Assessment</th>
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Type</th>
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Score</th>
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Date</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-slate-200">
+                  {grades.map((grade) => (
+                    <tr key={grade.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-semibold text-slate-900">{grade.title}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          grade.type === 'Course Quiz' ? 'bg-purple-100 text-purple-800' :
+                          grade.type === 'Training Classwork' ? 'bg-blue-100 text-blue-800' :
+                          'bg-amber-100 text-amber-800'
+                        }`}>
+                          {grade.type}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-bold text-slate-900">
+                          {grade.score !== null ? (
+                            grade.total_marks ? `${grade.score} / ${grade.total_marks}` : `${grade.score}`
+                          ) : (
+                            <span className="text-slate-400 italic">Not Graded</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-sm ${
+                          grade.status === 'Passed' ? 'bg-green-100 text-green-800' :
+                          grade.status === 'Failed' ? 'bg-red-100 text-red-800' :
+                          grade.status === 'Graded' ? 'bg-[#0A66C2] text-white' :
+                          'bg-slate-100 text-slate-600'
+                        }`}>
+                          {grade.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 font-medium">
+                        {new Date(grade.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )
         )}

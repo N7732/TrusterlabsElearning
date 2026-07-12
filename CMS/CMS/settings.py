@@ -204,6 +204,7 @@ LOGOUT_REDIRECT_URL = 'Auth:login'
 # CORS_ALLOW_ALL_ORIGINS = True (Removed for security)
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "http://localhost:5173",
     "https://frontend-omega-five-21.vercel.app",
     "https://trusterlabselearning.onrender.com",
     "https://frontend-6od8rks2q-n7732s-projects.vercel.app"

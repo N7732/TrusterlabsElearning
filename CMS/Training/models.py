@@ -1,13 +1,6 @@
 from django.db import models
-
-
 from Course.models import Course, Quizes
-
-
 from Auth.models import User
-
-
-
 
 
 class Training(models.Model):
@@ -23,11 +16,6 @@ class Training(models.Model):
 
     def __str__(self):
         return self.title
-
-
-    
-
-
 
 
 
@@ -60,73 +48,27 @@ class TrainingParticipants(models.Model):
         return f"{name} - {self.admission_status}"
 
 
-    
-
-
-
-
-
 class TrainingClasswork(models.Model):
-
-
     training = models.ForeignKey(Training, on_delete=models.CASCADE, related_name='classworks')
-
-
     title = models.CharField(max_length=255)
-
-
     description = models.TextField(blank=True, null=True)
-
-
     due_date = models.DateField()
-
-
     classwork_file = models.FileField(upload_to='classwork_files/', null=True, blank=True)
-
-
     linked_quiz = models.ForeignKey(Quizes, on_delete=models.SET_NULL, null=True, blank=True, related_name='linked_training_classworks')
 
-
-
-
-
     def __str__(self):
-
-
         return self.title
 
 
-    
-
-
 class TrainingClassworkSubmission(models.Model):
-
-
     classwork = models.ForeignKey(TrainingClasswork, on_delete=models.CASCADE, related_name='submissions')
-
-
     participant = models.ForeignKey(User, on_delete=models.CASCADE)
-
-
     submission_file = models.FileField(upload_to='classwork_submissions/', null=True, blank=True)
-
-
     score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-
-
     submission_date = models.DateTimeField(auto_now_add=True)
 
-
-
-
-
     def __str__(self):
-
-
         return f"{self.participant.get_full_name()} - {self.classwork.title}"
-
-
-
 
 
 class TrainingFinalExam(models.Model):

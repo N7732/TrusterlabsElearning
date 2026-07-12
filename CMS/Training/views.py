@@ -161,6 +161,76 @@ class TrainingViewSet(viewsets.ModelViewSet):
             
         return Response({'detail': 'Participants updated successfully.'}, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['get'], url_path='grades')
+    def grades(self, request, pk=None):
+        if not request.user.is_staff and request.user.user_type not in ['admin', 'instructor']:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You do not have permission to view training grades.")
+            
+        training = self.get_object()
+        classworks = training.classworks.all()
+        exams = training.final_exams.all()
+        participants = training.participants.filter(admission_status='ADMITTED')
+        
+        from Course.models import QuizSubmission
+        
+        participant_data = []
+        for p in participants:
+            user = p.participant
+            cw_scores = {}
+            for cw in classworks:
+                sub = cw.submissions.filter(participant=user).first()
+                if sub and sub.score is not None:
+                    cw_scores[cw.id] = float(sub.score)
+                elif cw.linked_quiz and hasattr(user, 'learner_profile'):
+                    quiz_sub = QuizSubmission.objects.filter(learner=user.learner_profile, quiz=cw.linked_quiz).first()
+                    if quiz_sub:
+                        cw_scores[cw.id] = quiz_sub.score
+                else:
+                    cw_scores[cw.id] = None
+                    
+            ex_scores = {}
+            for ex in exams:
+                sub = ex.submissions.filter(participant=user).first()
+                if sub and sub.score is not None:
+                    ex_scores[ex.id] = float(sub.score)
+                elif ex.linked_exam and hasattr(user, 'learner_profile'):
+                    quiz_sub = QuizSubmission.objects.filter(learner=user.learner_profile, quiz=ex.linked_exam).first()
+                    if quiz_sub:
+                        ex_scores[ex.id] = quiz_sub.score
+                else:
+                    ex_scores[ex.id] = None
+                    
+            all_scores = [s for s in list(cw_scores.values()) + list(ex_scores.values()) if s is not None]
+            avg_score = sum(all_scores) / len(all_scores) if all_scores else None
+            
+            participant_data.append({
+                'id': p.id,
+                'user_id': user.id,
+                'name': p.application_full_name or user.get_full_name(),
+                'email': p.application_email or user.email,
+                'classwork_scores': cw_scores,
+                'exam_scores': ex_scores,
+                'average': avg_score
+            })
+            
+        # Overall Analysis
+        all_averages = [p['average'] for p in participant_data if p['average'] is not None]
+        analysis = {
+            'average': round(sum(all_averages) / len(all_averages), 2) if all_averages else 0,
+            'highest': round(max(all_averages), 2) if all_averages else 0,
+            'lowest': round(min(all_averages), 2) if all_averages else 0,
+            'graded_participants': len(all_averages),
+            'total_participants': len(participant_data)
+        }
+        
+        return Response({
+            'classworks': [{'id': cw.id, 'title': cw.title} for cw in classworks],
+            'exams': [{'id': ex.id, 'title': ex.title} for ex in exams],
+            'participants': participant_data,
+            'analysis': analysis
+        }, status=status.HTTP_200_OK)
+
     @action(detail=False, methods=['get'], url_path='my-trainings')
     def my_trainings(self, request):
         user = request.user

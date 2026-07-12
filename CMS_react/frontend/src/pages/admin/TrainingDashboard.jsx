@@ -22,6 +22,7 @@ const TrainingDashboard = () => {
 
   const [allCourses, setAllCourses] = useState([]);
   const [allQuizzes, setAllQuizzes] = useState([]);
+  const [gradeData, setGradeData] = useState(null);
 
   // New state for participants management
   const [selectedParticipants, setSelectedParticipants] = useState([]);
@@ -35,7 +36,17 @@ const TrainingDashboard = () => {
     fetchTrainingData();
     fetchAllCourses();
     fetchAllQuizzes();
+    fetchGradeData();
   }, [id]);
+
+  const fetchGradeData = async () => {
+    try {
+      const res = await apiClient.get(`/training/trainings/${id}/grades/`);
+      setGradeData(res);
+    } catch (err) {
+      console.error('Failed to load grades', err);
+    }
+  };
 
   const fetchTrainingData = async () => {
     try {
@@ -134,7 +145,7 @@ const TrainingDashboard = () => {
   const handleViewSubmissions = async (cw) => {
     setCurrentClasswork(cw);
     try {
-      const res = await apiClient.get(`/training/classworks/${cw.id}/submissions/`);
+      const res = await apiClient.get(`/training/classwork/${cw.id}/submissions/`);
       setClassworkSubmissions(Array.isArray(res) ? res : res.results || []);
       setSubmissionModalOpen(true);
     } catch (err) {
@@ -144,11 +155,11 @@ const TrainingDashboard = () => {
 
   const handleGradeSubmission = async (submissionId, score) => {
     try {
-      await apiClient.post(`/training/classworks/${currentClasswork.id}/submissions/`, {
+      await apiClient.post(`/training/classwork/${currentClasswork.id}/submissions/`, {
         submission_id: submissionId,
         score: score
       });
-      const res = await apiClient.get(`/training/classworks/${currentClasswork.id}/submissions/`);
+      const res = await apiClient.get(`/training/classwork/${currentClasswork.id}/submissions/`);
       setClassworkSubmissions(Array.isArray(res) ? res : res.results || []);
     } catch (err) {
       alert('Failed to grade submission');
@@ -173,6 +184,7 @@ const TrainingDashboard = () => {
     { id: 'classwork', label: 'Classwork', icon: <FileText size={18} /> },
     { id: 'exams', label: 'Final Exams', icon: <FileText size={18} /> },
     { id: 'participants', label: 'Participants', icon: <Users size={18} /> },
+    { id: 'grades', label: 'Student Marks', icon: <FileText size={18} /> },
   ];
 
   return (
@@ -498,6 +510,83 @@ const TrainingDashboard = () => {
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {activeTab === 'grades' && gradeData && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="text-slate-500 text-sm font-medium">Average Score</h3>
+                  <p className="text-2xl font-bold text-slate-800">{gradeData.analysis.average}%</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="text-slate-500 text-sm font-medium">Highest Score</h3>
+                  <p className="text-2xl font-bold text-[#3E8E41]">{gradeData.analysis.highest}%</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="text-slate-500 text-sm font-medium">Lowest Score</h3>
+                  <p className="text-2xl font-bold text-red-500">{gradeData.analysis.lowest}%</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="text-slate-500 text-sm font-medium">Graded Students</h3>
+                  <p className="text-2xl font-bold text-[#0A66C2]">{gradeData.analysis.graded_participants} / {gradeData.analysis.total_participants}</p>
+                </CardContent>
+              </Card>
+            </div>
+            
+            <Card>
+              <CardContent className="p-6 overflow-x-auto">
+                <table className="w-full text-left whitespace-nowrap">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 text-xs uppercase tracking-wider">
+                      <th className="p-4 font-bold">Student</th>
+                      {gradeData.classworks.map(cw => (
+                        <th key={`cw-${cw.id}`} className="p-4 font-bold">CW: {cw.title}</th>
+                      ))}
+                      {gradeData.exams.map(ex => (
+                        <th key={`ex-${ex.id}`} className="p-4 font-bold">Exam: {ex.title}</th>
+                      ))}
+                      <th className="p-4 font-bold text-right">Avg</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {gradeData.participants.length === 0 ? (
+                      <tr><td colSpan={gradeData.classworks.length + gradeData.exams.length + 2} className="p-4 text-center text-slate-500">No students admitted yet.</td></tr>
+                    ) : (
+                      gradeData.participants.map(p => (
+                        <tr key={p.id} className="border-b border-slate-100 hover:bg-slate-50">
+                          <td className="p-4 font-medium text-slate-800">
+                            <div>{p.name}</div>
+                            <div className="text-xs text-slate-500">{p.email}</div>
+                          </td>
+                          {gradeData.classworks.map(cw => (
+                            <td key={`cw-score-${cw.id}`} className="p-4 text-slate-700">
+                              {p.classwork_scores[cw.id] !== null ? p.classwork_scores[cw.id] : <span className="text-slate-300">-</span>}
+                            </td>
+                          ))}
+                          {gradeData.exams.map(ex => (
+                            <td key={`ex-score-${ex.id}`} className="p-4 text-slate-700">
+                              {p.exam_scores[ex.id] !== null ? p.exam_scores[ex.id] : <span className="text-slate-300">-</span>}
+                            </td>
+                          ))}
+                          <td className="p-4 text-right font-bold text-[#0A66C2]">
+                            {p.average !== null ? p.average.toFixed(2) : '-'}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </CardContent>
+            </Card>
+          </div>
         )}
       </div>
 

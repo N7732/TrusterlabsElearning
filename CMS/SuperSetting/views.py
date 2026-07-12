@@ -58,32 +58,41 @@ class ContactMessageViewSet(viewsets.ModelViewSet):
             link="/superadmin/settings/messages"
         )
         
-        # Send emails
+        # Send emails in a background thread to prevent blocking
+        import threading
         from django.core.mail import send_mail
         from django.conf import settings
         import logging
         logger = logging.getLogger(__name__)
-        
-        try:
-            # Auto-reply to user
-            send_mail(
-                subject="Thank you for contacting TrusterLab",
-                message=f"Hi {message.name},\n\nWe have received your message regarding '{message.subject}' and will get back to you shortly.\n\nBest,\nTrusterLab Team",
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[message.email],
-                fail_silently=True,
-            )
-            
-            # Alert admin
-            send_mail(
-                subject=f"New Contact Form Submission: {message.subject}",
-                message=f"You have received a new message from {message.name} ({message.email}).\n\nMessage:\n{message.message}",
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[settings.DEFAULT_FROM_EMAIL],
-                fail_silently=True,
-            )
-        except Exception as e:
-            logger.error(f"Failed to send contact emails: {e}")
+
+        def send_contact_emails(msg_name, msg_email, msg_subject, msg_message):
+            try:
+                # Auto-reply to user
+                send_mail(
+                    subject="Thank you for contacting TrusterLab",
+                    message=f"Hi {msg_name},\n\nWe have received your message regarding '{msg_subject}' and will get back to you shortly.\n\nBest,\nTrusterLab Team",
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[msg_email],
+                    fail_silently=True,
+                )
+                
+                # Alert admin
+                send_mail(
+                    subject=f"New Contact Form Submission: {msg_subject}",
+                    message=f"You have received a new message from {msg_name} ({msg_email}).\n\nMessage:\n{msg_message}",
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[settings.DEFAULT_FROM_EMAIL],
+                    fail_silently=True,
+                )
+            except Exception as e:
+                logger.error(f"Failed to send contact emails: {e}")
+
+        # Start the background thread
+        email_thread = threading.Thread(
+            target=send_contact_emails,
+            args=(message.name, message.email, message.subject, message.message)
+        )
+        email_thread.start()
 
 class SystemLogViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = SystemLog.objects.all().order_by('-created_at')
