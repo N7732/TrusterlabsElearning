@@ -156,7 +156,7 @@ const LearnerDashboard = () => {
               })}
             </div>
           )
-        ) : (
+        ) : activeTab === 'trainings' ? (
           trainings.length === 0 ? (
             <div className="text-center py-20 bg-white rounded-lg shadow-sm border border-slate-200">
               <BookOpen className="w-16 h-16 text-slate-300 mx-auto mb-4" />
@@ -259,7 +259,7 @@ const LearnerDashboard = () => {
               </table>
             </div>
           )
-        )}
+        ) : null}
       </div>
     </div>
   );
