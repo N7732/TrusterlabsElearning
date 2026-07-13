@@ -93,6 +93,30 @@ export const adminConfig = {
     canEdit: true,
     canDelete: true,
   },
+  enrollments: {
+    label: 'Learners',
+    endpoint: '/api/courses/enrollments/',
+    columns: [
+      { field: 'id', label: 'ID' },
+      { field: 'learner_name', label: 'Learner Name' },
+      { field: 'learner_email', label: 'Email' },
+      { field: 'course_title', label: 'Course' },
+      { field: 'status', label: 'Status' },
+      { field: 'progress', label: 'Progress (%)' },
+    ],
+    canCreate: false,
+    canEdit: false,
+    canDelete: false,
+    customActions: [
+      {
+        label: 'Issue Certificate',
+        actionType: 'api',
+        apiEndpoint: (id) => `/api/courses/enrollments/${id}/issue_certificate/`,
+        method: 'POST',
+        showIf: (item) => item.progress < 100 || item.status !== 'completed' // Show if not completed, or always show. Let's just show always for now if they want to manually trigger.
+      }
+    ]
+  },
   enquiries: {
     label: 'Student Enquiries',
     endpoint: '/enquiry/',

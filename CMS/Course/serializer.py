@@ -72,6 +72,7 @@ class QuizesSerializer(serializers.ModelSerializer):
 
 class EnrollmentSerializer(serializers.ModelSerializer):
     course_details = CourseSerializer(source='course', read_only=True)
+    course_title = serializers.CharField(source='course.title', read_only=True)
     learner_name = serializers.SerializerMethodField()
     learner_email = serializers.SerializerMethodField()
     learner_phone = serializers.SerializerMethodField()

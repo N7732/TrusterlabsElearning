@@ -289,6 +289,38 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
             return Enrollment.objects.filter(learner=learner)
         return Enrollment.objects.none()
 
+    @action(detail=True, methods=['post'])
+    def issue_certificate(self, request, pk=None):
+        enrollment = self.get_object()
+        user = request.user
+        
+        # Check permissions
+        if user.user_type == 'instructor' and enrollment.course.instructor != getattr(user, 'instructor_profile', None):
+            return Response({'detail': 'You do not have permission to issue certificates for this course.'}, status=status.HTTP_403_FORBIDDEN)
+            
+        course = enrollment.course
+        if not course.has_certificate:
+            return Response({'detail': 'This course does not offer a certificate.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        # Update enrollment status
+        enrollment.status = 'completed'
+        enrollment.progress = 100
+        enrollment.save()
+        
+        # Issue certificate
+        from Certificate.models import Certificate
+        certificate, created = Certificate.objects.get_or_create(
+            learner=enrollment.learner,
+            course=course,
+            defaults={'is_issued': True}
+        )
+        
+        if not created and not certificate.is_issued:
+            certificate.is_issued = True
+            certificate.save()
+            
+        return Response({'detail': 'Certificate issued successfully.'})
+
     @action(detail=False, methods=['post'], url_path='bulk_enroll')
     def bulk_enroll(self, request):
         user = request.user

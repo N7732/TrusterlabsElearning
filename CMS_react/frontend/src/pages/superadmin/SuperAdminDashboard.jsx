@@ -232,21 +232,29 @@ const SuperAdminDashboard = () => {
             
             <div className="flex flex-col md:flex-row gap-6 flex-1">
               <div className="flex-1 min-h-[250px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={dashboardData.chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorEnrollments" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2}/>
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dx={-10} tickFormatter={(val) => val >= 1000 ? `${(val/1000).toFixed(1)}k` : val} />
-                    <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                    <Area type="monotone" dataKey="enrollments" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorEnrollments)" activeDot={{ r: 6, strokeWidth: 0, fill: '#3b82f6' }} />
-                  </AreaChart>
-                </ResponsiveContainer>
+                {dashboardData.chartData && dashboardData.chartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={dashboardData.chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorEnrollments" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2}/>
+                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dx={-10} tickFormatter={(val) => val >= 1000 ? `${(val/1000).toFixed(1)}k` : val} />
+                      <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                      <Area type="monotone" dataKey="enrollments" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorEnrollments)" activeDot={{ r: 6, strokeWidth: 0, fill: '#3b82f6' }} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="w-full h-full min-h-[250px] flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                    <BarChart2 size={32} className="mb-2 text-slate-300" />
+                    <p className="text-sm font-medium text-slate-500">No enrollment data for this period</p>
+                    <p className="text-xs mt-1 text-slate-400">The chart will appear once students enroll.</p>
+                  </div>
+                )}
               </div>
               
               <div className="w-full md:w-48 flex flex-col gap-6 justify-center">
@@ -348,7 +356,11 @@ const SuperAdminDashboard = () => {
                 );
               })}
               {recentActivities.length === 0 && (
-                <p className="text-slate-500 text-sm py-4">No recent activity found.</p>
+                <div className="w-full flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200 py-8 my-auto">
+                  <Activity size={24} className="mb-2 text-slate-300" />
+                  <p className="text-sm font-medium text-slate-500">No recent activity</p>
+                  <p className="text-xs mt-1 text-slate-400">Events will appear here.</p>
+                </div>
               )}
             </div>
             
@@ -391,7 +403,11 @@ const SuperAdminDashboard = () => {
                 );
               })}
               {systemAlerts.length === 0 && (
-                <p className="text-slate-500 text-sm py-4">Loading system alerts...</p>
+                <div className="w-full flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200 py-8 my-auto">
+                  <AlertCircle size={24} className="mb-2 text-slate-300" />
+                  <p className="text-sm font-medium text-slate-500">No active alerts</p>
+                  <p className="text-xs mt-1 text-slate-400">System status is normal.</p>
+                </div>
               )}
             </div>
             
