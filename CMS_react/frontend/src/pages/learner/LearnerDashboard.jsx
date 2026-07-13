@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { apiClient, getImageUrl } from '../../api/apiClient';
 import { Play, Building2, BookOpen, Clock } from 'lucide-react';
 
