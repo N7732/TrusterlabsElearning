@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     'SuperSetting',
     'Research',
     'Membership',
+    'certification',
     'rest_framework',
 ]
 

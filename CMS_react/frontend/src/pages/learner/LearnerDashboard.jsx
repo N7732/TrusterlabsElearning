@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { apiClient, getImageUrl } from '../../api/apiClient';
 import { Play, Building2, BookOpen, Clock } from 'lucide-react';
 
@@ -7,6 +9,7 @@ const LearnerDashboard = () => {
   const [enrollments, setEnrollments] = useState([]);
   const [trainings, setTrainings] = useState([]);
   const [grades, setGrades] = useState([]);
+  const [certificates, setCertificates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('courses');
@@ -18,14 +21,31 @@ const LearnerDashboard = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [enrollData, trainingData, gradesData] = await Promise.all([
-        apiClient.get('/api/enrollments/'),
-        apiClient.get('/training/trainings/my-trainings/'),
-        apiClient.get('/api/my-grades/')
+      setError(null);
+      
+      const [enrollData, trainingData, gradesData, certData] = await Promise.all([
+        apiClient.get('/api/enrollments/').catch(err => {
+          console.error("Error fetching enrollments:", err);
+          return { results: [] };
+        }),
+        apiClient.get('/training/trainings/my-trainings/').catch(err => {
+          console.error("Error fetching trainings:", err);
+          return { results: [] };
+        }),
+        apiClient.get('/auth/api/my-grades/').catch(err => {
+          console.error("Error fetching grades:", err);
+          return { results: [] };
+        }),
+        apiClient.get('/certification/api/certificates/my_certificates/').catch(err => {
+          console.error("Error fetching certificates:", err);
+          return [];
+        })
       ]);
+      
       setEnrollments(enrollData.results || enrollData || []);
       setTrainings(trainingData.results || trainingData || []);
       setGrades(gradesData.results || gradesData || []);
+      setCertificates(certData.results || certData || []);
     } catch (err) {
       setError('Failed to load your learning dashboard.');
       console.error(err);
@@ -73,6 +93,16 @@ const LearnerDashboard = () => {
             }`}
           >
             My Grades
+          </button>
+          <button
+            onClick={() => setActiveTab('certificates')}
+            className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${
+              activeTab === 'certificates' 
+                ? 'border-[#0A66C2] text-[#0A66C2]' 
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            My Certificates
           </button>
         </div>
 
@@ -257,6 +287,46 @@ const LearnerDashboard = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )
+        ) : activeTab === 'certificates' ? (
+          certificates.length === 0 ? (
+            <div className="text-center py-20 bg-white rounded-lg shadow-sm border border-slate-200">
+              <BookOpen className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+              <h2 className="text-xl font-bold text-slate-700 mb-2">No certificates earned yet</h2>
+              <p className="text-slate-500 max-w-md mx-auto mb-6">
+                Complete a course or training with a certificate offering to earn yours.
+              </p>
+            </div>
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {certificates.map(cert => (
+                <div key={cert.id} className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm flex flex-col">
+                  <div className="p-6 flex-1 text-center">
+                    <div className="w-16 h-16 bg-blue-50 text-[#0A66C2] rounded-full flex items-center justify-center mx-auto mb-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 15V3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v12"></path><path d="M2 15V3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v12"></path><path d="M2 15h20"></path><path d="m7 19 5-4 5 4"></path><path d="m12 22-5-3-5 3v-7h20v7z"></path></svg>
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-900 mb-2">Certificate of Completion</h3>
+                    <p className="text-sm text-slate-600 mb-1">For successfully completing:</p>
+                    <p className="text-base font-semibold text-[#0A66C2] mb-4">
+                      {cert.course_details ? cert.course_details.title : (cert.training_details ? cert.training_details.title : 'Unknown Program')}
+                    </p>
+                    <p className="text-xs text-slate-500">Issued to: {cert.learner_name}</p>
+                    <p className="text-xs text-slate-500">Date: {new Date(cert.issued_at || cert.created_at).toLocaleDateString()}</p>
+                    <p className="text-xs text-slate-400 mt-2 font-mono">ID: {cert.certificate_code}</p>
+                  </div>
+                  <div className="bg-slate-50 p-4 border-t border-slate-100 flex justify-center">
+                    <a 
+                      href={`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/certification/api/certificates/${cert.id}/render_html/`} 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      className="text-sm font-semibold text-[#0A66C2] hover:text-[#004182]"
+                    >
+                      Download / View
+                    </a>
+                  </div>
+                </div>
+              ))}
             </div>
           )
         ) : null}

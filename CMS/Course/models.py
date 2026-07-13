@@ -38,6 +38,11 @@ class Course(models.Model):
 
     #Instructor who Created/Owns This Course
     instructor = models.ForeignKey('Auth.Instructor', on_delete=models.CASCADE, related_name='courses', null=True, blank=True)
+    
+    # Certification Settings
+    has_certificate = models.BooleanField(default=False, help_text="If true, learners will receive a certificate upon completion.")
+    auto_issue_certificate = models.BooleanField(default=False, help_text="If true, certificates are issued automatically upon completion. Otherwise, wait for Admin/Instructor to issue manually.")
+    
     #Prequesites
     class Meta:
         ordering = ['-created_at']
@@ -49,6 +54,7 @@ class Course(models.Model):
     
     #This Logic is For Generate Slug Automatically When Course is Created Even if Many Courses have same Name
     def save(self, *args, **kwargs):
+        self.clean()
         if not self.slug:
             base_slug = slugify(self.title)
             slug = base_slug
@@ -58,6 +64,12 @@ class Course(models.Model):
                 counter += 1
             self.slug = slug
         super().save(*args, **kwargs)
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.is_free and self.has_certificate:
+            raise ValidationError({'has_certificate': 'A free course cannot have a certificate. Please set is_free to False if you want to offer a certificate.'})
+        super().clean()
 
 
 class CourseResource(models.Model):

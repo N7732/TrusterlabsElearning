@@ -14,6 +14,10 @@ class Training(models.Model):
     application_close_date = models.DateField(null=True, blank=True)
     instructor = models.ForeignKey('Auth.Instructor', on_delete=models.CASCADE, related_name='trainings', null=True, blank=True)
 
+    # Certification Settings
+    has_certificate = models.BooleanField(default=False, help_text="If true, participants will receive a certificate upon completion of the training.")
+    auto_issue_certificate = models.BooleanField(default=False, help_text="If true, certificates are issued automatically upon completion. Otherwise, wait for Admin/Instructor to issue manually.")
+
     def __str__(self):
         return self.title
 
@@ -34,6 +38,7 @@ class TrainingParticipants(models.Model):
 
         ('PENDING', 'Pending'),
         ('ADMITTED', 'Admitted'),
+        ('COMPLETED', 'Completed'),
         ('REJECTED', 'Rejected'),
     )
     training = models.ForeignKey(Training, on_delete=models.CASCADE, related_name='participants')

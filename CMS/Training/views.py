@@ -156,6 +156,19 @@ class TrainingViewSet(viewsets.ModelViewSet):
             participants.update(admission_status='REJECTED')
         elif action_type == 'REMOVE':
             participants.delete()
+        elif action_type == 'COMPLETE':
+            participants.update(admission_status='COMPLETED')
+            if training.has_certificate:
+                from certification.models import Certificate
+                for p in participants:
+                    # Ensure participant is a learner
+                    learner = getattr(p.participant, 'learner_profile', None)
+                    if learner:
+                        Certificate.objects.get_or_create(
+                            learner=learner,
+                            training=training,
+                            defaults={'is_issued': training.auto_issue_certificate}
+                        )
         else:
             return Response({'detail': 'Invalid action.'}, status=status.HTTP_400_BAD_REQUEST)
             

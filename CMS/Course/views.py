@@ -178,6 +178,30 @@ class LessonViewSet(viewsets.ModelViewSet):
             lesson=lesson,
             defaults={'is_completed': True}
         )
+        
+        # Check course completion
+        course = lesson.module.course
+        total_lessons = Lesson.objects.filter(module__course=course, is_published=True).count()
+        completed_lessons = LessonProgress.objects.filter(
+            learner=learner,
+            lesson__module__course=course,
+            is_completed=True
+        ).count()
+        
+        if total_lessons > 0 and completed_lessons >= total_lessons:
+            enrollment = Enrollment.objects.filter(learner=learner, course=course).first()
+            if enrollment and enrollment.status != 'completed':
+                enrollment.status = 'completed'
+                enrollment.save()
+                
+                if course.has_certificate:
+                    from certification.models import Certificate
+                    Certificate.objects.get_or_create(
+                        learner=learner,
+                        course=course,
+                        defaults={'is_issued': course.auto_issue_certificate}
+                    )
+                    
         return Response({'detail': 'Lesson marked as complete.'}, status=status.HTTP_200_OK)
 
 class QuizesViewSet(viewsets.ModelViewSet):
@@ -429,6 +453,29 @@ def lesson_detail(request, lesson_id):
                 lesson=lesson,
                 defaults={'is_completed': True}
             )
+            
+            # Check course completion
+            total_lessons = Lesson.objects.filter(module__course=course, is_published=True).count()
+            completed_lessons = LessonProgress.objects.filter(
+                learner=learner,
+                lesson__module__course=course,
+                is_completed=True
+            ).count()
+            
+            if total_lessons > 0 and completed_lessons >= total_lessons:
+                enrollment = Enrollment.objects.filter(learner=learner, course=course).first()
+                if enrollment and enrollment.status != 'completed':
+                    enrollment.status = 'completed'
+                    enrollment.save()
+                    
+                    if course.has_certificate:
+                        from certification.models import Certificate
+                        Certificate.objects.get_or_create(
+                            learner=learner,
+                            course=course,
+                            defaults={'is_issued': course.auto_issue_certificate}
+                        )
+            
             # Find next lesson
             next_lesson = Lesson.objects.filter(
                 module=lesson.module, 

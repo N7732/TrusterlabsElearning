@@ -64,9 +64,9 @@ const Navbar = () => {
                 <ArrowLeft size={24} />
               </button>
             )}
-            <Link to="/" className="flex items-center group py-2">
-              <div className="bg-white rounded-full px-5 py-1.5 flex items-center justify-center">
-                <img src={logo} alt="Truster Lab" className="h-8 md:h-10 w-auto object-contain" />
+            <Link to="/" className="flex items-center group py-2 relative z-50">
+              <div className="bg-white rounded-full px-6 py-3 flex items-center justify-center shadow-lg mt-4">
+                <img src={logo} alt="Truster Lab" className="h-16 md:h-20 w-auto object-contain" />
               </div>
             </Link>
           </div>

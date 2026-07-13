@@ -1,0 +1,13 @@
+from rest_framework import serializers
+from .models import Certificate
+from Course.serializer import CourseSerializer
+from Training.serializers import TrainingSerializer
+
+class CertificateSerializer(serializers.ModelSerializer):
+    course_details = CourseSerializer(source='course', read_only=True)
+    training_details = TrainingSerializer(source='training', read_only=True)
+    learner_name = serializers.CharField(source='learner.user.get_full_name', read_only=True)
+
+    class Meta:
+        model = Certificate
+        fields = ['id', 'learner', 'learner_name', 'course', 'course_details', 'training', 'training_details', 'certificate_code', 'is_issued', 'issued_at', 'file', 'created_at']

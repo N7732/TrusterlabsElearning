@@ -29,6 +29,7 @@ urlpatterns = [
     path('settings/', include('SuperSetting.urls')),
     path('api/research/', include('Research.urls')),
     path('api/membership/', include('Membership.urls')),
+    path('certification/', include('certification.urls')),
 ]
 
 if settings.DEBUG:

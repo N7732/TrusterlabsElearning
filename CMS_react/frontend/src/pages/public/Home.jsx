@@ -31,14 +31,14 @@ const Home = () => {
             Empowering governments, enterprises and communities with research, innovation, world-class training, cyber defense and strategic consultancy.
           </p>
           <div className="flex flex-col sm:flex-row justify-start gap-4">
-            <Link to="/solutions">
+            <Link to="/about#our-story">
               <Button size="lg" className="w-full sm:w-auto bg-[#D4AF37] hover:bg-[#c29e2f] text-black border-none font-semibold flex items-center gap-2">
-                Explore Solutions <span>→</span>
+                Our Story <span>→</span>
               </Button>
             </Link>
-            <Link to="/impact">
+            <Link to="/academics">
               <Button variant="outline" size="lg" className="w-full sm:w-auto bg-transparent text-white hover:bg-white/5 border-[#D4AF37] font-semibold flex items-center gap-2">
-                Discover Our Impact <span className="text-[#D4AF37]">→</span>
+                Explore Academics <span className="text-[#D4AF37]">→</span>
               </Button>
             </Link>
           </div>

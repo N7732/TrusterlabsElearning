@@ -39,17 +39,19 @@ const AdminDashboard = () => {
   const [timeFilter, setTimeFilter] = useState('month');
   const [recentActivities, setRecentActivities] = useState([]);
   const [systemAlerts, setSystemAlerts] = useState([]);
+  const [certificates, setCertificates] = useState([]);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [courses, learners, instructors, dashboardStats, notificationsRes, alertsRes] = await Promise.all([
+        const [courses, learners, instructors, dashboardStats, notificationsRes, alertsRes, certRes] = await Promise.all([
           apiClient.get('/api/courses/').catch(() => ({ count: 0 })),
           apiClient.get('/auth/api/learners/').catch(() => ({ count: 0, length: 0 })),
           apiClient.get('/auth/api/instructors/').catch(() => ({ count: 0, length: 0 })),
           apiClient.get(`/settings/dashboard-stats/?filter=${timeFilter}`).catch(() => null),
           apiClient.get('/settings/notifications/').catch(() => null),
           apiClient.get('/settings/system-alerts/').catch(() => null),
+          apiClient.get('/certification/api/certificates/').catch(() => []),
         ]);
 
         setStats({
@@ -69,11 +71,16 @@ const AdminDashboard = () => {
         
         if (notificationsRes) {
           const notifs = notificationsRes.data?.results || notificationsRes.data || [];
-          setRecentActivities(notifs.slice(0, 5));
+          setRecentActivities(notifs);
         }
         
         if (alertsRes && alertsRes.data) {
           setSystemAlerts(alertsRes.data);
+        }
+        
+        if (certRes) {
+          const certs = certRes.data?.results || certRes.data || certRes || [];
+          setCertificates(certs);
         }
       } catch (error) {
         console.error('Failed to fetch admin stats:', error);
@@ -319,7 +326,7 @@ const AdminDashboard = () => {
               <h3 className="text-lg font-bold text-slate-800">Recent Activity</h3>
             </div>
             
-            <div className="flex-1 flex flex-col gap-5">
+            <div className="flex-1 flex flex-col gap-5 overflow-y-auto max-h-[400px] pr-2">
               {recentActivities.map(activity => {
                 let IconComp = Info;
                 let iconColor = "text-slate-500";
@@ -438,6 +445,64 @@ const AdminDashboard = () => {
         </Card>
 
       </div>
+
+      {/* Certificates Section */}
+      <div className="mt-6">
+        <Card className="border border-slate-100 shadow-sm rounded-xl bg-white flex flex-col">
+          <CardContent className="p-6">
+             <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-bold text-slate-800">All Certificates Offered</h3>
+              <button className="flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 rounded-lg px-3 py-1.5 transition-colors hover:bg-slate-50">
+                Manage Certificates <ArrowRight size={14} />
+              </button>
+            </div>
+            
+            {certificates.length === 0 ? (
+              <p className="text-slate-500 text-sm py-4">No certificates have been created or issued yet.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-slate-200">
+                  <thead className="bg-slate-50">
+                    <tr>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Learner</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Program</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Code</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Issue Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-slate-200">
+                    {certificates.map((cert) => (
+                      <tr key={cert.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-900">
+                          {cert.learner_name}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">
+                          {cert.course_details ? cert.course_details.title : (cert.training_details ? cert.training_details.title : 'Unknown')}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-500 font-mono">
+                          {cert.certificate_code}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {cert.is_issued ? (
+                            <span className="px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-sm bg-green-100 text-green-800">Issued</span>
+                          ) : (
+                            <span className="px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-sm bg-amber-100 text-amber-800">Pending</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                          {cert.issued_at ? new Date(cert.issued_at).toLocaleDateString() : 'N/A'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
     </div>
   );
 };
