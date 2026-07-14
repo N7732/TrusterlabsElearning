@@ -6,11 +6,42 @@ import Button from '../../components/common/Button';
 import { Search, Plus, Trash2, Edit } from 'lucide-react';
 
 import { adminConfig } from '../../config/adminConfig';
+import { useAuth } from '../../context/AuthContext';
 
 const AdminEntityList = () => {
   const location = useLocation();
   const entityKey = location.pathname.split('/').pop();
-  const config = adminConfig[entityKey];
+  const baseConfig = adminConfig[entityKey];
+  const { user, isAdmin } = useAuth();
+
+  const getConfig = () => {
+    if (!baseConfig) return null;
+    const config = { ...baseConfig };
+    
+    if (user?.instructor_profile && !isAdmin) {
+      const profile = user.instructor_profile;
+      if (entityKey === 'courses') {
+        config.canCreate = profile.can_create_courses ?? config.canCreate;
+        config.canEdit = profile.can_update_courses ?? config.canEdit;
+        config.canDelete = profile.can_delete_courses ?? config.canDelete;
+      } else if (['modules', 'lessons', 'quizzes', 'quiz_questions'].includes(entityKey)) {
+        config.canCreate = profile.can_update_courses ?? config.canCreate;
+        config.canEdit = profile.can_update_courses ?? config.canEdit;
+        config.canDelete = profile.can_delete_courses ?? config.canDelete;
+      } else if (['trainings', 'classwork', 'exams'].includes(entityKey)) {
+        config.canCreate = profile.can_create_trainings ?? config.canCreate;
+        config.canEdit = profile.can_update_trainings ?? config.canEdit;
+        config.canDelete = profile.can_delete_trainings ?? config.canDelete;
+      } else if (entityKey === 'certificates') {
+        config.canCreate = profile.can_create_certificates ?? config.canCreate;
+        config.canEdit = profile.can_update_certificates ?? config.canEdit;
+        config.canDelete = profile.can_delete_certificates ?? config.canDelete;
+      }
+    }
+    return config;
+  };
+
+  const config = getConfig();
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);

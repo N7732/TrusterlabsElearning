@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { apiClient } from '../../api/apiClient';
 import Card, { CardContent } from '../../components/common/Card';
 import Button from '../../components/common/Button';
@@ -166,6 +166,9 @@ const TrainingDashboard = () => {
     }
   };
 
+  const location = useLocation();
+  const basePath = location.pathname.startsWith('/superadmin') ? '/superadmin/entity' : '/admin';
+
   if (loading) {
     return (
       <div className="p-12 flex justify-center">
@@ -194,7 +197,7 @@ const TrainingDashboard = () => {
           <h1 className="text-2xl font-bold text-slate-900">{training.title}</h1>
           <p className="text-slate-500 mt-1">Training Dashboard</p>
         </div>
-        <Button onClick={() => navigate(`/admin/trainings/${id}`)} variant="outline" className="flex items-center">
+        <Button onClick={() => navigate(`${basePath}/trainings/${id}`)} variant="outline" className="flex items-center">
           <Settings size={18} className="mr-2" /> Settings
         </Button>
       </div>
@@ -361,7 +364,7 @@ const TrainingDashboard = () => {
             <CardContent className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-bold text-slate-800">Classwork Assignments</h3>
-                <Button onClick={() => navigate(`/admin/classwork/new?training=${id}`)} className="bg-[#0A66C2] hover:bg-blue-700">
+                <Button onClick={() => navigate(`${basePath}/classwork/new?training=${id}`)} className="bg-[#0A66C2] hover:bg-blue-700">
                   <Plus size={16} className="mr-2" /> Create Classwork
                 </Button>
               </div>
@@ -383,7 +386,7 @@ const TrainingDashboard = () => {
                       </div>
                       <div className="flex gap-2">
                         <Button variant="outline" onClick={() => handleViewSubmissions(cw)}>Submissions</Button>
-                        <Button variant="outline" onClick={() => navigate(`/admin/classwork/${cw.id}`)}>Edit</Button>
+                        <Button variant="outline" onClick={() => navigate(`${basePath}/classwork/${cw.id}`)}>Edit</Button>
                       </div>
                     </div>
                   ))
@@ -398,7 +401,7 @@ const TrainingDashboard = () => {
             <CardContent className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-bold text-slate-800">Final Exams</h3>
-                <Button onClick={() => navigate(`/admin/exams/new?training=${id}`)} className="bg-[#0A66C2] hover:bg-blue-700">
+                <Button onClick={() => navigate(`${basePath}/exams/new?training=${id}`)} className="bg-[#0A66C2] hover:bg-blue-700">
                   <Plus size={16} className="mr-2" /> Create Exam
                 </Button>
               </div>
@@ -415,7 +418,7 @@ const TrainingDashboard = () => {
                           <span className="text-sm text-[#0A66C2] mt-1 inline-block">Linked Exam ID: {exam.linked_exam}</span>
                         )}
                       </div>
-                      <Button variant="outline" onClick={() => navigate(`/admin/exams/${exam.id}`)}>Edit</Button>
+                      <Button variant="outline" onClick={() => navigate(`${basePath}/exams/${exam.id}`)}>Edit</Button>
                     </div>
                   ))
                 )}

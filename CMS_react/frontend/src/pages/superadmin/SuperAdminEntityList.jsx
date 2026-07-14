@@ -260,15 +260,22 @@ const SuperAdminEntityList = () => {
                           );
                         })}
                         <div className="flex gap-2 justify-end">
-                      {config.canUpdate && (
-                        <button
-                          onClick={() => navigate(`${basePath}/${entityId}/${item.id}`)}
-                          className="p-1 text-slate-400 hover:text-blue-600 transition-colors"
-                          title="Edit"
-                        >
-                          <Edit size={16} />
-                        </button>
-                      )}
+                        {config.canUpdate && (
+                          <button
+                            onClick={() => {
+                              if (entityId === 'trainings') {
+                                const prefix = location.pathname.startsWith('/instructor') ? '/admin' : '/superadmin';
+                                navigate(`${prefix}/trainings/${item.id}/dashboard`);
+                              } else {
+                                navigate(`${basePath}/${entityId}/${item.id}`);
+                              }
+                            }}
+                            className="p-1 text-slate-400 hover:text-blue-600 transition-colors"
+                            title="Edit"
+                          >
+                            <Edit size={16} />
+                          </button>
+                        )}
                         {config.canDelete && (
                           <button 
                             onClick={() => handleDelete(item.id)}

@@ -155,15 +155,65 @@ class CourseViewSet(viewsets.ModelViewSet):
         ).values_list('lesson_id', flat=True)
         return Response({'completed_lessons': list(completed_lessons)}, status=status.HTTP_200_OK)
 
+def check_course_subentity_permission(user, course, action):
+    if user.user_type == 'admin' or user.is_superuser:
+        return
+    if user.user_type == 'instructor':
+        if not course or course.instructor != getattr(user, 'instructor_profile', None):
+            raise PermissionDenied("You cannot modify content in another instructor's course.")
+        
+        if action == 'create' or action == 'update':
+            if not getattr(user.instructor_profile, 'can_update_courses', False):
+                raise PermissionDenied("You do not have permission to update courses.")
+        elif action == 'delete':
+            if not getattr(user.instructor_profile, 'can_delete_courses', False):
+                raise PermissionDenied("You do not have permission to delete content from courses.")
+    else:
+        raise PermissionDenied("Only instructors or admins can modify course contents.")
+
 class ModuleViewSet(viewsets.ModelViewSet):
     queryset = Module.objects.all()
     serializer_class = ModuleSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
+    def perform_create(self, serializer):
+        course = serializer.validated_data.get('course')
+        check_course_subentity_permission(self.request.user, course, 'create')
+        serializer.save()
+
+    def perform_update(self, serializer):
+        module = self.get_object()
+        check_course_subentity_permission(self.request.user, module.course, 'update')
+        new_course = serializer.validated_data.get('course')
+        if new_course and new_course != module.course:
+            check_course_subentity_permission(self.request.user, new_course, 'update')
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        check_course_subentity_permission(self.request.user, instance.course, 'delete')
+        instance.delete()
+
 class LessonViewSet(viewsets.ModelViewSet):
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        module = serializer.validated_data.get('module')
+        check_course_subentity_permission(self.request.user, module.course, 'create')
+        serializer.save()
+
+    def perform_update(self, serializer):
+        lesson = self.get_object()
+        check_course_subentity_permission(self.request.user, lesson.module.course, 'update')
+        new_module = serializer.validated_data.get('module')
+        if new_module and new_module != lesson.module:
+            check_course_subentity_permission(self.request.user, new_module.course, 'update')
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        check_course_subentity_permission(self.request.user, instance.module.course, 'delete')
+        instance.delete()
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def mark_complete(self, request, pk=None):
@@ -208,6 +258,44 @@ class QuizesViewSet(viewsets.ModelViewSet):
     queryset = Quizes.objects.all()
     serializer_class = QuizesSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_course_for_quiz(self, quiz=None, validated_data=None):
+        if validated_data:
+            course = validated_data.get('course')
+            module = validated_data.get('module')
+            lesson = validated_data.get('lesson')
+        else:
+            course = quiz.course
+            module = quiz.module
+            lesson = quiz.lesson
+            
+        if course: return course
+        if module: return module.course
+        if lesson: return lesson.module.course
+        return None
+
+    def perform_create(self, serializer):
+        course = self.get_course_for_quiz(validated_data=serializer.validated_data)
+        if course:
+            check_course_subentity_permission(self.request.user, course, 'create')
+        serializer.save()
+
+    def perform_update(self, serializer):
+        quiz = self.get_object()
+        course = self.get_course_for_quiz(quiz=quiz)
+        if course:
+            check_course_subentity_permission(self.request.user, course, 'update')
+        
+        new_course = self.get_course_for_quiz(validated_data=serializer.validated_data)
+        if new_course and new_course != course:
+            check_course_subentity_permission(self.request.user, new_course, 'update')
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        course = self.get_course_for_quiz(quiz=instance)
+        if course:
+            check_course_subentity_permission(self.request.user, course, 'delete')
+        instance.delete()
 
     @action(detail=True, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def my_submission(self, request, pk=None):
@@ -265,11 +353,56 @@ class QuizQuestionViewSet(viewsets.ModelViewSet):
     serializer_class = QuizQuestionSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
+    def perform_create(self, serializer):
+        quiz = serializer.validated_data.get('quiz')
+        course = quiz.course or (quiz.module.course if quiz.module else (quiz.lesson.module.course if quiz.lesson else None))
+        if course:
+            check_course_subentity_permission(self.request.user, course, 'create')
+        serializer.save()
+
+    def perform_update(self, serializer):
+        question = self.get_object()
+        quiz = question.quiz
+        course = quiz.course or (quiz.module.course if quiz.module else (quiz.lesson.module.course if quiz.lesson else None))
+        if course:
+            check_course_subentity_permission(self.request.user, course, 'update')
+            
+        new_quiz = serializer.validated_data.get('quiz')
+        if new_quiz and new_quiz != quiz:
+            new_course = new_quiz.course or (new_quiz.module.course if new_quiz.module else (new_quiz.lesson.module.course if new_quiz.lesson else None))
+            if new_course:
+                check_course_subentity_permission(self.request.user, new_course, 'update')
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        quiz = instance.quiz
+        course = quiz.course or (quiz.module.course if quiz.module else (quiz.lesson.module.course if quiz.lesson else None))
+        if course:
+            check_course_subentity_permission(self.request.user, course, 'delete')
+        instance.delete()
+
 
 class CourseResourceViewSet(viewsets.ModelViewSet):
     queryset = CourseResource.objects.all()
     serializer_class = CourseResourceSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        course = serializer.validated_data.get('course')
+        check_course_subentity_permission(self.request.user, course, 'create')
+        serializer.save()
+
+    def perform_update(self, serializer):
+        resource = self.get_object()
+        check_course_subentity_permission(self.request.user, resource.course, 'update')
+        new_course = serializer.validated_data.get('course')
+        if new_course and new_course != resource.course:
+            check_course_subentity_permission(self.request.user, new_course, 'update')
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        check_course_subentity_permission(self.request.user, instance.course, 'delete')
+        instance.delete()
 
 class EnrollmentViewSet(viewsets.ModelViewSet):
     serializer_class = EnrollmentSerializer
