@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Key, Copy, Check, UserPlus, AlertCircle } from 'lucide-react';
+import { Shield, Key, Copy, Check, UserPlus, AlertCircle, GraduationCap, Award, Users } from 'lucide-react';
 import { apiClient } from '../../api/apiClient';
 
 const AdminAddInstructor = () => {
@@ -17,6 +17,13 @@ const AdminAddInstructor = () => {
     can_create_courses: true,
     can_update_courses: true,
     can_delete_courses: true,
+    can_create_trainings: true,
+    can_update_trainings: true,
+    can_delete_trainings: true,
+    can_create_certificates: true,
+    can_update_certificates: true,
+    can_delete_certificates: true,
+    can_view_students: true,
   });
 
   const [copied, setCopied] = useState(false);
@@ -57,7 +64,7 @@ const AdminAddInstructor = () => {
     setSuccess(false);
 
     try {
-      await apiClient.post('/api/auth/admin/instructors/create/', {
+      await apiClient.post('/auth/api/auth/admin/instructors/create/', {
         first_name: formData.firstName,
         last_name: formData.lastName,
         username: formData.email, // using email as username
@@ -66,16 +73,37 @@ const AdminAddInstructor = () => {
         can_create_courses: formData.can_create_courses,
         can_update_courses: formData.can_update_courses,
         can_delete_courses: formData.can_delete_courses,
+        can_create_trainings: formData.can_create_trainings,
+        can_update_trainings: formData.can_update_trainings,
+        can_delete_trainings: formData.can_delete_trainings,
+        can_create_certificates: formData.can_create_certificates,
+        can_update_certificates: formData.can_update_certificates,
+        can_delete_certificates: formData.can_delete_certificates,
+        can_view_students: formData.can_view_students,
       });
       setSuccess(true);
       // Reset form
       setFormData({
         firstName: '', lastName: '', email: '', password: '',
-        can_create_courses: true, can_update_courses: true, can_delete_courses: true
+        can_create_courses: true, can_update_courses: true, can_delete_courses: true,
+        can_create_trainings: true, can_update_trainings: true, can_delete_trainings: true,
+        can_create_certificates: true, can_update_certificates: true, can_delete_certificates: true,
+        can_view_students: true
       });
     } catch (err) {
       console.error(err);
-      setError(err.email?.[0] || err.username?.[0] || err.error || "Failed to create instructor. Email may already be in use.");
+      
+      let errorMsg = "Failed to create instructor. Email may already be in use.";
+      try {
+        // apiClient throws an Error with the JSON stringified response or detail message
+        const parsedErr = JSON.parse(err.message);
+        errorMsg = parsedErr.email?.[0] || parsedErr.username?.[0] || parsedErr.error || parsedErr.detail || Object.values(parsedErr)[0]?.[0] || errorMsg;
+      } catch(e) {
+        // If not JSON, it might just be a string message
+        errorMsg = err.message || errorMsg;
+      }
+      
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -182,7 +210,7 @@ const AdminAddInstructor = () => {
           </div>
         </div>
 
-        {/* Privileges */}
+        {/* Course Privileges */}
         <div className="p-6">
           <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center">
             <Shield className="mr-2 text-amber-500" size={20} /> Course Privileges
@@ -219,6 +247,110 @@ const AdminAddInstructor = () => {
               <div>
                 <p className="font-semibold text-slate-800">Can Delete Courses</p>
                 <p className="text-sm text-slate-500">Allow instructor to permanently delete their courses.</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        {/* Training Privileges */}
+        <div className="p-6 border-t border-slate-100">
+          <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center">
+            <GraduationCap className="mr-2 text-purple-500" size={20} /> Training Privileges
+          </h2>
+          <div className="space-y-3">
+            <label className="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
+              <input 
+                type="checkbox" name="can_create_trainings"
+                checked={formData.can_create_trainings} onChange={handleInputChange}
+                className="w-5 h-5 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
+              />
+              <div>
+                <p className="font-semibold text-slate-800">Can Create Trainings</p>
+                <p className="text-sm text-slate-500">Allow instructor to author new live training sessions.</p>
+              </div>
+            </label>
+            <label className="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
+              <input 
+                type="checkbox" name="can_update_trainings"
+                checked={formData.can_update_trainings} onChange={handleInputChange}
+                className="w-5 h-5 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
+              />
+              <div>
+                <p className="font-semibold text-slate-800">Can Update Trainings</p>
+                <p className="text-sm text-slate-500">Allow instructor to edit and modify their existing training sessions.</p>
+              </div>
+            </label>
+            <label className="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
+              <input 
+                type="checkbox" name="can_delete_trainings"
+                checked={formData.can_delete_trainings} onChange={handleInputChange}
+                className="w-5 h-5 text-red-500 rounded border-slate-300 focus:ring-red-500"
+              />
+              <div>
+                <p className="font-semibold text-slate-800">Can Delete Trainings</p>
+                <p className="text-sm text-slate-500">Allow instructor to permanently delete their training sessions.</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        {/* Certificate Privileges */}
+        <div className="p-6 border-t border-slate-100">
+          <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center">
+            <Award className="mr-2 text-amber-500" size={20} /> Certificate Privileges
+          </h2>
+          <div className="space-y-3">
+            <label className="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
+              <input 
+                type="checkbox" name="can_create_certificates"
+                checked={formData.can_create_certificates} onChange={handleInputChange}
+                className="w-5 h-5 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
+              />
+              <div>
+                <p className="font-semibold text-slate-800">Can Issue Certificates</p>
+                <p className="text-sm text-slate-500">Allow instructor to manually issue and approve new certificates.</p>
+              </div>
+            </label>
+            <label className="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
+              <input 
+                type="checkbox" name="can_update_certificates"
+                checked={formData.can_update_certificates} onChange={handleInputChange}
+                className="w-5 h-5 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
+              />
+              <div>
+                <p className="font-semibold text-slate-800">Can Update Certificates</p>
+                <p className="text-sm text-slate-500">Allow instructor to modify data on issued certificates.</p>
+              </div>
+            </label>
+            <label className="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
+              <input 
+                type="checkbox" name="can_delete_certificates"
+                checked={formData.can_delete_certificates} onChange={handleInputChange}
+                className="w-5 h-5 text-red-500 rounded border-slate-300 focus:ring-red-500"
+              />
+              <div>
+                <p className="font-semibold text-slate-800">Can Delete Certificates</p>
+                <p className="text-sm text-slate-500">Allow instructor to revoke or permanently delete certificates.</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        {/* Student Privileges */}
+        <div className="p-6 border-t border-slate-100">
+          <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center">
+            <Users className="mr-2 text-emerald-500" size={20} /> Student Privileges
+          </h2>
+          <div className="space-y-3">
+            <label className="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
+              <input 
+                type="checkbox" name="can_view_students"
+                checked={formData.can_view_students} onChange={handleInputChange}
+                className="w-5 h-5 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
+              />
+              <div>
+                <p className="font-semibold text-slate-800">View Student Data</p>
+                <p className="text-sm text-slate-500">Allow instructor to view profiles, progress, and performance data of enrolled learners.</p>
               </div>
             </label>
           </div>

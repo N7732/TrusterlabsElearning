@@ -214,40 +214,40 @@ const InstructorForm = ({ isEditing, instructorId }) => {
                   <BookOpen className="text-blue-500 w-5 h-5" />
                   <h4 className="text-md font-bold text-slate-800">Course Privileges</h4>
                 </div>
-                <div className="space-y-3 bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
-                  <label className="flex items-start gap-3 cursor-pointer p-2 hover:bg-slate-50 rounded-md transition-colors">
+                <div className="space-y-3">
+                  <label className="flex items-start gap-4 cursor-pointer p-4 bg-white border border-slate-200 rounded-lg shadow-sm hover:border-[#0A66C2] transition-colors">
                     <input 
                       type="checkbox" name="can_create_courses" 
                       checked={formData.can_create_courses} onChange={handleChange}
-                      className="mt-1 w-4 h-4 text-[#0A66C2] border-slate-300 rounded focus:ring-[#0A66C2]" 
+                      className="mt-0.5 w-5 h-5 text-[#0A66C2] border-slate-300 rounded focus:ring-[#0A66C2]" 
                     />
                     <div>
-                      <div className="font-bold text-slate-800 text-sm">Can Create Courses</div>
-                      <div className="text-xs text-slate-500">Allow instructor to author new courses on the platform.</div>
+                      <div className="font-bold text-slate-800 text-base">Can Create Courses</div>
+                      <div className="text-sm text-slate-500 mt-0.5">Allow instructor to author new courses on the platform.</div>
                     </div>
                   </label>
                   
-                  <label className="flex items-start gap-3 cursor-pointer p-2 hover:bg-slate-50 rounded-md transition-colors border-t border-slate-100 pt-3">
+                  <label className="flex items-start gap-4 cursor-pointer p-4 bg-white border border-slate-200 rounded-lg shadow-sm hover:border-[#0A66C2] transition-colors">
                     <input 
                       type="checkbox" name="can_update_courses" 
                       checked={formData.can_update_courses} onChange={handleChange}
-                      className="mt-1 w-4 h-4 text-[#0A66C2] border-slate-300 rounded focus:ring-[#0A66C2]" 
+                      className="mt-0.5 w-5 h-5 text-[#0A66C2] border-slate-300 rounded focus:ring-[#0A66C2]" 
                     />
                     <div>
-                      <div className="font-bold text-slate-800 text-sm">Can Update Courses</div>
-                      <div className="text-xs text-slate-500">Allow instructor to edit and modify their existing courses.</div>
+                      <div className="font-bold text-slate-800 text-base">Can Update Courses</div>
+                      <div className="text-sm text-slate-500 mt-0.5">Allow instructor to edit and modify their existing courses.</div>
                     </div>
                   </label>
 
-                  <label className="flex items-start gap-3 cursor-pointer p-2 hover:bg-slate-50 rounded-md transition-colors border-t border-slate-100 pt-3">
+                  <label className="flex items-start gap-4 cursor-pointer p-4 bg-white border border-slate-200 rounded-lg shadow-sm hover:border-[#0A66C2] transition-colors">
                     <input 
                       type="checkbox" name="can_delete_courses" 
                       checked={formData.can_delete_courses} onChange={handleChange}
-                      className="mt-1 w-4 h-4 text-[#0A66C2] border-slate-300 rounded focus:ring-[#0A66C2]" 
+                      className="mt-0.5 w-5 h-5 text-[#0A66C2] border-slate-300 rounded focus:ring-[#0A66C2]" 
                     />
                     <div>
-                      <div className="font-bold text-slate-800 text-sm">Can Delete Courses</div>
-                      <div className="text-xs text-slate-500">Allow instructor to permanently delete their courses.</div>
+                      <div className="font-bold text-slate-800 text-base">Can Delete Courses</div>
+                      <div className="text-sm text-slate-500 mt-0.5">Allow instructor to permanently delete their courses.</div>
                     </div>
                   </label>
                 </div>
@@ -259,40 +259,40 @@ const InstructorForm = ({ isEditing, instructorId }) => {
                   <GraduationCap className="text-purple-500 w-5 h-5" />
                   <h4 className="text-md font-bold text-slate-800">Training Privileges</h4>
                 </div>
-                <div className="space-y-3 bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
-                  <label className="flex items-start gap-3 cursor-pointer p-2 hover:bg-slate-50 rounded-md transition-colors">
+                <div className="space-y-3">
+                  <label className="flex items-start gap-4 cursor-pointer p-4 bg-white border border-slate-200 rounded-lg shadow-sm hover:border-[#0A66C2] transition-colors">
                     <input 
                       type="checkbox" name="can_create_trainings" 
                       checked={formData.can_create_trainings} onChange={handleChange}
-                      className="mt-1 w-4 h-4 text-[#0A66C2] border-slate-300 rounded focus:ring-[#0A66C2]" 
+                      className="mt-0.5 w-5 h-5 text-[#0A66C2] border-slate-300 rounded focus:ring-[#0A66C2]" 
                     />
                     <div>
-                      <div className="font-bold text-slate-800 text-sm">Can Create Trainings</div>
-                      <div className="text-xs text-slate-500">Allow instructor to author new live training sessions.</div>
+                      <div className="font-bold text-slate-800 text-base">Can Create Trainings</div>
+                      <div className="text-sm text-slate-500 mt-0.5">Allow instructor to author new live training sessions.</div>
                     </div>
                   </label>
                   
-                  <label className="flex items-start gap-3 cursor-pointer p-2 hover:bg-slate-50 rounded-md transition-colors border-t border-slate-100 pt-3">
+                  <label className="flex items-start gap-4 cursor-pointer p-4 bg-white border border-slate-200 rounded-lg shadow-sm hover:border-[#0A66C2] transition-colors">
                     <input 
                       type="checkbox" name="can_update_trainings" 
                       checked={formData.can_update_trainings} onChange={handleChange}
-                      className="mt-1 w-4 h-4 text-[#0A66C2] border-slate-300 rounded focus:ring-[#0A66C2]" 
+                      className="mt-0.5 w-5 h-5 text-[#0A66C2] border-slate-300 rounded focus:ring-[#0A66C2]" 
                     />
                     <div>
-                      <div className="font-bold text-slate-800 text-sm">Can Update Trainings</div>
-                      <div className="text-xs text-slate-500">Allow instructor to edit and modify their existing training sessions.</div>
+                      <div className="font-bold text-slate-800 text-base">Can Update Trainings</div>
+                      <div className="text-sm text-slate-500 mt-0.5">Allow instructor to edit and modify their existing training sessions.</div>
                     </div>
                   </label>
 
-                  <label className="flex items-start gap-3 cursor-pointer p-2 hover:bg-slate-50 rounded-md transition-colors border-t border-slate-100 pt-3">
+                  <label className="flex items-start gap-4 cursor-pointer p-4 bg-white border border-slate-200 rounded-lg shadow-sm hover:border-[#0A66C2] transition-colors">
                     <input 
                       type="checkbox" name="can_delete_trainings" 
                       checked={formData.can_delete_trainings} onChange={handleChange}
-                      className="mt-1 w-4 h-4 text-[#0A66C2] border-slate-300 rounded focus:ring-[#0A66C2]" 
+                      className="mt-0.5 w-5 h-5 text-[#0A66C2] border-slate-300 rounded focus:ring-[#0A66C2]" 
                     />
                     <div>
-                      <div className="font-bold text-slate-800 text-sm">Can Delete Trainings</div>
-                      <div className="text-xs text-slate-500">Allow instructor to permanently delete their training sessions.</div>
+                      <div className="font-bold text-slate-800 text-base">Can Delete Trainings</div>
+                      <div className="text-sm text-slate-500 mt-0.5">Allow instructor to permanently delete their training sessions.</div>
                     </div>
                   </label>
                 </div>
@@ -304,16 +304,16 @@ const InstructorForm = ({ isEditing, instructorId }) => {
                   <Users className="text-emerald-500 w-5 h-5" />
                   <h4 className="text-md font-bold text-slate-800">Student Privileges</h4>
                 </div>
-                <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
-                  <label className="flex items-start gap-3 cursor-pointer p-2 hover:bg-slate-50 rounded-md transition-colors">
+                <div className="space-y-3">
+                  <label className="flex items-start gap-4 cursor-pointer p-4 bg-white border border-slate-200 rounded-lg shadow-sm hover:border-[#0A66C2] transition-colors">
                     <input 
                       type="checkbox" name="can_view_students" 
                       checked={formData.can_view_students} onChange={handleChange}
-                      className="mt-1 w-4 h-4 text-[#0A66C2] border-slate-300 rounded focus:ring-[#0A66C2]" 
+                      className="mt-0.5 w-5 h-5 text-[#0A66C2] border-slate-300 rounded focus:ring-[#0A66C2]" 
                     />
                     <div>
-                      <div className="font-bold text-slate-800 text-sm">View Student Data</div>
-                      <div className="text-xs text-slate-500">Allow instructor to view profiles, progress, and performance data of enrolled learners.</div>
+                      <div className="font-bold text-slate-800 text-base">View Student Data</div>
+                      <div className="text-sm text-slate-500 mt-0.5">Allow instructor to view profiles, progress, and performance data of enrolled learners.</div>
                     </div>
                   </label>
                 </div>
@@ -325,40 +325,40 @@ const InstructorForm = ({ isEditing, instructorId }) => {
                   <Award className="text-amber-500 w-5 h-5" />
                   <h4 className="text-md font-bold text-slate-800">Certificate Privileges</h4>
                 </div>
-                <div className="space-y-3 bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
-                  <label className="flex items-start gap-3 cursor-pointer p-2 hover:bg-slate-50 rounded-md transition-colors">
+                <div className="space-y-3">
+                  <label className="flex items-start gap-4 cursor-pointer p-4 bg-white border border-slate-200 rounded-lg shadow-sm hover:border-[#0A66C2] transition-colors">
                     <input 
                       type="checkbox" name="can_create_certificates" 
                       checked={formData.can_create_certificates} onChange={handleChange}
-                      className="mt-1 w-4 h-4 text-[#0A66C2] border-slate-300 rounded focus:ring-[#0A66C2]" 
+                      className="mt-0.5 w-5 h-5 text-[#0A66C2] border-slate-300 rounded focus:ring-[#0A66C2]" 
                     />
                     <div>
-                      <div className="font-bold text-slate-800 text-sm">Can Issue Certificates</div>
-                      <div className="text-xs text-slate-500">Allow instructor to manually issue and approve new certificates.</div>
+                      <div className="font-bold text-slate-800 text-base">Can Issue Certificates</div>
+                      <div className="text-sm text-slate-500 mt-0.5">Allow instructor to manually issue and approve new certificates.</div>
                     </div>
                   </label>
                   
-                  <label className="flex items-start gap-3 cursor-pointer p-2 hover:bg-slate-50 rounded-md transition-colors border-t border-slate-100 pt-3">
+                  <label className="flex items-start gap-4 cursor-pointer p-4 bg-white border border-slate-200 rounded-lg shadow-sm hover:border-[#0A66C2] transition-colors">
                     <input 
                       type="checkbox" name="can_update_certificates" 
                       checked={formData.can_update_certificates} onChange={handleChange}
-                      className="mt-1 w-4 h-4 text-[#0A66C2] border-slate-300 rounded focus:ring-[#0A66C2]" 
+                      className="mt-0.5 w-5 h-5 text-[#0A66C2] border-slate-300 rounded focus:ring-[#0A66C2]" 
                     />
                     <div>
-                      <div className="font-bold text-slate-800 text-sm">Can Update Certificates</div>
-                      <div className="text-xs text-slate-500">Allow instructor to modify data on issued certificates.</div>
+                      <div className="font-bold text-slate-800 text-base">Can Update Certificates</div>
+                      <div className="text-sm text-slate-500 mt-0.5">Allow instructor to modify data on issued certificates.</div>
                     </div>
                   </label>
 
-                  <label className="flex items-start gap-3 cursor-pointer p-2 hover:bg-slate-50 rounded-md transition-colors border-t border-slate-100 pt-3">
+                  <label className="flex items-start gap-4 cursor-pointer p-4 bg-white border border-slate-200 rounded-lg shadow-sm hover:border-[#0A66C2] transition-colors">
                     <input 
                       type="checkbox" name="can_delete_certificates" 
                       checked={formData.can_delete_certificates} onChange={handleChange}
-                      className="mt-1 w-4 h-4 text-[#0A66C2] border-slate-300 rounded focus:ring-[#0A66C2]" 
+                      className="mt-0.5 w-5 h-5 text-[#0A66C2] border-slate-300 rounded focus:ring-[#0A66C2]" 
                     />
                     <div>
-                      <div className="font-bold text-slate-800 text-sm">Can Delete Certificates</div>
-                      <div className="text-xs text-slate-500">Allow instructor to revoke or permanently delete certificates.</div>
+                      <div className="font-bold text-slate-800 text-base">Can Delete Certificates</div>
+                      <div className="text-sm text-slate-500 mt-0.5">Allow instructor to revoke or permanently delete certificates.</div>
                     </div>
                   </label>
                 </div>
