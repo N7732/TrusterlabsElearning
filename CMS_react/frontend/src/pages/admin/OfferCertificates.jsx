@@ -24,7 +24,7 @@ const OfferCertificates = () => {
     setLoading(true);
     try {
       // Create a unified API endpoint to fetch completed enrollments/trainings
-      const res = await apiClient.get('/certification/certificates/eligible_learners/');
+      const res = await apiClient.get('/certification/api/certificates/eligible_learners/');
       setLearners(res.data || res);
       setError(null);
     } catch (err) {
@@ -52,7 +52,7 @@ const OfferCertificates = () => {
         payload.training = learner.program_id;
       }
       
-      await apiClient.post('/certification/certificates/', payload);
+      await apiClient.post('/certification/api/certificates/', payload);
       setMessage(`Certificate successfully issued to ${learner.learner_name}!`);
       
       // Optionally refresh list or remove them from this list if you only want unissued ones
@@ -71,7 +71,7 @@ const OfferCertificates = () => {
     setMessage('');
     
     try {
-      await apiClient.post('/certification/certificates/notify_learner/', {
+      await apiClient.post('/certification/api/certificates/notify_learner/', {
         learner_name: learner.learner_name,
         message: `Hello ${learner.learner_name}, you have completed ${learner.program_title} but did not meet the required marks for certification. Please review your performance.`
       });

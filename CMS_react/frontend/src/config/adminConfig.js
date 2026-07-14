@@ -366,7 +366,7 @@ export const adminConfig = {
   },
   certificates: {
     label: 'Certificates',
-    endpoint: '/api/certification/certificates/',
+    endpoint: '/certification/api/certificates/',
     columns: [
       { field: 'id', label: 'ID' },
       { field: 'learner_name', label: 'Learner Name' },

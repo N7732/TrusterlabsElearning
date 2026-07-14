@@ -83,14 +83,22 @@ class AdminInstructorCreationSerializer(serializers.ModelSerializer):
     can_create_courses = serializers.BooleanField(write_only=True, required=False, default=True)
     can_update_courses = serializers.BooleanField(write_only=True, required=False, default=True)
     can_delete_courses = serializers.BooleanField(write_only=True, required=False, default=True)
-    can_manage_trainings = serializers.BooleanField(write_only=True, required=False, default=True)
+    can_create_trainings = serializers.BooleanField(write_only=True, required=False, default=True)
+    can_update_trainings = serializers.BooleanField(write_only=True, required=False, default=True)
+    can_delete_trainings = serializers.BooleanField(write_only=True, required=False, default=True)
     can_view_students = serializers.BooleanField(write_only=True, required=False, default=True)
-    can_approve_certificates = serializers.BooleanField(write_only=True, required=False, default=True)
+    can_create_certificates = serializers.BooleanField(write_only=True, required=False, default=True)
+    can_update_certificates = serializers.BooleanField(write_only=True, required=False, default=True)
+    can_delete_certificates = serializers.BooleanField(write_only=True, required=False, default=True)
     username = serializers.CharField(required=False)
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'first_name', 'last_name', 'can_create_courses', 'can_update_courses', 'can_delete_courses', 'can_manage_trainings', 'can_view_students', 'can_approve_certificates']
+        fields = ['username', 'email', 'password', 'first_name', 'last_name', 
+                  'can_create_courses', 'can_update_courses', 'can_delete_courses', 
+                  'can_create_trainings', 'can_update_trainings', 'can_delete_trainings', 
+                  'can_view_students', 
+                  'can_create_certificates', 'can_update_certificates', 'can_delete_certificates']
         
     def validate(self, attrs):
         if 'username' not in attrs and 'email' in attrs:
@@ -101,9 +109,13 @@ class AdminInstructorCreationSerializer(serializers.ModelSerializer):
         can_create = validated_data.pop('can_create_courses', True)
         can_update = validated_data.pop('can_update_courses', True)
         can_delete = validated_data.pop('can_delete_courses', True)
-        can_manage_trainings = validated_data.pop('can_manage_trainings', True)
+        can_create_trainings = validated_data.pop('can_create_trainings', True)
+        can_update_trainings = validated_data.pop('can_update_trainings', True)
+        can_delete_trainings = validated_data.pop('can_delete_trainings', True)
         can_view_students = validated_data.pop('can_view_students', True)
-        can_approve_certificates = validated_data.pop('can_approve_certificates', True)
+        can_create_certificates = validated_data.pop('can_create_certificates', True)
+        can_update_certificates = validated_data.pop('can_update_certificates', True)
+        can_delete_certificates = validated_data.pop('can_delete_certificates', True)
         
         validated_data['user_type'] = 'instructor'
         validated_data['password'] = make_password(validated_data['password'])
@@ -115,9 +127,13 @@ class AdminInstructorCreationSerializer(serializers.ModelSerializer):
             can_create_courses=can_create,
             can_update_courses=can_update,
             can_delete_courses=can_delete,
-            can_manage_trainings=can_manage_trainings,
+            can_create_trainings=can_create_trainings,
+            can_update_trainings=can_update_trainings,
+            can_delete_trainings=can_delete_trainings,
             can_view_students=can_view_students,
-            can_approve_certificates=can_approve_certificates
+            can_create_certificates=can_create_certificates,
+            can_update_certificates=can_update_certificates,
+            can_delete_certificates=can_delete_certificates
         )
         return user
 

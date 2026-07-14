@@ -10,9 +10,13 @@ const Footer = () => {
     const fetchSettings = async () => {
       try {
         const data = await apiClient.get('/settings/site-settings/');
-        const items = data.results ? data.results : data;
-        if (items && items.length > 0) {
-          setSettings(items[0]);
+        // The API returns a single dictionary object for settings, not a list.
+        if (data && !data.results && !Array.isArray(data)) {
+          setSettings(data);
+        } else if (data.results && data.results.length > 0) {
+          setSettings(data.results[0]);
+        } else if (Array.isArray(data) && data.length > 0) {
+          setSettings(data[0]);
         }
       } catch (err) {
         console.error('Failed to fetch site settings:', err);
