@@ -65,8 +65,8 @@ const Navbar = () => {
               </button>
             )}
             <Link to="/" className="flex items-center group py-2 relative z-50">
-              <div className="bg-white rounded-full px-6 py-3 flex items-center justify-center shadow-lg mt-4">
-                <img src={logo} alt="Truster Lab" className="h-16 md:h-20 w-auto object-contain" />
+              <div className="flex items-center justify-center">
+                <img src={logo} alt="Truster Lab" className="h-10 md:h-12 w-auto object-contain rounded" />
               </div>
             </Link>
           </div>

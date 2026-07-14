@@ -3,7 +3,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, Users, Shield, Globe, BookOpen, LogOut, ChevronLeft,
   ChevronDown, Package, Settings, Briefcase, Calendar, FileText, Monitor,
-  Layers, List, HelpCircle, MessageSquare
+  Layers, List, HelpCircle, MessageSquare, Award
 } from 'lucide-react';
 import NotificationDropdown from '../components/NotificationDropdown';
 import logoImg from '../assets/image2.jpeg';
@@ -19,6 +19,7 @@ const SuperAdminLayout = () => {
     accessInquiries: false,
     trainingAcademy: false,
     researchWebinars: false,
+    certificationAwards: false,
     systemSettings: false,
   });
 
@@ -56,6 +57,10 @@ const SuperAdminLayout = () => {
     { path: '/superadmin/entity/webinar_registrations', label: 'Registrations', icon: <Users size={18} /> },
   ];
 
+  const certificationAwardsItems = [
+    { path: '/superadmin/entity/certificates', label: 'Certificates', icon: <Award size={18} /> },
+  ];
+
   const settingsItems = [
     { path: '/superadmin/entity/partners', label: 'Partners', icon: <Briefcase size={18} /> },
     { path: '/superadmin/entity/contact_messages', label: 'Contact Messages', icon: <MessageSquare size={18} /> },
@@ -66,7 +71,7 @@ const SuperAdminLayout = () => {
 
   const getPageInfo = () => {
     if (location.pathname === '/superadmin') return { title: 'Dashboard', subtitle: "Welcome back! Here's what's happening with your platform." };
-    const allItems = [...courseManagementItems, ...membershipItems, ...accessInquiriesItems, ...trainingItems, ...researchWebinarItems, ...settingsItems];
+    const allItems = [...courseManagementItems, ...membershipItems, ...accessInquiriesItems, ...trainingItems, ...researchWebinarItems, ...certificationAwardsItems, ...settingsItems];
     const item = allItems.find(i => location.pathname.startsWith(i.path) && i.path !== '/superadmin');
     if (item) return { title: item.label, subtitle: `Manage your ${item.label.toLowerCase()}` };
     return { title: 'Platform', subtitle: 'Manage your platform settings' };
@@ -227,6 +232,39 @@ const SuperAdminLayout = () => {
             <div className={`overflow-hidden transition-all duration-300 ease-in-out ${openDropdowns.researchWebinars ? 'max-h-[500px] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
               <nav className="space-y-1 px-4">
                 {researchWebinarItems.map((item) => {
+                  const isActive = location.pathname.startsWith(item.path);
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
+                        isActive 
+                          ? 'bg-[#153474] text-white font-medium shadow-md' 
+                          : 'text-slate-400 hover:text-white hover:bg-white/5 font-medium'
+                      }`}
+                    >
+                      <span className={`mr-4 ${isActive ? 'text-[#3b82f6]' : ''}`}>{item.icon}</span>
+                      <span className="text-[14px]">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+          </div>
+
+          {/* Section: Certification & Awards */}
+          <div className="mb-4">
+            <button 
+              onClick={() => toggleDropdown('certificationAwards')}
+              className="w-full flex items-center justify-between px-6 py-2 text-xs font-semibold text-slate-500 tracking-wider hover:text-white transition-colors"
+            >
+              <span>CERTIFICATION & AWARDS</span>
+              <ChevronDown size={14} className={`transform transition-transform ${openDropdowns.certificationAwards ? 'rotate-180' : ''}`} />
+            </button>
+            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${openDropdowns.certificationAwards ? 'max-h-[500px] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+              <nav className="space-y-1 px-4">
+                {certificationAwardsItems.map((item) => {
                   const isActive = location.pathname.startsWith(item.path);
                   return (
                     <Link

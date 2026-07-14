@@ -363,5 +363,33 @@ export const adminConfig = {
     canEdit: true,
     canDelete: true,
     canBulkUpload: true,
+  },
+  certificates: {
+    label: 'Certificates',
+    endpoint: '/api/certification/certificates/',
+    columns: [
+      { field: 'id', label: 'ID' },
+      { field: 'learner_name', label: 'Learner Name' },
+      { field: 'program_title', label: 'Program' },
+      { field: 'is_issued', label: 'Issued' },
+      { field: 'issued_at', label: 'Date' },
+    ],
+    canCreate: false,
+    canEdit: false,
+    canDelete: true,
+    customActions: [
+      {
+        label: 'View Structure',
+        actionType: 'link',
+        getLink: (item) => `/api/certification/certificates/${item.id}/preview_html/`,
+      },
+      {
+        label: 'Issue Certificate',
+        actionType: 'api',
+        apiEndpoint: (id) => `/api/certification/certificates/${id}/issue/`,
+        method: 'POST',
+        showIf: (item) => !item.is_issued
+      }
+    ]
   }
 };

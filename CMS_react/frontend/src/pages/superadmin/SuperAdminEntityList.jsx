@@ -78,6 +78,10 @@ const SuperAdminEntityList = () => {
   };
 
     const handleCustomAction = async (item, actionConfig) => {
+    if (actionConfig.actionType === 'link') {
+      window.open(actionConfig.getLink(item), '_blank');
+      return;
+    }
     if (actionConfig.actionType === 'api') {
       try {
         const endpoint = actionConfig.apiEndpoint(item.id);
