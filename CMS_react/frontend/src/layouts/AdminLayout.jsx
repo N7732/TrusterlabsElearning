@@ -22,6 +22,7 @@ const AdminLayout = () => {
     accessInquiries: false,
     trainingAcademy: false,
     researchWebinars: false,
+    certificationAwards: false,
     systemSettings: false,
   });
 
@@ -70,6 +71,10 @@ const AdminLayout = () => {
     { path: '/admin/webinar_registrations', label: 'Registrations', icon: <Users size={18} /> },
   ];
 
+  const certificationItems = [
+    { path: '/admin/certificates', label: 'Certificates', icon: <GraduationCap size={18} /> },
+  ];
+
   const settingsItems = [
     { path: '/admin/partners', label: 'Partners', icon: <Package size={18} /> },
     { path: '/admin/contact_messages', label: 'Contact Messages', icon: <MessageSquare size={18} /> },
@@ -81,7 +86,7 @@ const AdminLayout = () => {
   const getPageInfo = () => {
     if (location.pathname === '/admin/dashboard') return { title: 'Dashboard', subtitle: "Welcome back! Here's what's happening with your platform." };
     const currentUrl = location.pathname + location.search;
-    const allItems = [...userManagementItems, ...membershipItems, ...courseManagementItems, ...accessInquiriesItems, ...trainingItems, ...researchWebinarItems, ...settingsItems];
+    const allItems = [...userManagementItems, ...membershipItems, ...courseManagementItems, ...accessInquiriesItems, ...trainingItems, ...researchWebinarItems, ...certificationItems, ...settingsItems];
     const item = allItems.find(i => (i.exact && currentUrl === i.path) || (i.path !== '/admin/dashboard' && !i.path.includes('?') && location.pathname.startsWith(i.path)));
     if (item) return { title: item.label, subtitle: `Manage your ${item.label.toLowerCase()}` };
     return { title: 'Platform', subtitle: 'Manage your platform settings' };
@@ -281,6 +286,39 @@ const AdminLayout = () => {
             <div className={`overflow-hidden transition-all duration-300 ease-in-out ${openDropdowns.researchWebinars ? 'max-h-[500px] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
               <nav className="space-y-1 px-4">
                 {researchWebinarItems.map((item) => {
+                  const isActive = location.pathname.startsWith(item.path);
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
+                        isActive 
+                          ? 'bg-[#153474] text-white font-medium shadow-md' 
+                          : 'text-slate-400 hover:text-white hover:bg-white/5 font-medium'
+                      }`}
+                    >
+                      <span className={`mr-4 ${isActive ? 'text-[#3b82f6]' : ''}`}>{item.icon}</span>
+                      <span className="text-[14px]">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+          </div>
+
+          {/* Certification & Awards */}
+          <div className="mb-4">
+            <button 
+              onClick={() => toggleDropdown('certificationAwards')}
+              className="w-full flex items-center justify-between px-6 py-2 text-xs font-semibold text-slate-500 tracking-wider hover:text-white transition-colors"
+            >
+              <span>CERTIFICATION & AWARDS</span>
+              <ChevronDown size={14} className={`transform transition-transform ${openDropdowns.certificationAwards ? 'rotate-180' : ''}`} />
+            </button>
+            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${openDropdowns.certificationAwards ? 'max-h-[500px] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+              <nav className="space-y-1 px-4">
+                {certificationItems.map((item) => {
                   const isActive = location.pathname.startsWith(item.path);
                   return (
                     <Link

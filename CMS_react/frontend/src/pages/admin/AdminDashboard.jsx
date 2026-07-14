@@ -60,26 +60,28 @@ const AdminDashboard = () => {
           instructors: instructors.count || instructors.length || 86,
         });
 
-        if (dashboardStats && dashboardStats.data) {
+        if (dashboardStats) {
+          const dData = dashboardStats.data || dashboardStats;
           setDashboardData({
-            chartData: dashboardStats.data.chartData || [],
-            topCourses: dashboardStats.data.topCourses || [],
-            total_enrollments: dashboardStats.data.total_enrollments || 0,
-            new_enrollments: dashboardStats.data.new_enrollments || 0
+            chartData: dData.chartData || [],
+            topCourses: dData.topCourses || [],
+            total_enrollments: dData.total_enrollments || 0,
+            new_enrollments: dData.new_enrollments || 0
           });
         }
         
         if (notificationsRes) {
-          const notifs = notificationsRes.data?.results || notificationsRes.data || [];
+          const notifs = notificationsRes.results || notificationsRes.data?.results || (Array.isArray(notificationsRes.data) ? notificationsRes.data : (Array.isArray(notificationsRes) ? notificationsRes : []));
           setRecentActivities(notifs);
         }
         
-        if (alertsRes && alertsRes.data) {
-          setSystemAlerts(alertsRes.data);
+        if (alertsRes) {
+          const alerts = alertsRes.data || (Array.isArray(alertsRes) ? alertsRes : []);
+          setSystemAlerts(alerts);
         }
         
         if (certRes) {
-          const certs = certRes.data?.results || certRes.data || certRes || [];
+          const certs = certRes.results || certRes.data?.results || certRes.data || certRes || [];
           setCertificates(certs);
         }
       } catch (error) {
