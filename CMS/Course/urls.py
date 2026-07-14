@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
     CourseViewSet, ModuleViewSet, LessonViewSet, QuizesViewSet, QuizQuestionViewSet,
-    EnrollmentViewSet, CourseResourceViewSet,
+    EnrollmentViewSet, CourseResourceViewSet, ReuseRequestViewSet,
     home, course, create_course, course_list, course_detail,
     lesson_detail, quiz_detail, add_lesson, edit_lesson, instructor_dashboard,
     enroll_course, approve_enrollment, reject_enrollment
@@ -16,6 +16,7 @@ router.register(r'api/quizes', QuizesViewSet)
 router.register(r'api/quiz_questions', QuizQuestionViewSet)
 router.register(r'api/enrollments', EnrollmentViewSet, basename='enrollment')
 router.register(r'api/course-resources', CourseResourceViewSet, basename='courseresource')
+router.register(r'api/reuse-requests', ReuseRequestViewSet, basename='reuserequest')
 
 urlpatterns = [
     # HTML Views

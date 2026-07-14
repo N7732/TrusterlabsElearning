@@ -108,3 +108,13 @@ class QuizSubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuizSubmission
         fields = '__all__'
+
+from Course.models import ReuseRequest
+
+class ReuseRequestSerializer(serializers.ModelSerializer):
+    requester_name = serializers.CharField(source='requester.user.get_full_name', read_only=True)
+    owner_name = serializers.CharField(source='owner.user.get_full_name', read_only=True)
+    
+    class Meta:
+        model = ReuseRequest
+        fields = '__all__'

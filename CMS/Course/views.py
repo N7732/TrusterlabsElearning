@@ -870,6 +870,187 @@ def reject_enrollment(request, enrollment_id):
     messages.warning(request, f"Rejected enrollment for {enrollment.learner.user.username}.")
     return redirect('instructor_dashboard')
 
+from .models import ReuseRequest
+from .serializer import ReuseRequestSerializer
+
+class ReuseRequestViewSet(viewsets.ModelViewSet):
+    queryset = ReuseRequest.objects.all()
+    serializer_class = ReuseRequestSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_superuser or user.user_type == 'admin':
+            return ReuseRequest.objects.all()
+        if hasattr(user, 'instructor_profile'):
+            from django.db.models import Q
+            return ReuseRequest.objects.filter(Q(requester=user.instructor_profile) | Q(owner=user.instructor_profile))
+        return ReuseRequest.objects.none()
+
+    def perform_create(self, serializer):
+        if hasattr(self.request.user, 'instructor_profile'):
+            serializer.save(requester=self.request.user.instructor_profile)
+        else:
+            raise PermissionDenied("Only instructors can make reuse requests.")
+
+    @action(detail=True, methods=['post'])
+    def approve(self, request, pk=None):
+        reuse_req = self.get_object()
+        user = request.user
+        
+        if not (user.is_superuser or user.user_type == 'admin' or (hasattr(user, 'instructor_profile') and reuse_req.owner == user.instructor_profile)):
+            raise PermissionDenied("You do not have permission to approve this request.")
+            
+        if reuse_req.status != 'PENDING':
+            return Response({'error': 'Request is not pending.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        try:
+            self._clone_content(reuse_req)
+            reuse_req.status = 'APPROVED'
+            reuse_req.save()
+            
+            # Send Notification
+            from SuperSetting.models import Notification
+            Notification.objects.create(
+                title="Reuse Request Approved",
+                message=f"Your request to reuse {reuse_req.content_type} {reuse_req.object_id} has been approved.",
+                notification_type="system"
+            )
+            return Response({'status': 'approved and cloned'})
+        except Exception as e:
+            logger.error(f"Clone failed: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['post'])
+    def reject(self, request, pk=None):
+        reuse_req = self.get_object()
+        user = request.user
+        
+        if not (user.is_superuser or user.user_type == 'admin' or (hasattr(user, 'instructor_profile') and reuse_req.owner == user.instructor_profile)):
+            raise PermissionDenied("You do not have permission to reject this request.")
+            
+        reuse_req.status = 'REJECTED'
+        reuse_req.save()
+        return Response({'status': 'rejected'})
+
+    def _clone_content(self, reuse_req):
+        ctype = reuse_req.content_type
+        obj_id = reuse_req.object_id
+        dest_id = reuse_req.destination_id
+        
+        if ctype == 'module':
+            original = get_object_or_404(Module, id=obj_id)
+            dest_course = get_object_or_404(Course, id=dest_id)
+            new_module = Module.objects.create(
+                course=dest_course,
+                title=f"{original.title} (Copy)",
+                description=original.description,
+                order=original.order,
+                is_published=False
+            )
+            for lesson in original.lessons.all():
+                Lesson.objects.create(
+                    module=new_module,
+                    title=lesson.title,
+                    content=lesson.content,
+                    video_url=lesson.video_url,
+                    order=lesson.order,
+                    is_published=False,
+                    is_preview=lesson.is_preview
+                )
+        elif ctype == 'lesson':
+            original = get_object_or_404(Lesson, id=obj_id)
+            dest_module = get_object_or_404(Module, id=dest_id)
+            Lesson.objects.create(
+                module=dest_module,
+                title=f"{original.title} (Copy)",
+                content=original.content,
+                video_url=original.video_url,
+                order=original.order,
+                is_published=False,
+                is_preview=original.is_preview
+            )
+        elif ctype == 'course':
+            original = get_object_or_404(Course, id=obj_id)
+            new_course = Course.objects.create(
+                title=f"{original.title} (Copy)",
+                description=original.description,
+                course_status='draft',
+                difficulty=original.difficulty,
+                is_free=original.is_free,
+                price=original.price,
+                current=original.current,
+                instructor=reuse_req.requester
+            )
+            for mod in original.modules.all():
+                new_mod = Module.objects.create(
+                    course=new_course,
+                    title=mod.title,
+                    description=mod.description,
+                    order=mod.order,
+                    is_published=False
+                )
+                for lesson in mod.lessons.all():
+                    Lesson.objects.create(
+                        module=new_mod,
+                        title=lesson.title,
+                        content=lesson.content,
+                        video_url=lesson.video_url,
+                        order=lesson.order,
+                        is_published=False,
+                        is_preview=lesson.is_preview
+                    )
+        elif ctype == 'training':
+            from training.models import Training, TrainingCourses, TrainingClasswork, TrainingFinalExam
+            original = get_object_or_404(Training, id=obj_id)
+            new_training = Training.objects.create(
+                title=f"{original.title} (Copy)",
+                description=original.description,
+                starting_date=original.starting_date,
+                ending_date=original.ending_date,
+                instructor=reuse_req.requester
+            )
+            for tc in original.courses.all():
+                TrainingCourses.objects.create(training=new_training, course=tc.course)
+            for cw in original.classworks.all():
+                TrainingClasswork.objects.create(
+                    training=new_training,
+                    title=cw.title,
+                    description=cw.description,
+                    due_date=cw.due_date,
+                    linked_quiz=cw.linked_quiz
+                )
+            for exam in original.final_exams.all():
+                TrainingFinalExam.objects.create(
+                    training=new_training,
+                    title=exam.title,
+                    description=exam.description,
+                    exam_date=exam.exam_date,
+                    linked_exam=exam.linked_exam
+                )
+        elif ctype == 'classwork':
+            from training.models import Training, TrainingClasswork
+            original = get_object_or_404(TrainingClasswork, id=obj_id)
+            dest_training = get_object_or_404(Training, id=dest_id)
+            TrainingClasswork.objects.create(
+                training=dest_training,
+                title=f"{original.title} (Copy)",
+                description=original.description,
+                due_date=original.due_date,
+                linked_quiz=original.linked_quiz
+            )
+        elif ctype == 'exam':
+            from training.models import Training, TrainingFinalExam
+            original = get_object_or_404(TrainingFinalExam, id=obj_id)
+            dest_training = get_object_or_404(Training, id=dest_id)
+            TrainingFinalExam.objects.create(
+                training=dest_training,
+                title=f"{original.title} (Copy)",
+                description=original.description,
+                exam_date=original.exam_date,
+                linked_exam=original.linked_exam
+            )
+
 
 
 

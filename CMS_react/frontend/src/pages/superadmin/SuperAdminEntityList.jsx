@@ -4,38 +4,76 @@ import { adminConfig } from '../../config/adminConfig';
 import { apiClient } from '../../api/apiClient';
 import Button from '../../components/common/Button';
 import Card, { CardContent } from '../../components/common/Card';
-import { Plus, Edit, Trash2, Upload, Loader2, Users } from 'lucide-react';
+import { Plus, Edit, Trash2, Upload, Loader2, Users, Copy } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import ReuseRequestModal from '../../components/common/ReuseRequestModal';
 
 const SuperAdminEntityList = () => {
   const { entityId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, isAdmin } = useAuth();
+  
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
+  const [viewMode, setViewMode] = useState('my'); // 'my' or 'global'
+  
+  // Reuse Request specific state
+  const [reuseModalOpen, setReuseModalOpen] = useState(false);
+  const [reuseEntity, setReuseEntity] = useState({ id: null, title: '' });
   
   // Bulk Enrollment specific state
   const [showBulkEnroll, setShowBulkEnroll] = useState(false);
   const [bulkEmails, setBulkEmails] = useState('');
   const [bulkCourseId, setBulkCourseId] = useState('');
 
-  const config = adminConfig[entityId];
+  const baseConfig = adminConfig[entityId];
   const isInstructor = location.pathname.startsWith('/instructor');
   const basePath = isInstructor ? '/instructor/entity' : '/superadmin/entity';
+
+  const getConfig = () => {
+    if (!baseConfig) return null;
+    const config = { ...baseConfig };
+    
+    if (user?.instructor_profile && !isAdmin) {
+      const profile = user.instructor_profile;
+      if (entityId === 'courses') {
+        config.canCreate = profile.can_create_courses ?? config.canCreate;
+        config.canUpdate = profile.can_update_courses ?? config.canUpdate;
+        config.canDelete = profile.can_delete_courses ?? config.canDelete;
+      } else if (['modules', 'lessons', 'quizzes', 'quiz_questions'].includes(entityId)) {
+        config.canCreate = profile.can_update_courses ?? config.canCreate;
+        config.canUpdate = profile.can_update_courses ?? config.canUpdate;
+        config.canDelete = profile.can_delete_courses ?? config.canDelete;
+      } else if (['trainings', 'classwork', 'exams'].includes(entityId)) {
+        config.canCreate = profile.can_create_trainings ?? config.canCreate;
+        config.canUpdate = profile.can_update_trainings ?? config.canUpdate;
+        config.canDelete = profile.can_delete_trainings ?? config.canDelete;
+      } else if (entityId === 'certificates') {
+        config.canCreate = profile.can_create_certificates ?? config.canCreate;
+        config.canUpdate = profile.can_update_certificates ?? config.canUpdate;
+        config.canDelete = profile.can_delete_certificates ?? config.canDelete;
+      }
+    }
+    return config;
+  };
+
+  const config = getConfig();
 
   useEffect(() => {
     if (config) {
       fetchData();
     }
-  }, [entityId, isInstructor]);
+  }, [entityId, isInstructor, viewMode]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const queryParam = isInstructor ? `?my_${entityId}=true` : '';
+      const queryParam = isInstructor && viewMode === 'my' ? `my_${entityId}=true` : '';
       const separator = config.endpoint.includes('?') ? '&' : (queryParam ? '?' : '');
-      const paramString = isInstructor ? `my_${entityId}=true` : '';
+      const paramString = isInstructor && viewMode === 'my' ? `my_${entityId}=true` : '';
       const fullEndpoint = paramString ? `${config.endpoint}${separator}${paramString}` : config.endpoint;
       
       const res = await apiClient.get(fullEndpoint);
@@ -131,13 +169,34 @@ const SuperAdminEntityList = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">{config.label} Management</h1>
-          <p className="text-slate-500 mt-2">Manage your {config.label.toLowerCase()} across the platform.</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-[26px] font-bold text-slate-900 leading-tight tracking-tight">
+            Manage {config.plural}
+          </h1>
+          {isInstructor && (
+            <div className="flex bg-white rounded-lg border border-slate-200 p-1 w-fit shadow-sm">
+              <button
+                onClick={() => setViewMode('my')}
+                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  viewMode === 'my' ? 'bg-[#3182ce] text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                }`}
+              >
+                My {config.plural}
+              </button>
+              <button
+                onClick={() => setViewMode('global')}
+                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  viewMode === 'global' ? 'bg-[#3182ce] text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                }`}
+              >
+                Global Catalog
+              </button>
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-3">
-          {config.canBulkUpload && (
+          {(config.canCreate && (viewMode === 'my' || !isInstructor)) && (
             <>
               <input 
                 type="file" 
@@ -146,27 +205,21 @@ const SuperAdminEntityList = () => {
                 accept=".csv" 
                 className="hidden" 
               />
-              <Button 
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="flex items-center bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white"
-              >
-                {uploading ? <Loader2 size={18} className="mr-2 animate-spin" /> : <Upload size={18} className="mr-2" />}
-                Bulk Upload
+              {config.canBulkUpload && (
+                <Button 
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="flex items-center bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white"
+                >
+                  {uploading ? <Loader2 size={18} className="mr-2 animate-spin" /> : <Upload size={18} className="mr-2" />}
+                  Bulk Upload
+                </Button>
+              )}
+              <Button onClick={() => navigate(`${basePath}/${entityId}/new`)}>
+                <Plus size={16} className="mr-2" />
+                Add New
               </Button>
             </>
-          )}
-          {config.canCreate && (
-            <Button onClick={() => navigate(`${basePath}/${entityId}/new`)}>
-              <Plus size={16} className="mr-2" />
-              Add New
-            </Button>
-          )}
-          {(entityId === 'courses' || entityId === 'trainings') && isInstructor && (
-             <Button onClick={() => setShowBulkEnroll(!showBulkEnroll)} variant="secondary">
-               <Users size={16} className="mr-2" />
-               Bulk Enroll
-             </Button>
           )}
         </div>
       </div>
@@ -260,31 +313,60 @@ const SuperAdminEntityList = () => {
                           );
                         })}
                         <div className="flex gap-2 justify-end">
-                        {config.canUpdate && (
-                          <button
-                            onClick={() => {
-                              if (entityId === 'trainings') {
-                                const prefix = location.pathname.startsWith('/instructor') ? '/admin' : '/superadmin';
-                                navigate(`${prefix}/trainings/${item.id}/dashboard`);
-                              } else {
-                                navigate(`${basePath}/${entityId}/${item.id}`);
-                              }
-                            }}
-                            className="p-1 text-slate-400 hover:text-blue-600 transition-colors"
-                            title="Edit"
-                          >
-                            <Edit size={16} />
-                          </button>
-                        )}
-                        {config.canDelete && (
-                          <button 
-                            onClick={() => handleDelete(item.id)}
-                            className="text-red-600 hover:text-red-800 transition-colors"
-                            title="Delete"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        )}
+                          {entityId === 'courses' && (
+                            <button
+                              onClick={() => {
+                                setBulkCourseId(item.id);
+                                setShowBulkEnroll(true);
+                              }}
+                              className="p-1.5 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 rounded transition-colors"
+                              title="Bulk Enroll Learners"
+                            >
+                              <Users size={16} />
+                            </button>
+                          )}
+                          {entityId === 'trainings' && (
+                            <button
+                              onClick={() => {
+                                setBulkCourseId(item.id);
+                                setShowBulkEnroll(true);
+                              }}
+                              className="p-1.5 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 rounded transition-colors"
+                              title="Bulk Enroll Participants"
+                            >
+                              <Users size={16} />
+                            </button>
+                          )}
+                          {(config.canUpdate && (viewMode === 'my' || !isInstructor)) && (
+                            <button
+                              onClick={() => navigate(`${basePath}/${entityId}/${item.id}`)}
+                              className="p-1.5 text-slate-400 hover:text-[#3182ce] hover:bg-blue-50 rounded transition-colors"
+                              title="Edit"
+                            >
+                              <Edit size={16} />
+                            </button>
+                          )}
+                          {(config.canDelete && (viewMode === 'my' || !isInstructor)) && (
+                            <button
+                              onClick={() => handleDelete(item.id)}
+                              className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                              title="Delete"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
+                          {(isInstructor && viewMode === 'global' && item.instructor !== user?.instructor_profile?.id) && (
+                            <button
+                              onClick={() => {
+                                setReuseEntity({ id: item.id, title: item.title || item.name || `Item ${item.id}` });
+                                setReuseModalOpen(true);
+                              }}
+                              className="p-1.5 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 rounded transition-colors"
+                              title="Request Reuse"
+                            >
+                              <Copy size={16} />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -338,11 +420,20 @@ const SuperAdminEntityList = () => {
                 } catch(err) {
                   alert(err.response?.data?.detail || 'Bulk enrollment failed');
                 }
-              }}>Enroll Students</Button>
+              }}>Enroll</Button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Reuse Request Modal */}
+      <ReuseRequestModal
+        isOpen={reuseModalOpen}
+        onClose={() => setReuseModalOpen(false)}
+        entityType={entityId.slice(0, -1)} // e.g. "courses" -> "course", "modules" -> "module"
+        entityId={reuseEntity.id}
+        entityTitle={reuseEntity.title}
+      />
     </div>
   );
 };

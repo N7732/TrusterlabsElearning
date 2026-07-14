@@ -98,12 +98,74 @@ export const adminConfig = {
     endpoint: '/api/courses/enrollments/',
     columns: [
       { field: 'id', label: 'ID' },
-      { field: 'learner_name', label: 'Learner Name' },
-      { field: 'learner_email', label: 'Email' },
       { field: 'course_title', label: 'Course' },
+      { field: 'learner_name', label: 'Learner' },
       { field: 'status', label: 'Status' },
       { field: 'progress', label: 'Progress (%)' },
     ],
+    canCreate: false,
+    canEdit: false,
+    canDelete: true,
+  },
+  reuse_requests: {
+    label: 'Reuse Requests',
+    endpoint: '/course/api/reuse-requests/',
+    columns: [
+      { field: 'id', label: 'ID' },
+      { field: 'content_type', label: 'Type' },
+      { field: 'object_id', label: 'Item ID' },
+      { field: 'status', label: 'Status' },
+      { field: 'requester_name', label: 'Requested By' },
+      { field: 'created_at', label: 'Date' }
+    ],
+    canCreate: false,
+    canEdit: false,
+    canDelete: true,
+    customActions: [
+      {
+        label: 'Approve',
+        showIf: (item) => item.status === 'PENDING',
+        action: async (item, refreshList) => {
+          if (window.confirm('Approve this request? The content will be copied.')) {
+             try {
+                // We'll need to manually call the approve endpoint or we handle it in SuperAdminEntityList 
+                // Let's just do a fetch here.
+                const token = localStorage.getItem('truster_lab_token');
+                const res = await fetch(`http://127.0.0.1:8000/course/api/reuse-requests/${item.id}/approve/`, {
+                   method: 'POST',
+                   headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                   refreshList();
+                } else {
+                   const err = await res.json();
+                   alert(err.error || 'Failed to approve');
+                }
+             } catch(e) {
+                console.error(e);
+             }
+          }
+        }
+      },
+      {
+        label: 'Reject',
+        showIf: (item) => item.status === 'PENDING',
+        action: async (item, refreshList) => {
+          if (window.confirm('Reject this request?')) {
+             try {
+                const token = localStorage.getItem('truster_lab_token');
+                const res = await fetch(`http://127.0.0.1:8000/course/api/reuse-requests/${item.id}/reject/`, {
+                   method: 'POST',
+                   headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) refreshList();
+             } catch(e) { console.error(e); }
+          }
+        }
+      }
+    ]
+  },
+  categories: {
     canCreate: false,
     canEdit: false,
     canDelete: false,

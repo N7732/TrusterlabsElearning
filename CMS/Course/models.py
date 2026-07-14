@@ -317,3 +317,35 @@ class LessonProgress(models.Model):
 
     def __str__(self):
         return f"{self.learner} - {self.lesson} - {'Completed' if self.is_completed else 'In Progress'}"
+
+class ReuseRequest(models.Model):
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('APPROVED', 'Approved'),
+        ('REJECTED', 'Rejected'),
+    ]
+    CONTENT_TYPE_CHOICES = [
+        ('course', 'Course'),
+        ('module', 'Module'),
+        ('lesson', 'Lesson'),
+        ('training', 'Training'),
+        ('classwork', 'Training Classwork'),
+        ('exam', 'Training Exam'),
+    ]
+    
+    requester = models.ForeignKey('Auth.Instructor', on_delete=models.CASCADE, related_name='reuse_requests_made')
+    owner = models.ForeignKey('Auth.Instructor', on_delete=models.CASCADE, related_name='reuse_requests_received', null=True, blank=True)
+    content_type = models.CharField(max_length=50, choices=CONTENT_TYPE_CHOICES)
+    object_id = models.IntegerField(help_text="ID of the entity being requested")
+    destination_id = models.IntegerField(null=True, blank=True, help_text="ID of the destination course, module, or training")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Reuse Request"
+        verbose_name_plural = "Reuse Requests"
+
+    def __str__(self):
+        return f"{self.requester} requesting {self.content_type} {self.object_id} - {self.status}"

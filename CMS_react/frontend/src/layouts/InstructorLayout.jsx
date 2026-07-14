@@ -12,15 +12,38 @@ const InstructorLayout = () => {
   const location = useLocation();
   const { logout, user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const sidebarItems = [
+  const [openDropdowns, setOpenDropdowns] = useState({
+    courseManagement: true,
+    trainingAcademy: false,
+  });
+
+  const toggleDropdown = (key) => {
+    setOpenDropdowns(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const courseManagementItems = [
     { path: '/instructor/entity/courses', label: 'Courses', icon: <BookOpen size={18} /> },
+    { path: '/instructor/entity/modules', label: 'Modules', icon: <Layers size={18} /> },
+    { path: '/instructor/entity/lessons', label: 'Lessons', icon: <List size={18} /> },
+    { path: '/instructor/entity/quizzes', label: 'Quizzes', icon: <HelpCircle size={18} /> },
+    { path: '/instructor/entity/quiz_questions', label: 'Quiz Questions', icon: <HelpCircle size={18} /> },
+  ];
+
+  const trainingItems = [
     { path: '/instructor/entity/trainings', label: 'Trainings', icon: <Calendar size={18} /> },
+    { path: '/instructor/entity/classwork', label: 'Classwork', icon: <FileText size={18} /> },
+    { path: '/instructor/entity/exams', label: 'Exams', icon: <HelpCircle size={18} /> },
+  ];
+
+  const enrollmentItems = [
     { path: '/instructor/entity/enrollments', label: 'Learners', icon: <Users size={18} /> },
+    { path: '/instructor/entity/reuse_requests', label: 'Reuse Requests', icon: <Layers size={18} /> },
   ];
 
   const getPageInfo = () => {
     if (location.pathname === '/instructor') return { title: 'Dashboard', subtitle: "Welcome back! Here's an overview of your teaching activity." };
-    const item = sidebarItems.find(i => location.pathname.startsWith(i.path) && i.path !== '/instructor');
+    const allItems = [...courseManagementItems, ...trainingItems, ...enrollmentItems];
+    const item = allItems.find(i => location.pathname.startsWith(i.path) && i.path !== '/instructor');
     if (item) return { title: item.label, subtitle: `Manage your ${item.label.toLowerCase()}` };
     return { title: 'Instructor Portal', subtitle: 'Manage your teaching resources' };
   };
@@ -68,26 +91,94 @@ const InstructorLayout = () => {
             </Link>
           </div>
 
-          <div className="px-4 space-y-2">
-            <div className="text-xs font-semibold text-slate-500 tracking-wider mb-4 px-2">MANAGEMENT</div>
-            {sidebarItems.map((item) => {
-              const isActive = location.pathname.startsWith(item.path);
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
-                    isActive 
-                      ? 'bg-[#2d3748] text-white font-medium shadow-md border-l-4 border-[#3182ce]' 
-                      : 'text-slate-400 hover:text-white hover:bg-white/5 font-medium border-l-4 border-transparent'
-                  }`}
-                >
-                  <span className={`mr-4 ${isActive ? 'text-[#3182ce]' : ''}`}>{item.icon}</span>
-                  <span className="text-[14px]">{item.label}</span>
-                </Link>
-              );
-            })}
+          <div className="mb-4">
+            <button 
+              onClick={() => toggleDropdown('courseManagement')}
+              className="w-full flex items-center justify-between px-6 py-2 text-xs font-semibold text-slate-500 tracking-wider hover:text-white transition-colors"
+            >
+              <span>COURSE MANAGEMENT</span>
+              <ChevronDown size={14} className={`transform transition-transform ${openDropdowns.courseManagement ? 'rotate-180' : ''}`} />
+            </button>
+            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${openDropdowns.courseManagement ? 'max-h-[500px] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+              <nav className="space-y-1 px-4">
+                {courseManagementItems.map((item) => {
+                  const isActive = location.pathname.startsWith(item.path);
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
+                        isActive 
+                          ? 'bg-[#2d3748] text-white font-medium shadow-md border-l-4 border-[#3182ce]' 
+                          : 'text-slate-400 hover:text-white hover:bg-white/5 font-medium border-l-4 border-transparent'
+                      }`}
+                    >
+                      <span className={`mr-4 ${isActive ? 'text-[#3182ce]' : ''}`}>{item.icon}</span>
+                      <span className="text-[14px]">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <button 
+              onClick={() => toggleDropdown('trainingAcademy')}
+              className="w-full flex items-center justify-between px-6 py-2 text-xs font-semibold text-slate-500 tracking-wider hover:text-white transition-colors"
+            >
+              <span>TRAINING ACADEMY</span>
+              <ChevronDown size={14} className={`transform transition-transform ${openDropdowns.trainingAcademy ? 'rotate-180' : ''}`} />
+            </button>
+            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${openDropdowns.trainingAcademy ? 'max-h-[500px] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+              <nav className="space-y-1 px-4">
+                {trainingItems.map((item) => {
+                  const isActive = location.pathname.startsWith(item.path);
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
+                        isActive 
+                          ? 'bg-[#2d3748] text-white font-medium shadow-md border-l-4 border-[#3182ce]' 
+                          : 'text-slate-400 hover:text-white hover:bg-white/5 font-medium border-l-4 border-transparent'
+                      }`}
+                    >
+                      <span className={`mr-4 ${isActive ? 'text-[#3182ce]' : ''}`}>{item.icon}</span>
+                      <span className="text-[14px]">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <div className="w-full flex items-center justify-between px-6 py-2 text-xs font-semibold text-slate-500 tracking-wider">
+              <span>LEARNERS</span>
+            </div>
+            <nav className="space-y-1 px-4 mt-2">
+              {enrollmentItems.map((item) => {
+                const isActive = location.pathname.startsWith(item.path);
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
+                      isActive 
+                        ? 'bg-[#2d3748] text-white font-medium shadow-md border-l-4 border-[#3182ce]' 
+                        : 'text-slate-400 hover:text-white hover:bg-white/5 font-medium border-l-4 border-transparent'
+                    }`}
+                  >
+                    <span className={`mr-4 ${isActive ? 'text-[#3182ce]' : ''}`}>{item.icon}</span>
+                    <span className="text-[14px]">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
           </div>
         </div>
 
