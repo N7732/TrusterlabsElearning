@@ -292,7 +292,7 @@ class Enrollment(models.Model):
     enrolled_at = models.DateTimeField(auto_now_add=True)
     completed = models.BooleanField(default=False)
     progress = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
-    score = models.DecimalField(max_digits=2, decimal_places=2, default=0.00, help_text="Final grade/Score object")
+    score = models.DecimalField(max_digits=5, decimal_places=2, default=0.00, help_text="Final grade/Score object")
 
     class Meta:
         unique_together = ('learner', 'course')

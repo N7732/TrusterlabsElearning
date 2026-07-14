@@ -11,6 +11,7 @@ import SiteSettingForm from './forms/SiteSettingForm';
 import TrainingForm from './forms/TrainingForm';
 import ClassworkForm from './forms/ClassworkForm';
 import ExamForm from './forms/ExamForm';
+import InstructorForm from './forms/InstructorForm';
 
 const AdminEntityForm = () => {
   const { entity, id } = useParams();
@@ -39,6 +40,8 @@ const AdminEntityForm = () => {
       return <ClassworkForm isEditing={isEditing} classworkId={entityId} />;
     case 'exams':
       return <ExamForm isEditing={isEditing} examId={entityId} />;
+    case 'instructors':
+      return <InstructorForm isEditing={isEditing} instructorId={entityId} />;
     default:
       return <GenericForm entityId={entity} itemId={entityId} isEditing={isEditing} />;
   }

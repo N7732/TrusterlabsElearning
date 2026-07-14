@@ -22,6 +22,8 @@ const CourseForm = ({ isEditing, courseId }) => {
     difficulty: 'Beginner',
     course_status: 'draft',
     is_locked: false,
+    has_certificate: false,
+    auto_issue_certificate: false,
     lesson_count: 1, // Only for creation
   });
   
@@ -59,6 +61,8 @@ const CourseForm = ({ isEditing, courseId }) => {
         difficulty: data.difficulty || 'Beginner',
         course_status: data.course_status || 'draft',
         is_locked: data.is_locked || false,
+        has_certificate: data.has_certificate || false,
+        auto_issue_certificate: data.auto_issue_certificate || false,
         existingThumbnail: data.thumbnail || null
       });
       // We don't fetch or set thumbnail directly as a file object.
@@ -129,6 +133,8 @@ const CourseForm = ({ isEditing, courseId }) => {
       data.append('difficulty', formData.difficulty);
       data.append('course_status', formData.course_status);
       data.append('is_locked', formData.is_locked);
+      data.append('has_certificate', formData.has_certificate);
+      data.append('auto_issue_certificate', formData.auto_issue_certificate);
       if (thumbnail) {
         data.append('thumbnail', thumbnail);
       }
@@ -298,6 +304,38 @@ const CourseForm = ({ isEditing, courseId }) => {
                     </label>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* Certification Settings */}
+            <div>
+              <h3 className="text-lg font-bold border-b border-slate-200 pb-2 mb-4 text-slate-800">Certification</h3>
+              <div className="bg-slate-50 p-5 rounded-lg border border-slate-200 mb-6 space-y-4">
+                <label className="flex items-start space-x-3 cursor-pointer">
+                  <input 
+                    type="checkbox" name="has_certificate" 
+                    checked={formData.has_certificate} onChange={handleInputChange}
+                    className="mt-1 w-5 h-5 text-[#3E8E41] border-slate-300 rounded focus:ring-[#3E8E41]"
+                  />
+                  <div>
+                    <span className="font-bold text-slate-700 block">Offer Certificate</span>
+                    <span className="text-sm text-slate-500">Learners will receive a certificate upon completing this course. Note: Free courses cannot have a certificate.</span>
+                  </div>
+                </label>
+                
+                {formData.has_certificate && (
+                  <label className="flex items-start space-x-3 cursor-pointer pl-8">
+                    <input 
+                      type="checkbox" name="auto_issue_certificate" 
+                      checked={formData.auto_issue_certificate} onChange={handleInputChange}
+                      className="mt-1 w-5 h-5 text-[#3E8E41] border-slate-300 rounded focus:ring-[#3E8E41]"
+                    />
+                    <div>
+                      <span className="font-bold text-slate-700 block">Auto-issue Certificate</span>
+                      <span className="text-sm text-slate-500">Certificates will be issued automatically when the learner completes the course. If unchecked, an admin or instructor must issue it manually.</span>
+                    </div>
+                  </label>
+                )}
               </div>
             </div>
 

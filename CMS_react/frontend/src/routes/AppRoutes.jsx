@@ -23,12 +23,15 @@ const Membership = lazy(() => import('../pages/public/Membership'));
 const ResearchArticles = lazy(() => import('../pages/public/ResearchArticles'));
 const ResearchWebinars = lazy(() => import('../pages/public/ResearchWebinars'));
 const Academics = lazy(() => import('../pages/public/Academics'));
+const CertificateView = lazy(() => import('../pages/public/CertificateView'));
 
 // SuperAdmin Pages
 const SuperAdminLayout = lazy(() => import('../layouts/SuperAdminLayout'));
 const SuperAdminDashboard = lazy(() => import('../pages/superadmin/SuperAdminDashboard'));
 const SuperAdminEntityList = lazy(() => import('../pages/superadmin/SuperAdminEntityList'));
 const SuperAdminEntityForm = lazy(() => import('../pages/superadmin/SuperAdminEntityForm'));
+const CertificateOverview = lazy(() => import('../pages/admin/CertificateOverview'));
+const OfferCertificates = lazy(() => import('../pages/admin/OfferCertificates'));
 
 // Instructor Pages
 const InstructorLayout = lazy(() => import('../layouts/InstructorLayout'));
@@ -60,11 +63,14 @@ const AppRoutes = () => {
             <Route path="/research/webinars" element={<ResearchWebinars />} />
             <Route path="/academics" element={<Academics />} />
             <Route path="/course/:courseId" element={<CoursePlayer />} />
+            <Route path="/verify/:code" element={<CertificateView />} />
             
             {/* Superadmin Routes */}
             <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
               <Route path="/superadmin" element={<SuperAdminLayout />}>
                 <Route index element={<SuperAdminDashboard />} />
+                <Route path="entity/certificates/overview" element={<CertificateOverview />} />
+                <Route path="entity/certificates/offer" element={<OfferCertificates />} />
                 <Route path="entity/:entityId" element={<SuperAdminEntityList />} />
                 <Route path="entity/:entityId/:id" element={<SuperAdminEntityForm />} />
               </Route>

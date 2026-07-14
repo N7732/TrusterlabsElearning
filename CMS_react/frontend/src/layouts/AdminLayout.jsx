@@ -72,7 +72,9 @@ const AdminLayout = () => {
   ];
 
   const certificationItems = [
-    { path: '/admin/certificates', label: 'Certificates', icon: <GraduationCap size={18} /> },
+    { path: '/admin/certificates/overview', label: 'Certificate Overview', icon: <GraduationCap size={18} /> },
+    { path: '/admin/certificates', label: 'All Certificates', icon: <BookOpen size={18} /> },
+    { path: '/admin/certificates/offer', label: 'Offer Certificates', icon: <Gift size={18} /> },
   ];
 
   const settingsItems = [

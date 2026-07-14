@@ -58,7 +58,9 @@ const SuperAdminLayout = () => {
   ];
 
   const certificationAwardsItems = [
-    { path: '/superadmin/entity/certificates', label: 'Certificates', icon: <Award size={18} /> },
+    { path: '/superadmin/entity/certificates/overview', label: 'Certificate Overview', icon: <Award size={18} /> },
+    { path: '/superadmin/entity/certificates', label: 'All Certificates', icon: <Award size={18} /> },
+    { path: '/superadmin/entity/certificates/offer', label: 'Offer Certificates', icon: <Award size={18} /> },
   ];
 
   const settingsItems = [

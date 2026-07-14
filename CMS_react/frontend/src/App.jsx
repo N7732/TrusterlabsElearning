@@ -10,6 +10,8 @@ import AdminAddInstructor from './pages/admin/AdminAddInstructor';
 import AdminEnrollments from './pages/admin/AdminEnrollments';
 import TrainingDashboard from './pages/admin/TrainingDashboard';
 import AdminCustomRequests from './pages/admin/AdminCustomRequests';
+import CertificateOverview from './pages/admin/CertificateOverview';
+import OfferCertificates from './pages/admin/OfferCertificates';
 import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
@@ -25,6 +27,8 @@ function App() {
               <Route path="enrollments" element={<AdminEnrollments />} />
               <Route path="trainings/:id/dashboard" element={<TrainingDashboard />} />
               <Route path="custom-training-requests" element={<AdminCustomRequests />} />
+              <Route path="certificates/overview" element={<CertificateOverview />} />
+              <Route path="certificates/offer" element={<OfferCertificates />} />
               <Route path=":entity" element={<AdminEntityList />} />
               <Route path=":entity/:id" element={<AdminEntityForm />} />
             </Route>

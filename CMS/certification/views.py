@@ -5,6 +5,9 @@ from django.utils import timezone
 from django.db.models import Q
 from .models import Certificate
 from .serializers import CertificateSerializer
+from Course.models import Enrollment
+from Training.models import TrainingParticipants, TrainingFinalExamSubmission
+from SuperSetting.models import Notification
 
 class CertificateViewSet(viewsets.ModelViewSet):
     queryset = Certificate.objects.all()
@@ -108,3 +111,61 @@ class CertificateViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         except Certificate.DoesNotExist:
             return Response({"detail": "Invalid or unissued certificate."}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=False, methods=['get'])
+    def eligible_learners(self, request):
+        user = request.user
+        if not (user.is_superuser or user.user_type in ['admin', 'instructor']):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+            
+        # Get completed course enrollments
+        enrollments = Enrollment.objects.filter(status='completed').select_related('learner__user', 'course')
+        # Get completed training participants
+        training_participants = TrainingParticipants.objects.filter(admission_status='COMPLETED').select_related('participant', 'training')
+
+        results = []
+        for e in enrollments:
+            results.append({
+                'id': f"course_{e.id}",
+                'learner_id': e.learner.id,
+                'learner_name': e.learner.user.get_full_name() or e.learner.user.username,
+                'program_type': 'course',
+                'program_id': e.course.id,
+                'program_title': e.course.title,
+                'score': float(e.score) if e.score else 0.0,
+                'date_completed': e.enrolled_at, # fallback if completed_at not available
+            })
+
+        for p in training_participants:
+            # try to find their final exam score
+            final_exam = TrainingFinalExamSubmission.objects.filter(participant=p.participant, exam__training=p.training).order_by('-score').first()
+            score = float(final_exam.score) if (final_exam and final_exam.score) else 0.0
+            results.append({
+                'id': f"training_{p.id}",
+                'learner_id': p.participant.id, # We'll need a way to link to Learner profile when issuing, but learner profile has user_id
+                'learner_name': p.application_full_name or p.participant.get_full_name() or p.participant.username,
+                'program_type': 'training',
+                'program_id': p.training.id,
+                'program_title': p.training.title,
+                'score': score,
+                'date_completed': p.date_applied,
+            })
+
+        return Response(results)
+
+    @action(detail=False, methods=['post'])
+    def notify_learner(self, request):
+        user = request.user
+        if not (user.is_superuser or user.user_type in ['admin', 'instructor']):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+            
+        learner_name = request.data.get('learner_name', 'Student')
+        message = request.data.get('message', 'You did not meet the required marks.')
+        
+        # In a real app we'd email them. For now log it as a system notification
+        Notification.objects.create(
+            title=f"Notification sent to {learner_name}",
+            message=message,
+            notification_type='system'
+        )
+        return Response({"detail": "Notification sent successfully."})

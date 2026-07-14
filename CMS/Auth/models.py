@@ -63,6 +63,9 @@ class Instructor(models.Model):
     can_create_courses = models.BooleanField(default=True)
     can_update_courses = models.BooleanField(default=True)
     can_delete_courses = models.BooleanField(default=True)
+    can_manage_trainings = models.BooleanField(default=True)
+    can_view_students = models.BooleanField(default=True)
+    can_approve_certificates = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

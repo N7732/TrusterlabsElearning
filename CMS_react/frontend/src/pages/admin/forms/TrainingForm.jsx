@@ -10,7 +10,9 @@ const TrainingForm = ({ isEditing, trainingId }) => {
     title: '',
     description: '',
     starting_date: '',
-    ending_date: ''
+    ending_date: '',
+    has_certificate: false,
+    auto_issue_certificate: false
   });
   const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
@@ -30,7 +32,9 @@ const TrainingForm = ({ isEditing, trainingId }) => {
         title: res.title || '',
         description: res.description || '',
         starting_date: res.starting_date || '',
-        ending_date: res.ending_date || ''
+        ending_date: res.ending_date || '',
+        has_certificate: res.has_certificate || false,
+        auto_issue_certificate: res.auto_issue_certificate || false
       });
     } catch (err) {
       console.error(err);
@@ -41,10 +45,10 @@ const TrainingForm = ({ isEditing, trainingId }) => {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : value
     }));
   };
 
@@ -143,7 +147,39 @@ const TrainingForm = ({ isEditing, trainingId }) => {
               </div>
             </div>
 
-            <div className="flex justify-end pt-6 border-t border-slate-200 mt-8">
+            {/* Certification Settings */}
+            <div className="pt-6 border-t border-slate-200">
+              <h3 className="text-lg font-bold pb-2 mb-4 text-slate-800">Certification</h3>
+              <div className="bg-slate-50 p-5 rounded-lg border border-slate-200 space-y-4">
+                <label className="flex items-start space-x-3 cursor-pointer">
+                  <input 
+                    type="checkbox" name="has_certificate" 
+                    checked={formData.has_certificate} onChange={handleChange}
+                    className="mt-1 w-5 h-5 text-[#3E8E41] border-slate-300 rounded focus:ring-[#3E8E41]"
+                  />
+                  <div>
+                    <span className="font-bold text-slate-700 block">Offer Certificate</span>
+                    <span className="text-sm text-slate-500">Participants will receive a certificate upon completing this training.</span>
+                  </div>
+                </label>
+                
+                {formData.has_certificate && (
+                  <label className="flex items-start space-x-3 cursor-pointer pl-8">
+                    <input 
+                      type="checkbox" name="auto_issue_certificate" 
+                      checked={formData.auto_issue_certificate} onChange={handleChange}
+                      className="mt-1 w-5 h-5 text-[#3E8E41] border-slate-300 rounded focus:ring-[#3E8E41]"
+                    />
+                    <div>
+                      <span className="font-bold text-slate-700 block">Auto-issue Certificate</span>
+                      <span className="text-sm text-slate-500">Certificates will be issued automatically when the participant completes the training.</span>
+                    </div>
+                  </label>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-6 mt-8">
               <Button type="submit" disabled={saving} className="bg-[#0A66C2] hover:bg-blue-700 text-white min-w-[120px]">
                 {saving ? 'Saving...' : (isEditing ? 'Save Changes' : 'Create Training')}
               </Button>

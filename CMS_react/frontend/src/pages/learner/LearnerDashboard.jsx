@@ -313,15 +313,42 @@ const LearnerDashboard = () => {
                     <p className="text-xs text-slate-500">Date: {new Date(cert.issued_at || cert.created_at).toLocaleDateString()}</p>
                     <p className="text-xs text-slate-400 mt-2 font-mono">ID: {cert.certificate_code}</p>
                   </div>
-                  <div className="bg-slate-50 p-4 border-t border-slate-100 flex justify-center">
-                    <a 
-                      href={`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/certification/api/certificates/${cert.id}/render_html/`} 
-                      target="_blank" 
-                      rel="noreferrer" 
-                      className="text-sm font-semibold text-[#0A66C2] hover:text-[#004182]"
+                  <div className="bg-slate-50 p-4 border-t border-slate-100 flex flex-col gap-2">
+                    <Link 
+                      to={`/verify/${cert.certificate_code}`}
+                      className="w-full text-center py-2 px-4 bg-[#0A66C2] text-white text-sm font-semibold rounded-md hover:bg-[#004182] transition-colors"
                     >
-                      Download / View
-                    </a>
+                      View Certificate
+                    </Link>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${window.location.origin}/verify/${cert.certificate_code}`);
+                          alert('Verification link copied to clipboard!');
+                        }}
+                        className="flex-1 py-1.5 px-3 border border-slate-300 text-slate-700 text-xs font-semibold rounded-md hover:bg-slate-100 transition-colors flex justify-center items-center gap-1"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                        Share
+                      </button>
+                      <button 
+                        onClick={() => {
+                          // Using a pop-up window to trigger print
+                          const printWindow = window.open(`/verify/${cert.certificate_code}`);
+                          if (printWindow) {
+                            printWindow.onload = () => {
+                              setTimeout(() => {
+                                printWindow.print();
+                              }, 1000); // Give it time to load fonts/images
+                            };
+                          }
+                        }}
+                        className="flex-1 py-1.5 px-3 bg-slate-800 text-white text-xs font-semibold rounded-md hover:bg-black transition-colors flex justify-center items-center gap-1"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        Download PDF
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
