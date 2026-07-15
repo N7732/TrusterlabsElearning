@@ -8,3 +8,4 @@ class RequirementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Requrement
         fields = "__all__"
+        read_only_fields = ['user']
