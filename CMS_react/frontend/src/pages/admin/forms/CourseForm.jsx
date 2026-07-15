@@ -126,7 +126,7 @@ const CourseForm = ({ isEditing, courseId }) => {
       const data = new FormData();
       data.append('title', formData.title);
       data.append('description', formData.description);
-      data.append('currency', formData.currency);
+      data.append('current', formData.currency);
       
       if (formData.access_type === 'free') {
         data.append('is_free', 'true');
@@ -157,7 +157,7 @@ const CourseForm = ({ isEditing, courseId }) => {
       let activeCourseId = isEditing ? courseId : null;
 
       if (isEditing) {
-        await apiClient.put(`/api/courses/${courseId}/`, data);
+        await apiClient.patch(`/api/courses/${courseId}/`, data);
       } else {
         // Create course
         const newCourse = await apiClient.post('/api/courses/', data);
