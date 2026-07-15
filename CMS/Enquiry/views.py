@@ -26,7 +26,45 @@ class RequirementViewSet(viewsets.ModelViewSet):
         return queryset.filter(user=user)
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        inquiry = serializer.save(user=self.request.user)
+        
+        # Send Email Notification
+        course = inquiry.course
+        if course:
+            from django.core.mail import send_mail
+            from django.conf import settings
+            from Auth.models import User
+            
+            recipient_email = None
+            if course.instructor and course.instructor.user and course.instructor.user.email:
+                recipient_email = course.instructor.user.email
+            else:
+                # Send to superadmin if course has no instructor (e.g. offered by superadmin)
+                superadmin = User.objects.filter(is_superuser=True).first()
+                if superadmin and superadmin.email:
+                    recipient_email = superadmin.email
+
+            if recipient_email:
+                student_name = f"{inquiry.user.first_name} {inquiry.user.last_name}".strip() or inquiry.user.username
+                student_email = inquiry.email or inquiry.user.email
+                student_phone = inquiry.phone_number or getattr(inquiry.user, 'phone_number', 'Not provided')
+                
+                subject = f"New Enrollment Inquiry for {course.title}"
+                message = f"Hello,\n\nA new student has submitted an inquiry to enroll in your course: {course.title}.\n\n" \
+                          f"Details:\n" \
+                          f"Name: {student_name}\n" \
+                          f"Email: {student_email}\n" \
+                          f"Phone: {student_phone}\n\n" \
+                          f"Please check your dashboard to review and enroll the student.\n\n" \
+                          f"Regards,\nTrusterLab Team"
+                
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [recipient_email],
+                    fail_silently=True,
+                )
 
 
     @action(detail=True, methods=['post'])
