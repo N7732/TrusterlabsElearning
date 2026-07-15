@@ -9,7 +9,7 @@ import { Editor } from '@tinymce/tinymce-react';
 const LessonForm = ({ isEditing, lessonId }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const basePath = location.pathname.startsWith('/superadmin') ? '/superadmin/entity' : '/admin';
+  const basePath = location.pathname.startsWith('/superadmin') ? '/superadmin/entity' : location.pathname.startsWith('/instructor') ? '/instructor/entity' : '/admin';
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   

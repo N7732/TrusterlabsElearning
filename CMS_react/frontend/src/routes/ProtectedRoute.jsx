@@ -18,12 +18,24 @@ export const ProtectedRoute = ({ allowedRoles }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(user?.user_type)) {
-    // If not authorized for this role, redirect to appropriate dashboard or home
-    if (user?.user_type === 'instructor') {
-      return <Navigate to="/instructor/dashboard" replace />;
+  if (allowedRoles) {
+    let hasAccess = allowedRoles.includes(user?.user_type);
+    
+    // Superusers implicitly have 'admin' access
+    if (user?.is_superuser && allowedRoles.includes('admin')) {
+      hasAccess = true;
     }
-    return <Navigate to="/learner/dashboard" replace />;
+
+    if (!hasAccess) {
+      // If not authorized for this role, redirect to appropriate dashboard
+      if (user?.is_superuser || user?.user_type === 'admin') {
+        return <Navigate to="/superadmin" replace />;
+      }
+      if (user?.user_type === 'instructor') {
+        return <Navigate to="/instructor" replace />;
+      }
+      return <Navigate to="/learner/dashboard" replace />;
+    }
   }
 
   return <Outlet />;

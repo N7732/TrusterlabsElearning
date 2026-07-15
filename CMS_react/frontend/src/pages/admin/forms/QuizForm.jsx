@@ -8,7 +8,7 @@ import { ArrowLeft } from 'lucide-react';
 const QuizForm = ({ isEditing, quizId }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const basePath = location.pathname.startsWith('/superadmin') ? '/superadmin/entity' : '/admin';
+  const basePath = location.pathname.startsWith('/superadmin') ? '/superadmin/entity' : location.pathname.startsWith('/instructor') ? '/instructor/entity' : '/admin';
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   
@@ -20,6 +20,7 @@ const QuizForm = ({ isEditing, quizId }) => {
     title: '',
     description: '',
     module: '', // ID of the module
+    pass_mark: 70,
     max_attempts: 1,
     time_limit: 0,
     is_published: false,
@@ -69,6 +70,7 @@ const QuizForm = ({ isEditing, quizId }) => {
         title: data.title || '',
         description: data.description || '',
         module: data.module || '',
+        pass_mark: data.pass_mark || 70,
         max_attempts: data.max_attempts || 1,
         time_limit: data.time_limit || 0,
         is_published: !!data.is_published,
@@ -192,7 +194,16 @@ const QuizForm = ({ isEditing, quizId }) => {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Passing Score (%)</label>
+                <input 
+                  type="number" name="pass_mark" min="1" max="100" required
+                  value={formData.pass_mark} onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#F0C800] outline-none"
+                />
+              </div>
+
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-1">Max Attempts</label>
                 <input 

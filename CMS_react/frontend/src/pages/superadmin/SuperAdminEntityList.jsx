@@ -4,7 +4,7 @@ import { adminConfig } from '../../config/adminConfig';
 import { apiClient } from '../../api/apiClient';
 import Button from '../../components/common/Button';
 import Card, { CardContent } from '../../components/common/Card';
-import { Plus, Edit, Trash2, Upload, Loader2, Users, Copy } from 'lucide-react';
+import { Plus, Edit, Trash2, Upload, Loader2, Users, Copy, Filter, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import ReuseRequestModal from '../../components/common/ReuseRequestModal';
 
@@ -28,6 +28,50 @@ const SuperAdminEntityList = () => {
   const [showBulkEnroll, setShowBulkEnroll] = useState(false);
   const [bulkEmails, setBulkEmails] = useState('');
   const [bulkCourseId, setBulkCourseId] = useState('');
+
+  // Filtering state
+  const [filterData, setFilterData] = useState({ courses: [], modules: [], quizzes: [] });
+  const [selectedCourse, setSelectedCourse] = useState(localStorage.getItem('truster_filter_course') || '');
+  const [selectedModule, setSelectedModule] = useState(localStorage.getItem('truster_filter_module') || '');
+  const [selectedQuiz, setSelectedQuiz] = useState(localStorage.getItem('truster_filter_quiz') || '');
+
+  // Reset filters when changing routes if desired, but user wants persistence across sessions
+  useEffect(() => {
+    setSelectedCourse(localStorage.getItem('truster_filter_course') || '');
+    setSelectedModule(localStorage.getItem('truster_filter_module') || '');
+    setSelectedQuiz(localStorage.getItem('truster_filter_quiz') || '');
+  }, [entityId]);
+
+  const handleCourseChange = (e) => {
+    const val = e.target.value;
+    setSelectedCourse(val);
+    if (val) localStorage.setItem('truster_filter_course', val);
+    else localStorage.removeItem('truster_filter_course');
+    
+    // Auto-clear module and quiz if course changes
+    setSelectedModule('');
+    localStorage.removeItem('truster_filter_module');
+    setSelectedQuiz('');
+    localStorage.removeItem('truster_filter_quiz');
+  };
+
+  const handleModuleChange = (e) => {
+    const val = e.target.value;
+    setSelectedModule(val);
+    if (val) localStorage.setItem('truster_filter_module', val);
+    else localStorage.removeItem('truster_filter_module');
+
+    // Auto-clear quiz if module changes
+    setSelectedQuiz('');
+    localStorage.removeItem('truster_filter_quiz');
+  };
+
+  const handleQuizChange = (e) => {
+    const val = e.target.value;
+    setSelectedQuiz(val);
+    if (val) localStorage.setItem('truster_filter_quiz', val);
+    else localStorage.removeItem('truster_filter_quiz');
+  };
 
   const baseConfig = adminConfig[entityId];
   const isInstructor = location.pathname.startsWith('/instructor');
@@ -92,6 +136,93 @@ const SuperAdminEntityList = () => {
       setLoading(false);
     }
   };
+
+  // Fetch data for filters
+  useEffect(() => {
+    const fetchFilters = async () => {
+      const needsFilters = ['modules', 'lessons', 'quizzes', 'quiz_questions'].includes(entityId);
+      if (!needsFilters) return;
+      try {
+        const qp = isInstructor ? '?my_courses=true' : '';
+        const qm = isInstructor ? '?my_modules=true' : '';
+        // Quizzes endpoint doesn't strictly need my_quizzes if backend doesn't support it, but passing it is safe
+        const qq = isInstructor ? '?my_quizzes=true' : ''; 
+        const [cRes, mRes, qRes] = await Promise.all([
+           apiClient.get(`/api/courses/${qp}`).catch(() => []),
+           apiClient.get(`/api/modules/${qm}`).catch(() => []),
+           apiClient.get(`/api/quizes/${qq}`).catch(() => [])
+        ]);
+        setFilterData({
+           courses: Array.isArray(cRes) ? cRes : cRes?.results || [],
+           modules: Array.isArray(mRes) ? mRes : mRes?.results || [],
+           quizzes: Array.isArray(qRes) ? qRes : qRes?.results || [],
+        });
+      } catch (err) {
+        console.error("Failed to load filter data", err);
+      }
+    };
+    fetchFilters();
+  }, [entityId, isInstructor]);
+
+  const filteredData = React.useMemo(() => {
+    let filtered = data;
+    const needsFilters = ['modules', 'lessons', 'quizzes', 'quiz_questions'].includes(entityId);
+    if (!needsFilters) return filtered;
+
+    // Build helper maps to easily trace up to course
+    const courseOfModule = {};
+    filterData.modules.forEach(m => {
+        if (m.course) courseOfModule[m.id] = String(typeof m.course === 'object' ? m.course.id : m.course);
+    });
+    
+    const courseOfQuiz = {};
+    const moduleOfQuiz = {};
+    filterData.quizzes.forEach(q => {
+        let cId = String(q.course || '');
+        let mId = String(q.module || '');
+        if (!cId && mId && courseOfModule[mId]) {
+            cId = courseOfModule[mId];
+        }
+        courseOfQuiz[q.id] = cId;
+        moduleOfQuiz[q.id] = mId;
+    });
+
+    if (selectedCourse) {
+        filtered = filtered.filter(item => {
+           if (entityId === 'modules') return String(typeof item.course === 'object' ? item.course.id : item.course) === String(selectedCourse);
+           if (entityId === 'lessons') return courseOfModule[item.module] === String(selectedCourse);
+           if (entityId === 'quizzes') {
+               let cId = String(item.course || '');
+               let mId = String(item.module || '');
+               if (!cId && mId) cId = courseOfModule[mId];
+               return cId === String(selectedCourse);
+           }
+           if (entityId === 'quiz_questions') {
+               return courseOfQuiz[item.quiz] === String(selectedCourse);
+           }
+           return true;
+        });
+    }
+
+    if (selectedModule) {
+        filtered = filtered.filter(item => {
+           if (entityId === 'modules') return String(item.id) === String(selectedModule);
+           if (entityId === 'lessons') return String(item.module) === String(selectedModule);
+           if (entityId === 'quizzes') return String(item.module) === String(selectedModule);
+           if (entityId === 'quiz_questions') return moduleOfQuiz[item.quiz] === String(selectedModule);
+           return true;
+        });
+    }
+
+    if (selectedQuiz) {
+        filtered = filtered.filter(item => {
+           if (entityId === 'quiz_questions') return String(item.quiz) === String(selectedQuiz);
+           return true;
+        });
+    }
+
+    return filtered;
+  }, [data, selectedCourse, selectedModule, selectedQuiz, filterData, entityId]);
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this item?')) {
@@ -171,9 +302,18 @@ const SuperAdminEntityList = () => {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div className="flex flex-col gap-2">
-          <h1 className="text-[26px] font-bold text-slate-900 leading-tight tracking-tight">
-            Manage {config.plural}
-          </h1>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate(isInstructor ? '/instructor' : '/superadmin')}
+              className="p-1.5 text-slate-400 hover:text-[#3182ce] hover:bg-blue-50 rounded-lg transition-colors border border-slate-200"
+              title="Back to Dashboard"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <h1 className="text-[26px] font-bold text-slate-900 leading-tight tracking-tight">
+              Manage {config.plural}
+            </h1>
+          </div>
           {isInstructor && (
             <div className="flex bg-white rounded-lg border border-slate-200 p-1 w-fit shadow-sm">
               <button
@@ -224,6 +364,70 @@ const SuperAdminEntityList = () => {
         </div>
       </div>
 
+      {/* Filtering Row */}
+      {['modules', 'lessons', 'quizzes', 'quiz_questions'].includes(entityId) && (
+        <div className="flex gap-4 mb-6 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <div className="flex items-center text-slate-500 mr-2">
+            <Filter size={18} className="mr-2" />
+            <span className="font-semibold text-sm">Filters:</span>
+          </div>
+          <div className="flex-1 max-w-xs">
+            <select 
+              value={selectedCourse}
+              onChange={handleCourseChange}
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 hover:bg-white transition-colors"
+            >
+              <option value="">All Courses</option>
+              {filterData.courses.map(c => (
+                <option key={c.id} value={c.id}>{c.title}</option>
+              ))}
+            </select>
+          </div>
+          {['lessons', 'quizzes', 'quiz_questions'].includes(entityId) && (
+            <div className="flex-1 max-w-xs">
+              <select 
+                value={selectedModule}
+                onChange={handleModuleChange}
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 hover:bg-white transition-colors"
+              >
+                <option value="">All Modules</option>
+                {filterData.modules
+                   .filter(m => !selectedCourse || String(typeof m.course === 'object' ? m.course.id : m.course) === String(selectedCourse))
+                   .map(m => (
+                  <option key={m.id} value={m.id}>{m.title}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          {['quiz_questions'].includes(entityId) && (
+            <div className="flex-1 max-w-xs">
+              <select 
+                value={selectedQuiz}
+                onChange={handleQuizChange}
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 hover:bg-white transition-colors"
+              >
+                <option value="">All Quizzes</option>
+                {filterData.quizzes
+                   .filter(q => {
+                       let cId = String(q.course || '');
+                       let mId = String(q.module || '');
+                       if (!cId && mId) {
+                           const parentMod = filterData.modules.find(m => String(m.id) === mId);
+                           if (parentMod) cId = String(typeof parentMod.course === 'object' ? parentMod.course.id : parentMod.course);
+                       }
+                       if (selectedCourse && cId !== String(selectedCourse)) return false;
+                       if (selectedModule && mId !== String(selectedModule)) return false;
+                       return true;
+                   })
+                   .map(q => (
+                  <option key={q.id} value={q.id}>{q.title}</option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+      )}
+
       <Card className="border-0 shadow-lg">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
@@ -247,14 +451,14 @@ const SuperAdminEntityList = () => {
                       Loading...
                     </td>
                   </tr>
-                ) : data.length === 0 ? (
+                ) : filteredData.length === 0 ? (
                   <tr>
                     <td colSpan={config.columns.length + 1} className="py-8 text-center text-slate-500">
-                      No {config.label.toLowerCase()} found.
+                      No {config.label.toLowerCase()} found matching the current filters.
                     </td>
                   </tr>
                 ) : (
-                  data.map((item) => (
+                  filteredData.map((item) => (
                     <tr key={item.id} className="hover:bg-slate-50 transition-colors">
                       {config.columns.map((col) => {
                         const val = item[col.field];

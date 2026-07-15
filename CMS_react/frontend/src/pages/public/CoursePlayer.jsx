@@ -31,6 +31,7 @@ const CoursePlayer = () => {
   const [quizAnswers, setQuizAnswers] = useState({});
   const [quizResult, setQuizResult] = useState(null);
   const [submittingQuiz, setSubmittingQuiz] = useState(false);
+  const [quizStarted, setQuizStarted] = useState(false);
 
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isTranslatorOpen, setIsTranslatorOpen] = useState(false);
@@ -208,6 +209,7 @@ const CoursePlayer = () => {
     setActiveLesson(lesson);
     setQuizAnswers({});
     setQuizResult(null);
+    setQuizStarted(false);
     
     if (lesson.questions && lesson.questions.length > 0) {
       try {
@@ -739,7 +741,7 @@ const CoursePlayer = () => {
                             
                             <div className="flex justify-center gap-4">
                               <button 
-                                onClick={() => { setQuizAnswers({}); setQuizResult(null); }}
+                                onClick={() => { setQuizAnswers({}); setQuizResult(null); setQuizStarted(true); }}
                                 className="px-6 py-3 border-2 border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-colors"
                               >
                                 Try Again
@@ -759,42 +761,79 @@ const CoursePlayer = () => {
                             </div>
                           </div>
                         ) : (
-                          <div className="space-y-8">
-                            {activeLesson.questions.map((q, i) => (
-                              <div key={q.id} className="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
-                                <h4 className="text-lg font-bold text-slate-800 mb-6 flex justify-between items-start">
-                                  <span><span className="text-[#2563eb] mr-2">Question {i + 1}.</span> {q.question_text}</span>
-                                  <span className="text-sm font-bold bg-slate-100 text-slate-500 px-3 py-1 rounded-full whitespace-nowrap">{q.marks || 1} Mark(s)</span>
-                                </h4>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                  {['A', 'B', 'C', 'D'].map(opt => (
-                                    <label key={opt} className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-colors group ${quizAnswers[q.id] === opt ? 'border-[#3b82f6] bg-[#f0f9ff]' : 'border-slate-200 hover:bg-slate-50'}`}>
-                                      <input 
-                                        type="radio" 
-                                        name={`question-${q.id}`} 
-                                        value={opt} 
-                                        checked={quizAnswers[q.id] === opt}
-                                        onChange={() => setQuizAnswers(prev => ({ ...prev, [q.id]: opt }))}
-                                        className="mt-1 w-4 h-4 text-[#3b82f6] border-slate-300 focus:ring-[#3b82f6]" 
-                                      />
-                                      <span className={`font-medium ${quizAnswers[q.id] === opt ? 'text-[#2563eb]' : 'text-slate-700 group-hover:text-slate-900'}`}>
-                                        {q[`option_${opt.toLowerCase()}`]}
-                                      </span>
-                                    </label>
-                                  ))}
+                          !quizStarted ? (
+                            <div className="bg-white p-12 rounded-xl shadow-lg border border-slate-200 text-center max-w-2xl mx-auto">
+                              <div className="w-20 h-20 mx-auto mb-6 bg-blue-50 rounded-full flex items-center justify-center text-blue-500">
+                                <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                              </div>
+                              <h2 className="text-3xl font-extrabold text-slate-800 mb-4">Ready to begin?</h2>
+                              
+                              <div className="bg-slate-50 rounded-lg p-6 mb-8 text-left border border-slate-100 flex flex-col gap-4">
+                                <div className="flex items-center gap-4">
+                                  <div className="w-10 h-10 rounded bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                  </div>
+                                  <div>
+                                    <h4 className="font-bold text-slate-800">Allowed Attempts</h4>
+                                    <p className="text-slate-600">{activeLesson.max_attempts} attempt(s)</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                  <div className="w-10 h-10 rounded bg-green-100 text-green-600 flex items-center justify-center font-bold">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                  </div>
+                                  <div>
+                                    <h4 className="font-bold text-slate-800">Passing Score</h4>
+                                    <p className="text-slate-600">{activeLesson.pass_mark || 70}% required to pass</p>
+                                  </div>
                                 </div>
                               </div>
-                            ))}
-                            <div className="mt-8 flex justify-end">
+                              
                               <button 
-                                onClick={handleQuizSubmit}
-                                disabled={submittingQuiz || Object.keys(quizAnswers).length === 0}
-                                className="px-8 py-4 bg-[#2563eb] disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow hover:bg-[#1d4ed8] transition-colors flex items-center gap-2"
+                                onClick={() => setQuizStarted(true)}
+                                className="px-8 py-4 bg-[#2563eb] text-white font-bold rounded-xl shadow-md hover:bg-[#1d4ed8] transition-all text-lg flex items-center justify-center gap-2 w-full sm:w-auto mx-auto"
                               >
-                                {submittingQuiz ? "Submitting..." : "Submit Quiz"}
+                                Start Quiz <ChevronRight className="w-5 h-5" />
                               </button>
                             </div>
-                          </div>
+                          ) : (
+                            <div className="space-y-8">
+                              {activeLesson.questions.map((q, i) => (
+                                <div key={q.id} className="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
+                                  <h4 className="text-lg font-bold text-slate-800 mb-6 flex justify-between items-start">
+                                    <span><span className="text-[#2563eb] mr-2">Question {i + 1}.</span> {q.question_text}</span>
+                                    <span className="text-sm font-bold bg-slate-100 text-slate-500 px-3 py-1 rounded-full whitespace-nowrap">{q.marks || 1} Mark(s)</span>
+                                  </h4>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {['A', 'B', 'C', 'D'].map(opt => (
+                                      <label key={opt} className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-colors group ${quizAnswers[q.id] === opt ? 'border-[#3b82f6] bg-[#f0f9ff]' : 'border-slate-200 hover:bg-slate-50'}`}>
+                                        <input 
+                                          type="radio" 
+                                          name={`question-${q.id}`} 
+                                          value={opt} 
+                                          checked={quizAnswers[q.id] === opt}
+                                          onChange={() => setQuizAnswers(prev => ({ ...prev, [q.id]: opt }))}
+                                          className="mt-1 w-4 h-4 text-[#3b82f6] border-slate-300 focus:ring-[#3b82f6]" 
+                                        />
+                                        <span className={`font-medium ${quizAnswers[q.id] === opt ? 'text-[#2563eb]' : 'text-slate-700 group-hover:text-slate-900'}`}>
+                                          {q[`option_${opt.toLowerCase()}`]}
+                                        </span>
+                                      </label>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                              <div className="mt-8 flex justify-end">
+                                <button 
+                                  onClick={handleQuizSubmit}
+                                  disabled={submittingQuiz || Object.keys(quizAnswers).length === 0}
+                                  className="px-8 py-4 bg-[#2563eb] disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow hover:bg-[#1d4ed8] transition-colors flex items-center gap-2"
+                                >
+                                  {submittingQuiz ? "Submitting..." : "Submit Quiz"}
+                                </button>
+                              </div>
+                            </div>
+                          )
                         )
                       ) : (
                         <div className="text-center text-slate-500 italic p-12 bg-white rounded-xl border border-slate-100">

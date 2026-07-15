@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Download, Share2, CheckCircle, ArrowLeft } from 'lucide-react';
+import { Download, Share2, CheckCircle, ArrowLeft, ShieldCheck, User, Mail, Calendar, BookOpen, Award } from 'lucide-react';
 import { apiClient } from '../../api/apiClient';
 import CertificateTemplate from '../../components/common/CertificateTemplate';
 
@@ -19,8 +19,6 @@ const CertificateView = () => {
   const fetchCertificate = async () => {
     try {
       setLoading(true);
-      // Wait, is it /certification/api/certificates/verify/ or /api/certification/...?
-      // Let's try /certification/api/certificates/verify/ first, as used in LearnerDashboard
       const res = await apiClient.get(`/certification/api/certificates/verify/${code}/`).catch(() => 
         apiClient.get(`/api/certification/certificates/verify/${code}/`) // fallback
       );
@@ -65,22 +63,33 @@ const CertificateView = () => {
           </div>
           <h2 className="text-xl font-bold text-slate-800 mb-2">Verification Failed</h2>
           <p className="text-slate-500 mb-6">{error}</p>
-          <button onClick={() => navigate('/')} className="px-6 py-2 bg-[#0A66C2] text-white rounded-md font-medium">Return Home</button>
+          <button onClick={() => navigate('/verify')} className="px-6 py-2 bg-[#0A66C2] text-white rounded-md font-medium">Try Another ID</button>
         </div>
       </div>
     );
   }
 
   const learnerName = certificate.learner_name || 'Learner';
-  const programTitle = certificate.course_details ? certificate.course_details.title : (certificate.training_details ? certificate.training_details.title : 'Program Completion');
-  const issueDate = new Date(certificate.issued_at || certificate.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+  
+  // Extract Details object (either Course or Training)
+  const details = certificate.course_details || certificate.training_details || {};
+  
+  const customDuration = details.certificate_duration || (certificate.course_details && details.duration_days ? details.duration_days + ' Days' : '');
+  const customCourseName = details.certificate_type_text || (certificate.course_details ? 'Course' : 'Training');
+  const programTitle = details.certificate_program_title || details.title || certificate.program_title || 'Program Completion';
+  const customDescription = details.certificate_description || details.description || '';
+
+  const issueDateStr = certificate.completed_at || certificate.issued_at || certificate.created_at;
+  const issueDate = new Date(issueDateStr).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+  const enrolledDate = certificate.enrolled_at ? new Date(certificate.enrolled_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A';
+  const certIdDisplay = certificate.certificate_id || certificate.certificate_code || code;
 
   return (
     <div className="min-h-screen bg-[#F4F5F7] py-12 px-4 print:bg-white print:py-0 print:px-0">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-5xl mx-auto space-y-8">
         
         {/* Action Bar - Hidden during printing */}
-        <div className="flex flex-col md:flex-row justify-between items-center mb-8 bg-white p-4 rounded-xl shadow-sm border border-slate-200 print:hidden">
+        <div className="flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-200 print:hidden">
           <button onClick={() => navigate(-1)} className="flex items-center text-slate-500 hover:text-[#0A66C2] font-medium mb-4 md:mb-0">
             <ArrowLeft size={18} className="mr-2" /> Back
           </button>
@@ -110,15 +119,58 @@ const CertificateView = () => {
           </div>
         </div>
 
+        {/* Verification Metadata Panel - Hidden during printing */}
+        <div className="bg-white rounded-xl shadow-sm border border-emerald-100 overflow-hidden print:hidden">
+          <div className="bg-emerald-50 px-6 py-4 border-b border-emerald-100 flex items-center">
+            <ShieldCheck className="text-emerald-600 w-6 h-6 mr-3" />
+            <h2 className="text-lg font-bold text-emerald-800">Verified Certificate Details</h2>
+          </div>
+          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-slate-500 font-medium flex items-center"><Award className="w-4 h-4 mr-2" /> Certificate ID</p>
+                <p className="text-slate-800 font-semibold">{certIdDisplay}</p>
+              </div>
+              <div>
+                <p className="text-sm text-slate-500 font-medium flex items-center"><BookOpen className="w-4 h-4 mr-2" /> Program / Course</p>
+                <p className="text-slate-800 font-semibold">{programTitle}</p>
+              </div>
+              <div>
+                <p className="text-sm text-slate-500 font-medium flex items-center"><User className="w-4 h-4 mr-2" /> Awarded To</p>
+                <p className="text-slate-800 font-semibold">{learnerName}</p>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-slate-500 font-medium flex items-center"><Calendar className="w-4 h-4 mr-2" /> Enrollment Date</p>
+                <p className="text-slate-800 font-semibold">{enrolledDate}</p>
+              </div>
+              <div>
+                <p className="text-sm text-slate-500 font-medium flex items-center"><Calendar className="w-4 h-4 mr-2" /> Completion Date</p>
+                <p className="text-slate-800 font-semibold">{issueDate}</p>
+              </div>
+              <div>
+                <p className="text-sm text-slate-500 font-medium flex items-center"><Mail className="w-4 h-4 mr-2" /> Contact Info</p>
+                <p className="text-slate-800 font-semibold">
+                  {certificate.learner_email || 'N/A'} {certificate.learner_phone ? `| ${certificate.learner_phone}` : ''}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Certificate Container */}
         <div className="flex justify-center bg-white shadow-xl rounded-xl overflow-hidden print:shadow-none print:rounded-none">
           <CertificateTemplate 
             learnerName={learnerName}
+            courseName={customCourseName}
             programTitle={programTitle}
-            duration={certificate.course_details ? certificate.course_details.duration_days + ' Days' : 'Completed'}
-            description={certificate.course_details ? certificate.course_details.description : (certificate.training_details ? certificate.training_details.description : '')}
-            instructorName="Instructor"
+            duration={customDuration}
+            description={customDescription}
+            instructorName="Jean Chrysostome ND"
             issueDate={issueDate}
+            certificateID={certIdDisplay}
+            verificationURL={window.location.href}
           />
         </div>
       </div>

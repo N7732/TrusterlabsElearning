@@ -10,7 +10,25 @@ class ErrorBoundary extends React.Component {
     return { hasError: true };
   }
 
+  componentDidMount() {
+    sessionStorage.removeItem('chunk_reload_count');
+  }
+
   componentDidCatch(error, errorInfo) {
+    // If it's a dynamic import error (chunk loading failed after a new deployment)
+    if (
+      error.message && 
+      (error.message.includes('Failed to fetch dynamically imported module') || 
+       error.message.includes('Importing a module script failed'))
+    ) {
+      const reloadCount = parseInt(sessionStorage.getItem('chunk_reload_count') || '0', 10);
+      if (reloadCount < 2) {
+        sessionStorage.setItem('chunk_reload_count', (reloadCount + 1).toString());
+        window.location.reload();
+        return;
+      }
+    }
+
     this.setState({
       error: error,
       errorInfo: errorInfo

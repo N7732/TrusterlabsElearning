@@ -12,7 +12,11 @@ const TrainingForm = ({ isEditing, trainingId }) => {
     starting_date: '',
     ending_date: '',
     has_certificate: false,
-    auto_issue_certificate: false
+    auto_issue_certificate: false,
+    certificate_duration: '',
+    certificate_type_text: '',
+    certificate_program_title: '',
+    certificate_description: ''
   });
   const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
@@ -34,7 +38,11 @@ const TrainingForm = ({ isEditing, trainingId }) => {
         starting_date: res.starting_date || '',
         ending_date: res.ending_date || '',
         has_certificate: res.has_certificate || false,
-        auto_issue_certificate: res.auto_issue_certificate || false
+        auto_issue_certificate: res.auto_issue_certificate || false,
+        certificate_duration: res.certificate_duration || '',
+        certificate_type_text: res.certificate_type_text || '',
+        certificate_program_title: res.certificate_program_title || '',
+        certificate_description: res.certificate_description || ''
       });
     } catch (err) {
       console.error(err);
@@ -164,6 +172,7 @@ const TrainingForm = ({ isEditing, trainingId }) => {
                 </label>
                 
                 {formData.has_certificate && (
+                  <React.Fragment>
                   <label className="flex items-start space-x-3 cursor-pointer pl-8">
                     <input 
                       type="checkbox" name="auto_issue_certificate" 
@@ -175,6 +184,52 @@ const TrainingForm = ({ isEditing, trainingId }) => {
                       <span className="text-sm text-slate-500">Certificates will be issued automatically when the participant completes the training.</span>
                     </div>
                   </label>
+                  
+                  <div className="space-y-4 pl-8 mt-4 border-t border-slate-200 pt-4">
+                    <h4 className="font-bold text-sm text-slate-700">Certificate Wording</h4>
+                    <p className="text-xs text-slate-500 mb-2">Customize the exact text displayed on the certificate. Leave blank to use default training details.</p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">Duration / Prefix</label>
+                        <input 
+                          type="text" name="certificate_duration" 
+                          value={formData.certificate_duration} onChange={handleChange}
+                          className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#3E8E41] outline-none text-sm"
+                          placeholder="e.g. 1.5-Hour"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">Program Type</label>
+                        <input 
+                          type="text" name="certificate_type_text" 
+                          value={formData.certificate_type_text} onChange={handleChange}
+                          className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#3E8E41] outline-none text-sm"
+                          placeholder="e.g. Online Cybersecurity Workshop"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-xs font-bold text-slate-700 mb-1">Program Title</label>
+                        <input 
+                          type="text" name="certificate_program_title" 
+                          value={formData.certificate_program_title} onChange={handleChange}
+                          className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#3E8E41] outline-none text-sm"
+                          placeholder="e.g. SSL/TLS: Securing Communication on the Internet"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-xs font-bold text-slate-700 mb-1">Description / Covered Topics</label>
+                        <textarea 
+                          name="certificate_description" 
+                          value={formData.certificate_description} onChange={handleChange}
+                          rows="3"
+                          className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#3E8E41] outline-none text-sm"
+                          placeholder="e.g. This workshop covered SSL/TLS fundamentals..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  </React.Fragment>
                 )}
               </div>
             </div>

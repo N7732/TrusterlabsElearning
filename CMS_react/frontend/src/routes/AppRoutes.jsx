@@ -24,6 +24,7 @@ const ResearchArticles = lazy(() => import('../pages/public/ResearchArticles'));
 const ResearchWebinars = lazy(() => import('../pages/public/ResearchWebinars'));
 const Academics = lazy(() => import('../pages/public/Academics'));
 const CertificateView = lazy(() => import('../pages/public/CertificateView'));
+const CertificateSearch = lazy(() => import('../pages/public/CertificateSearch'));
 
 // SuperAdmin Pages
 const SuperAdminLayout = lazy(() => import('../layouts/SuperAdminLayout'));
@@ -64,12 +65,14 @@ const AppRoutes = () => {
             <Route path="/research/webinars" element={<ResearchWebinars />} />
             <Route path="/academics" element={<Academics />} />
             <Route path="/course/:courseId" element={<CoursePlayer />} />
+            <Route path="/verify" element={<CertificateSearch />} />
             <Route path="/verify/:code" element={<CertificateView />} />
             
             {/* Superadmin Routes */}
             <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
               <Route path="/superadmin" element={<SuperAdminLayout />}>
                 <Route index element={<SuperAdminDashboard />} />
+                <Route path="dashboard" element={<SuperAdminDashboard />} />
                 <Route path="entity/certificates/overview" element={<CertificateOverview />} />
                 <Route path="entity/certificates/offer" element={<OfferCertificates />} />
                 <Route path="trainings/:id/dashboard" element={<TrainingDashboard />} />
@@ -93,6 +96,7 @@ const AppRoutes = () => {
             <Route element={<ProtectedRoute allowedRoles={['instructor', 'admin']} />}>
               <Route path="/instructor" element={<InstructorLayout />}>
                 <Route index element={<InstructorDashboard />} />
+                <Route path="dashboard" element={<InstructorDashboard />} />
                 <Route path="entity/:entityId" element={<SuperAdminEntityList />} />
                 <Route path="entity/:entityId/:id" element={<SuperAdminEntityForm />} />
               </Route>

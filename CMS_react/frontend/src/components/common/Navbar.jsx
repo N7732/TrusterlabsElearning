@@ -172,7 +172,7 @@ const Navbar = () => {
                       
                       {isAdmin && (
                         <Link 
-                          to="/admin/dashboard" 
+                          to="/superadmin" 
                           className="flex items-center px-4 py-2 text-sm text-slate-700 font-bold hover:bg-slate-100 hover:text-[#FFD700]"
                           onClick={() => setDropdownOpen(false)}
                         >
@@ -183,7 +183,7 @@ const Navbar = () => {
                       
                       {isInstructor && !isAdmin && (
                         <Link 
-                          to="/instructor/dashboard" 
+                          to="/instructor" 
                           className="flex items-center px-4 py-2 text-sm text-slate-700 font-bold hover:bg-slate-100 hover:text-[#FFD700]"
                           onClick={() => setDropdownOpen(false)}
                         >

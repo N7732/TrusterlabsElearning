@@ -42,6 +42,10 @@ class Course(models.Model):
     # Certification Settings
     has_certificate = models.BooleanField(default=False, help_text="If true, learners will receive a certificate upon completion.")
     auto_issue_certificate = models.BooleanField(default=False, help_text="If true, certificates are issued automatically upon completion. Otherwise, wait for Admin/Instructor to issue manually.")
+    certificate_duration = models.CharField(max_length=50, blank=True, null=True, help_text="e.g., '1.5-Hour'")
+    certificate_type_text = models.CharField(max_length=100, blank=True, null=True, help_text="e.g., 'Online Cybersecurity Workshop'")
+    certificate_program_title = models.CharField(max_length=200, blank=True, null=True, help_text="e.g., 'SSL/TLS: Securing Communication on the Internet'")
+    certificate_description = models.TextField(blank=True, null=True, help_text="e.g., 'This workshop covered SSL/TLS fundamentals...'")
     
     #Prequesites
     class Meta:
@@ -210,6 +214,7 @@ class Quizes(models.Model):
     #The user didn't ask to delete fields. Let's assume "question" field was the intro text for the quiz, and "description" is the instruction. We can keep both for now.
 
     question = models.TextField(blank=True, null=True, help_text="Intro text for the Quiz/Exams")
+    pass_mark = models.PositiveIntegerField(default=70, help_text="Percentage required to pass (e.g., 70 for 70%)")
     max_attempts = models.PositiveIntegerField(default=1, help_text="Maximum number of attempts allowed for this quiz/exam.")
     time_limit = models.PositiveIntegerField(help_text="Time limit in minutes for the quiz/exam. Set to 0 for no time limit.", default=0)
     order = models.PositiveBigIntegerField(default=0, help_text="Order of the quiz/exam in the module/course.")

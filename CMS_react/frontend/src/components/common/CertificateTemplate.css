@@ -1,0 +1,260 @@
+/* d:\TrusterLab\CourseManagement\CMS_react\frontend\src\components\common\CertificateTemplate.css */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap');
+
+.certificate-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Poppins', sans-serif;
+    background: transparent;
+    width: 100%;
+}
+
+.certificate-wrapper .certificate {
+    position: relative;
+    width: 1123px;
+    height: 794px;
+    overflow: hidden;
+    background: white;
+    box-shadow: 0 20px 60px rgba(0,0,0,.18);
+    /* Ensure content adjusts in print */
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+}
+
+.certificate-wrapper .background {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+    user-select: none;
+    pointer-events: none;
+}
+
+.certificate-wrapper .certificate > *:not(.background) {
+    position: relative;
+    z-index: 5;
+}
+
+.certificate-wrapper .header {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.certificate-wrapper .header h1 {
+    color: #384DA1;
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin: 0;
+}
+
+.certificate-wrapper .header p {
+    margin-top: 2px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 0;
+    color: #333;
+}
+
+.certificate-wrapper .header p .green {
+    color: #1D7F4B;
+    font-weight: 600;
+}
+
+.certificate-wrapper .certificate-title {
+    margin-top: 5px;
+    text-align: center;
+    color: #384DA1;
+    font-size: 38px;
+    font-family: 'Playfair Display', serif;
+    letter-spacing: 2px;
+    margin-bottom: 0;
+}
+
+.certificate-wrapper .certificate-type {
+    margin-top: 2px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: 700;
+    text-decoration: underline;
+    margin-bottom: 0;
+    color: #000;
+}
+
+.certificate-wrapper .award-text {
+    margin-top: 4px;
+    text-align: center;
+    font-size: 14px;
+    margin-bottom: 0;
+    color: #000;
+}
+
+.certificate-wrapper .student-name {
+    margin-top: 4px;
+    text-align: center;
+    color: #D69A00;
+    font-size: 36px;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    margin-bottom: 0;
+}
+
+.certificate-wrapper hr {
+    width: 72%;
+    margin: 4px auto 4px;
+    border: 1px solid #111;
+}
+
+.certificate-wrapper .course {
+    width: 84%;
+    margin: auto;
+    text-align: center;
+}
+
+.certificate-wrapper .course p {
+    font-size: 18px;
+    line-height: 1.4;
+    margin: 0;
+    color: #000;
+}
+
+.certificate-wrapper .course h2 {
+    margin-top: 20px;
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 500;
+    margin-bottom: 0;
+    color: #000;
+}
+
+.certificate-wrapper .covered {
+    width: 76%;
+    margin: 6px auto;
+}
+
+.certificate-wrapper .covered p {
+    text-align: center;
+    font-size: 16px;
+    line-height: 1.4;
+    margin: 0;
+    color: #000;
+}
+
+.certificate-wrapper .qr-details {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 45px;
+    margin-bottom: 8px;
+}
+
+.certificate-wrapper .qr-detail-left {
+    text-align: right;
+    font-size: 14px;
+    width: 140px;
+    color: #000;
+}
+
+.certificate-wrapper .qr-detail-right {
+    text-align: left;
+    font-size: 14px;
+    width: 140px;
+    color: #000;
+}
+
+.certificate-wrapper .qr-details strong {
+    color: #384DA1;
+}
+
+.certificate-wrapper .qr-details p {
+    margin-top: 4px;
+    margin-bottom: 0;
+}
+
+.certificate-wrapper .issued {
+    margin-top: 4px;
+    text-align: center;
+    font-size: 14px;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    transform: translateY(40px);
+    color: #000;
+}
+
+.certificate-wrapper .bottom {
+    width: 88%;
+    margin: 18px auto 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.certificate-wrapper .signature {
+    width: 280px;
+    text-align: left;
+}
+
+.certificate-wrapper .signature:first-child {
+    margin-left: 90px;
+}
+
+.certificate-wrapper .signature-placeholder {
+    width: 180px;
+    height: 60px;
+}
+
+.certificate-wrapper .signature img {
+    width: 180px;
+    height: auto;
+    object-fit: contain;
+}
+
+.certificate-wrapper .signature h4 {
+    font-size: 12px;
+    color: #203864;
+    font-weight: 700;
+    margin-top: 8px;
+    margin-bottom: 0;
+}
+
+.certificate-wrapper .signature p {
+    font-size: 10px;
+    margin-top: 4px;
+    margin-bottom: 0;
+    color: #000;
+}
+
+.certificate-wrapper .center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transform: translateX(-45px);
+}
+
+.certificate-wrapper #qrcode {
+    width: 90px;
+    height: 90px;
+    margin-bottom: 0;
+}
+
+.certificate-wrapper .logo {
+    width: 180px;
+    margin-top: 25px;
+}
+
+@media print {
+    .certificate-wrapper {
+        padding: 0;
+    }
+    .certificate-wrapper .certificate {
+        width: 100%;
+        height: 100vh;
+        box-shadow: none;
+        margin: 0;
+    }
+}

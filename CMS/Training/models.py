@@ -17,6 +17,10 @@ class Training(models.Model):
     # Certification Settings
     has_certificate = models.BooleanField(default=False, help_text="If true, participants will receive a certificate upon completion of the training.")
     auto_issue_certificate = models.BooleanField(default=False, help_text="If true, certificates are issued automatically upon completion. Otherwise, wait for Admin/Instructor to issue manually.")
+    certificate_duration = models.CharField(max_length=50, blank=True, null=True, help_text="e.g., '1.5-Hour'")
+    certificate_type_text = models.CharField(max_length=100, blank=True, null=True, help_text="e.g., 'Online Cybersecurity Workshop'")
+    certificate_program_title = models.CharField(max_length=200, blank=True, null=True, help_text="e.g., 'SSL/TLS: Securing Communication on the Internet'")
+    certificate_description = models.TextField(blank=True, null=True, help_text="e.g., 'This workshop covered SSL/TLS fundamentals...'")
 
     def __str__(self):
         return self.title

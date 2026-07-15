@@ -4,7 +4,7 @@ import Card, { CardContent } from '../../components/common/Card';
 import { 
   GraduationCap, Users, BookOpen, DollarSign, 
   ChevronDown, ArrowUp, ArrowRight, Activity, 
-  AlertCircle, Info, Database, Plus, FilePlus, BarChart2
+  AlertCircle, Info, Database, Plus, FilePlus, BarChart2, ArrowLeft
 } from 'lucide-react';
 import { apiClient } from '../../api/apiClient';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -91,6 +91,17 @@ const SuperAdminDashboard = () => {
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto pb-12">
       
+      {/* Header with Back Button */}
+      <div className="flex items-center justify-between">
+        <button 
+          onClick={() => navigate('/')} 
+          className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-sm"
+        >
+          <ArrowLeft size={16} />
+          Back to Home Page
+        </button>
+      </div>
+
       {/* 4 Metric Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         

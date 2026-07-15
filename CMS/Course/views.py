@@ -330,7 +330,8 @@ class QuizesViewSet(viewsets.ModelViewSet):
             if submitted and submitted.upper() == question.correct_option.upper():
                 total_score += question.marks
                 
-        passed = total_score > 0  # Basic threshold, can be adjusted
+        percentage = (total_score / total_possible * 100) if total_possible > 0 else 0
+        passed = percentage >= quiz.pass_mark
         
         submission = QuizSubmission.objects.create(
             learner=learner,
@@ -345,7 +346,9 @@ class QuizesViewSet(viewsets.ModelViewSet):
             "message": "Quiz submitted successfully!",
             "score": total_score,
             "total_marks": total_possible,
-            "passed": passed
+            "passed": passed,
+            "percentage": percentage,
+            "required_pass_mark": quiz.pass_mark
         })
 
 class QuizQuestionViewSet(viewsets.ModelViewSet):

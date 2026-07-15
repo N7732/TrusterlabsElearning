@@ -47,13 +47,7 @@ const AuthPage = () => {
       
       let redirectPath = from;
       if (from === '/' || from === '/login') {
-        if (userData?.is_superuser || userData?.user_type === 'admin') {
-          redirectPath = '/admin/dashboard';
-        } else if (userData?.user_type === 'instructor') {
-          redirectPath = '/instructor';
-        } else {
-          redirectPath = '/learner/dashboard';
-        }
+        redirectPath = '/';
       }
       navigate(redirectPath, { replace: true });
     } catch (err) {

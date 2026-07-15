@@ -82,6 +82,45 @@ class CertificateViewSet(viewsets.ModelViewSet):
         # generate_certificate_file(cert)
         
         cert.save()
+        
+        # Send email notification
+        from django.core.mail import EmailMultiAlternatives
+        from django.template.loader import render_to_string
+        from django.conf import settings
+        import os
+        
+        learner_name = cert.learner.user.get_full_name() or cert.learner.user.username
+        # Handle dynamic program title gracefully
+        if cert.course and cert.course.certificate_program_title:
+            program_title = cert.course.certificate_program_title
+        elif cert.training and getattr(cert.training, 'certificate_program_title', None):
+            program_title = cert.training.certificate_program_title
+        else:
+            program_title = cert.program_title or (cert.course.title if cert.course else (cert.training.title if cert.training else 'Program'))
+            
+        frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+        verify_url = f"{frontend_url}/verify/{cert.certificate_code}"
+        
+        context = {
+            'learner_name': learner_name,
+            'program_title': program_title,
+            'certificate_id': cert.certificate_code,
+            'verify_url': verify_url
+        }
+        
+        html_content = render_to_string('emails/certificate_issued.html', context)
+        subject = f"Your Certificate for {program_title} is Ready!"
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@trusterlabs.com')
+        to_email = cert.learner.user.email
+        
+        if to_email:
+            try:
+                msg = EmailMultiAlternatives(subject, f"Congratulations! View and download your certificate at: {verify_url}", from_email, [to_email])
+                msg.attach_alternative(html_content, "text/html")
+                msg.send(fail_silently=True)
+            except Exception as e:
+                print(f"Failed to send certificate email: {e}")
+
         serializer = self.get_serializer(cert)
         return Response(serializer.data)
 
@@ -106,7 +145,13 @@ class CertificateViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path='verify/(?P<code>[^/.]+)')
     def verify_certificate(self, request, code=None):
         try:
-            cert = Certificate.objects.get(certificate_code=code, is_issued=True)
+            import uuid
+            try:
+                uuid_obj = uuid.UUID(code, version=4)
+                cert = Certificate.objects.get(certificate_code=uuid_obj, is_issued=True)
+            except ValueError:
+                cert = Certificate.objects.get(certificate_id=code, is_issued=True)
+                
             serializer = self.get_serializer(cert)
             return Response(serializer.data)
         except Certificate.DoesNotExist:

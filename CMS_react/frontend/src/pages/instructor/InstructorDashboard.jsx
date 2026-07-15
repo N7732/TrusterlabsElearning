@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Card, { CardContent } from '../../components/common/Card';
 import { 
   GraduationCap, Users, BookOpen, Activity, 
-  AlertCircle, Book, Calendar
+  AlertCircle, Book, Calendar, ArrowLeft
 } from 'lucide-react';
 import { apiClient } from '../../api/apiClient';
 import { useAuth } from '../../context/AuthContext';
@@ -51,6 +51,17 @@ const InstructorDashboard = () => {
 
   return (
     <div className="space-y-6">
+      {/* Header with Back Button */}
+      <div className="flex items-center justify-between">
+        <button 
+          onClick={() => navigate('/')} 
+          className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-sm"
+        >
+          <ArrowLeft size={16} />
+          Back to Home Page
+        </button>
+      </div>
+
       {/* Welcome Banner */}
       <div className="bg-white rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm border border-slate-100">
         <div>
