@@ -141,9 +141,14 @@ const CourseForm = ({ isEditing, courseId }) => {
       data.append('difficulty', formData.difficulty);
       data.append('course_status', formData.course_status);
       data.append('is_locked', formData.is_locked);
-      data.append('has_certificate', formData.has_certificate);
-      data.append('auto_issue_certificate', formData.auto_issue_certificate);
-      if (formData.has_certificate) {
+      
+      const isFree = formData.access_type === 'free';
+      const hasCert = isFree ? false : formData.has_certificate;
+      
+      data.append('has_certificate', hasCert);
+      data.append('auto_issue_certificate', isFree ? false : formData.auto_issue_certificate);
+      
+      if (hasCert) {
         data.append('certificate_duration', formData.certificate_duration);
         data.append('certificate_type_text', formData.certificate_type_text);
         data.append('certificate_program_title', formData.certificate_program_title);
@@ -308,6 +313,7 @@ const CourseForm = ({ isEditing, courseId }) => {
                       <option value="unpublished">Unpublished</option>
                     </select>
                   </div>
+
                   <div className="pt-6">
                     <label className="flex items-center space-x-3 cursor-pointer">
                       <input 
@@ -326,19 +332,21 @@ const CourseForm = ({ isEditing, courseId }) => {
             <div>
               <h3 className="text-lg font-bold border-b border-slate-200 pb-2 mb-4 text-slate-800">Certification</h3>
               <div className="bg-slate-50 p-5 rounded-lg border border-slate-200 mb-6 space-y-4">
-                <label className="flex items-start space-x-3 cursor-pointer">
+                <label className={`flex items-start space-x-3 ${formData.access_type === 'free' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
                   <input 
                     type="checkbox" name="has_certificate" 
-                    checked={formData.has_certificate} onChange={handleInputChange}
+                    checked={formData.has_certificate && formData.access_type !== 'free'} 
+                    onChange={handleInputChange}
+                    disabled={formData.access_type === 'free'}
                     className="mt-1 w-5 h-5 text-[#3E8E41] border-slate-300 rounded focus:ring-[#3E8E41]"
                   />
                   <div>
                     <span className="font-bold text-slate-700 block">Offer Certificate</span>
-                    <span className="text-sm text-slate-500">Learners will receive a certificate upon completing this course. Note: Free courses cannot have a certificate.</span>
+                    <span className="text-sm text-slate-500">Learners will receive a certificate upon completing this course. {formData.access_type === 'free' && <span className="text-red-500 font-bold block mt-1">Not available for Free courses. Please change Access Type to Paid or Consultation to enable certificates.</span>}</span>
                   </div>
                 </label>
                 
-                {formData.has_certificate && (
+                {formData.has_certificate && formData.access_type !== 'free' && (
                   <React.Fragment>
                   <label className="flex items-start space-x-3 cursor-pointer pl-8">
                     <input 
