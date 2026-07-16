@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { apiClient, getImageUrl } from '../../api/apiClient';
 import { Play, Building2, BookOpen, Clock } from 'lucide-react';
 
@@ -11,6 +11,13 @@ const LearnerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('courses');
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state && location.state.tab) {
+      setActiveTab(location.state.tab);
+    }
+  }, [location]);
 
   useEffect(() => {
     fetchData();

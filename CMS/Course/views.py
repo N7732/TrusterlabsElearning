@@ -229,27 +229,40 @@ def check_and_update_course_completion(learner, course):
             return False
 
     enrollment = Enrollment.objects.filter(learner=learner, course=course).first()
-    if enrollment and enrollment.status != 'completed':
-        enrollment.status = 'completed'
-        enrollment.progress = 100
-        enrollment.save()
+    if enrollment:
+        needs_update = False
+        just_completed = False
+        
+        if enrollment.status != 'completed':
+            enrollment.status = 'completed'
+            needs_update = True
+            just_completed = True
+            
+        if enrollment.progress < 100:
+            enrollment.progress = 100
+            needs_update = True
+            
+        if needs_update:
+            enrollment.save()
         
         certificate = None
+        certificate_created = False
         if course.has_certificate:
             from certification.models import Certificate
-            certificate, _ = Certificate.objects.get_or_create(
+            certificate, certificate_created = Certificate.objects.get_or_create(
                 learner=learner,
                 course=course,
                 defaults={'is_issued': course.auto_issue_certificate}
             )
             
-        try:
-            from Auth.views import certificate_email
-            certificate_email(learner, course, certificate)
-        except Exception as e:
-            logger.error(f"Failed to send certificate email: {e}")
+        if just_completed or certificate_created:
+            try:
+                from Auth.views import certificate_email
+                certificate_email(learner, course, certificate)
+            except Exception as e:
+                logger.error(f"Failed to send certificate email: {e}")
             
-        return True
+        return just_completed or certificate_created
     return False
 
 class LessonViewSet(viewsets.ModelViewSet):

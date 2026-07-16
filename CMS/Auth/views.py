@@ -472,11 +472,13 @@ def send_webinar_registration_email(registration):
 
 def certificate_email(learner, course, certificate):
     subject = f"Congratulations on Completing {course.title}!"
+    frontend_url = getattr(settings, 'FRONTEND_URL', 'https://frontend-omega-five-21.vercel.app')
     context = {
         'learner': learner,
         'course': course,
         'certificate': certificate,
         'settings': settings,
+        'frontend_url': frontend_url,
     }
     html_message = render_to_string('Resent_emali/certificate_email.html', context)
     text_content = strip_tags(html_message)

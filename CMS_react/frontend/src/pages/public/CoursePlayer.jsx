@@ -919,7 +919,7 @@ const CoursePlayer = () => {
                   <>
                     {courseCompletedState ? (
                       <button 
-                        onClick={() => navigate('/learner/dashboard')}
+                        onClick={() => navigate('/learner/dashboard', { state: { tab: 'certificates' } })}
                         className="flex items-center gap-2 px-6 py-3 bg-[#10b981] text-white rounded-lg font-semibold hover:bg-[#059669] transition-colors shadow-sm"
                       >
                         View Certificate
@@ -973,7 +973,7 @@ const CoursePlayer = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button 
-                onClick={() => navigate('/learner/dashboard')}
+                onClick={() => navigate('/learner/dashboard', { state: { tab: 'certificates' } })}
                 className="px-6 py-3 bg-[#2563eb] text-white font-bold rounded-xl shadow-md hover:bg-[#1d4ed8] transition-all flex items-center justify-center gap-2"
               >
                 View Certificate in Dashboard
