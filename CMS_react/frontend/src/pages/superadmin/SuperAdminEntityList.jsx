@@ -614,7 +614,7 @@ const SuperAdminEntityList = () => {
                 if (!bulkCourseId || !bulkEmails) return alert('Fill in all fields');
                 try {
                   const emailsList = bulkEmails.split(',').map(e => e.trim()).filter(e => e);
-                  const res = await apiClient.post('/api/courses/enrollments/bulk_enroll/', {
+                  const res = await apiClient.post('/api/enrollments/bulk_enroll/', {
                     course_id: bulkCourseId,
                     emails: emailsList
                   });

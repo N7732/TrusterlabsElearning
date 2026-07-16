@@ -70,9 +70,6 @@ class Course(models.Model):
         super().save(*args, **kwargs)
 
     def clean(self):
-        from django.core.exceptions import ValidationError
-        if self.is_free and self.has_certificate:
-            raise ValidationError({'has_certificate': 'A free course cannot have a certificate. Please set is_free to False if you want to offer a certificate.'})
         super().clean()
 
 
