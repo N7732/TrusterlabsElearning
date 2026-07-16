@@ -282,7 +282,7 @@ const AboutUs = () => {
                     {formStatus.error}
                   </div>
                 )}
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-2">First Name</label>
                     <input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} className="w-full bg-[#030712] border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#D4AF37] transition-colors" placeholder="John" />

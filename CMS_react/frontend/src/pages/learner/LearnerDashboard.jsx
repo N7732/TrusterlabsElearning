@@ -69,7 +69,7 @@ const LearnerDashboard = () => {
           <p className="text-slate-600 mt-2">Pick up where you left off or start something new.</p>
         </div>
 
-        <div className="flex border-b border-slate-200 mb-8">
+        <div className="flex overflow-x-auto whitespace-nowrap hide-scrollbar border-b border-slate-200 mb-8">
           <button
             onClick={() => setActiveTab('courses')}
             className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${

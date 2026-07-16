@@ -95,7 +95,7 @@ export const adminConfig = {
   },
   enrollments: {
     label: 'Learners',
-    endpoint: '/api/courses/enrollments/',
+    endpoint: '/api/enrollments/',
     columns: [
       { field: 'id', label: 'ID' },
       { field: 'course_title', label: 'Course' },
@@ -109,7 +109,7 @@ export const adminConfig = {
   },
   reuse_requests: {
     label: 'Reuse Requests',
-    endpoint: '/course/api/reuse-requests/',
+    endpoint: '/api/reuse-requests/',
     columns: [
       { field: 'id', label: 'ID' },
       { field: 'content_type', label: 'Type' },

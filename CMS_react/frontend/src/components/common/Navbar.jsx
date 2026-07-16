@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Button from './Button';
-import { LogOut, User, ChevronDown, LayoutDashboard, ArrowLeft } from 'lucide-react';
+import { LogOut, User, ChevronDown, LayoutDashboard, ArrowLeft, Menu, X } from 'lucide-react';
 import logo from '../../assets/image2.jpeg';
 import TopUtilityBar from './TopUtilityBar';
 
@@ -11,6 +11,10 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mobileAcademicsOpen, setMobileAcademicsOpen] = useState(false);
+  const [mobileResearchOpen, setMobileResearchOpen] = useState(false);
+  const [mobileAboutOpen, setMobileAboutOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   const isCoursePlayer = location.pathname.startsWith('/course/');
@@ -71,6 +75,17 @@ const Navbar = () => {
             </Link>
           </div>
             
+          {/* Mobile Menu Toggle */}
+          <div className="flex items-center lg:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50">
+             <button 
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="text-white hover:text-[#FFD700] p-2 focus:outline-none transition-colors"
+                aria-label="Toggle mobile menu"
+             >
+                {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+             </button>
+          </div>
+
           {/* Desktop Navigation */}
           <div className="absolute left-1/2 top-0 h-16 -translate-x-1/2 hidden lg:flex items-center space-x-4 xl:space-x-6">
             
@@ -227,6 +242,65 @@ const Navbar = () => {
               </div>
             )}
           </div>
+        </div>
+      </div>
+      
+      {/* Mobile Menu Panel */}
+      <div className={`lg:hidden transition-all duration-300 ease-in-out overflow-hidden bg-[#0b162c] border-t border-white/10 ${isMobileMenuOpen ? 'max-h-screen opacity-100 py-4 shadow-xl' : 'max-h-0 opacity-0 py-0'}`}>
+        <div className="flex flex-col px-6 space-y-4 text-white">
+          {isAcademicsRoute ? (
+            <>
+              <Link to="/academics" onClick={() => setIsMobileMenuOpen(false)} className="text-white hover:text-[#FFD700] font-bold transition-colors">Home</Link>
+              
+              <div className="flex flex-col space-y-2">
+                <button onClick={() => setMobileAcademicsOpen(!mobileAcademicsOpen)} className="flex items-center justify-between text-white hover:text-[#FFD700] font-bold w-full focus:outline-none">
+                  Courses <ChevronDown size={16} className={`transition-transform duration-200 ${mobileAcademicsOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {mobileAcademicsOpen && (
+                  <div className="flex flex-col pl-4 space-y-2 mt-1 border-l-2 border-white/20">
+                    <Link to="/courses" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-300 hover:text-[#FFD700] text-sm">Courses</Link>
+                    <Link to="/training" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-300 hover:text-[#FFD700] text-sm">Training session</Link>
+                  </div>
+                )}
+              </div>
+
+              <Link to="/admission" onClick={() => setIsMobileMenuOpen(false)} className="text-white hover:text-[#FFD700] font-bold transition-colors">Admission</Link>
+              
+              <div className="flex flex-col space-y-2">
+                <button onClick={() => setMobileResearchOpen(!mobileResearchOpen)} className="flex items-center justify-between text-white hover:text-[#FFD700] font-bold w-full focus:outline-none">
+                  Research <ChevronDown size={16} className={`transition-transform duration-200 ${mobileResearchOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {mobileResearchOpen && (
+                  <div className="flex flex-col pl-4 space-y-2 mt-1 border-l-2 border-white/20">
+                    <Link to="/research/articles" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-300 hover:text-[#FFD700] text-sm">Research Articles</Link>
+                    <Link to="/research/webinars" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-300 hover:text-[#FFD700] text-sm">Cybersecurity Webinar</Link>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="text-white hover:text-[#FFD700] font-bold transition-colors">Home</Link>
+              
+              <div className="flex flex-col space-y-2">
+                <button onClick={() => setMobileAboutOpen(!mobileAboutOpen)} className="flex items-center justify-between text-white hover:text-[#FFD700] font-bold w-full focus:outline-none">
+                  About Us <ChevronDown size={16} className={`transition-transform duration-200 ${mobileAboutOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {mobileAboutOpen && (
+                  <div className="flex flex-col pl-4 space-y-2 mt-1 border-l-2 border-white/20">
+                    <Link to="/about#our-story" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-300 hover:text-[#FFD700] text-sm">Our Story</Link>
+                    <Link to="/about#staff" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-300 hover:text-[#FFD700] text-sm">Staff</Link>
+                    <Link to="/about#partners" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-300 hover:text-[#FFD700] text-sm">Partners</Link>
+                    <Link to="/about#contact-us" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-300 hover:text-[#FFD700] text-sm">Contact Us</Link>
+                  </div>
+                )}
+              </div>
+
+              <a href="/academics" onClick={() => setIsMobileMenuOpen(false)} target="_blank" rel="noopener noreferrer" className="text-white hover:text-[#FFD700] font-bold transition-colors">Academics</a>
+              <Link to="/membership" onClick={() => setIsMobileMenuOpen(false)} className="text-white hover:text-[#FFD700] font-bold transition-colors">Membership</Link>
+              <Link to="/about#contact-us" onClick={() => setIsMobileMenuOpen(false)} className="text-white hover:text-[#FFD700] font-bold transition-colors">Request Inquiries</Link>
+            </>
+          )}
         </div>
       </div>
     </nav>

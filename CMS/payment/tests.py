@@ -4,8 +4,16 @@ from rest_framework.test import APITestCase
 from unittest.mock import patch, MagicMock
 import paypalrestsdk
 
+from Auth.models import User
+from rest_framework.test import APIClient
+
 class PaymentTests(APITestCase):
     def setUp(self):
+        # Authenticate user
+        self.user = User.objects.create(username="testuser", password="password", email="test@example.com")
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+        
         # Mock PayPal payment
         self.mock_payment = MagicMock()
         self.mock_payment.id = "PAY-123456"
