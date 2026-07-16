@@ -28,20 +28,21 @@ const LearnerDashboard = () => {
       setLoading(true);
       setError(null);
       
+      const timestamp = new Date().getTime();
       const [enrollData, trainingData, gradesData, certData] = await Promise.all([
-        apiClient.get('/api/enrollments/').catch(err => {
+        apiClient.get(`/api/enrollments/?t=${timestamp}`).catch(err => {
           console.error("Error fetching enrollments:", err);
           return { results: [] };
         }),
-        apiClient.get('/training/trainings/my-trainings/').catch(err => {
+        apiClient.get(`/training/trainings/my-trainings/?t=${timestamp}`).catch(err => {
           console.error("Error fetching trainings:", err);
           return { results: [] };
         }),
-        apiClient.get('/auth/api/my-grades/').catch(err => {
+        apiClient.get(`/auth/api/my-grades/?t=${timestamp}`).catch(err => {
           console.error("Error fetching grades:", err);
           return { results: [] };
         }),
-        apiClient.get('/certification/api/certificates/my_certificates/').catch(err => {
+        apiClient.get(`/certification/api/certificates/my_certificates/?t=${timestamp}`).catch(err => {
           console.error("Error fetching certificates:", err);
           return [];
         })
