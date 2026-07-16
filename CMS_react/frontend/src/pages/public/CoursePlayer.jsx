@@ -260,7 +260,13 @@ const CoursePlayer = () => {
   let nextLesson = null;
   
   if (activeLesson && modules.length > 0) {
-    const allLessons = modules.flatMap(m => m.lessons || []);
+    const allLessons = modules.flatMap(m => {
+      const items = [...(m.lessons || [])];
+      if (m.quizzes && m.quizzes.length > 0) {
+        items.push(...m.quizzes);
+      }
+      return items;
+    });
     const currentIndex = allLessons.findIndex(l => l.id === activeLesson.id);
     
     if (currentIndex > 0) prevLesson = allLessons[currentIndex - 1];
@@ -804,12 +810,22 @@ const CoursePlayer = () => {
                                 </div>
                               </div>
                               
-                              <button 
-                                onClick={() => setQuizStarted(true)}
-                                className="px-8 py-4 bg-[#2563eb] text-white font-bold rounded-xl shadow-md hover:bg-[#1d4ed8] transition-all text-lg flex items-center justify-center gap-2 w-full sm:w-auto mx-auto"
-                              >
-                                Start Quiz <ChevronRight className="w-5 h-5" />
-                              </button>
+                              <div className="flex flex-col sm:flex-row justify-center gap-4 w-full max-w-md mx-auto mt-6">
+                                {nextLesson && (
+                                  <button 
+                                    onClick={() => handleNavigate(nextLesson)}
+                                    className="px-8 py-4 bg-slate-200 text-slate-700 font-bold rounded-xl shadow-sm hover:bg-slate-300 transition-all text-lg flex items-center justify-center gap-2 flex-1"
+                                  >
+                                    Skip Quiz <ChevronRight className="w-5 h-5" />
+                                  </button>
+                                )}
+                                <button 
+                                  onClick={() => setQuizStarted(true)}
+                                  className="px-8 py-4 bg-[#2563eb] text-white font-bold rounded-xl shadow-md hover:bg-[#1d4ed8] transition-all text-lg flex items-center justify-center gap-2 flex-1"
+                                >
+                                  Start Quiz <ChevronRight className="w-5 h-5" />
+                                </button>
+                              </div>
                             </div>
                           ) : (
                             <div className="space-y-8">

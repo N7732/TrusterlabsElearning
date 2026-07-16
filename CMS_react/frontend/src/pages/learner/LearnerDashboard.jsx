@@ -110,6 +110,16 @@ const LearnerDashboard = () => {
           >
             My Certificates
           </button>
+          <button
+            onClick={() => setActiveTab('activities')}
+            className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${
+              activeTab === 'activities' 
+                ? 'border-[#0A66C2] text-[#0A66C2]' 
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            Recent Activities
+          </button>
         </div>
 
         {error && (
@@ -123,20 +133,25 @@ const LearnerDashboard = () => {
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0A66C2]"></div>
           </div>
         ) : activeTab === 'courses' ? (
-          enrollments.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-lg shadow-sm border border-slate-200">
-              <BookOpen className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-              <h2 className="text-xl font-bold text-slate-700 mb-2">You haven't enrolled in any courses yet</h2>
-              <p className="text-slate-500 max-w-md mx-auto mb-6">
-                Browse our catalog to find a course that interests you.
-              </p>
-              <Link to="/courses" className="inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-[#0A66C2] hover:bg-[#004182]">
-                Explore Courses
-              </Link>
-            </div>
-          ) : (
+          (() => {
+            const activeEnrollments = enrollments.filter(e => e.status !== 'completed');
+            if (activeEnrollments.length === 0) {
+              return (
+                <div className="text-center py-20 bg-white rounded-lg shadow-sm border border-slate-200">
+                  <BookOpen className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                  <h2 className="text-xl font-bold text-slate-700 mb-2">You haven't enrolled in any active courses yet</h2>
+                  <p className="text-slate-500 max-w-md mx-auto mb-6">
+                    Browse our catalog to find a course that interests you.
+                  </p>
+                  <Link to="/courses" className="inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-[#0A66C2] hover:bg-[#004182]">
+                    Explore Courses
+                  </Link>
+                </div>
+              );
+            }
+            return (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {enrollments.map(enrollment => {
+              {activeEnrollments.map(enrollment => {
                 const course = enrollment.course_details;
                 if (!course) return null;
                 
@@ -191,7 +206,8 @@ const LearnerDashboard = () => {
                 );
               })}
             </div>
-          )
+            );
+          })()
         ) : activeTab === 'trainings' ? (
           trainings.length === 0 ? (
             <div className="text-center py-20 bg-white rounded-lg shadow-sm border border-slate-200">
@@ -362,6 +378,50 @@ const LearnerDashboard = () => {
               ))}
             </div>
           )
+        ) : activeTab === 'activities' ? (
+          (() => {
+            const completedEnrollments = enrollments.filter(e => e.status === 'completed');
+            if (completedEnrollments.length === 0) {
+              return (
+                <div className="text-center py-20 bg-white rounded-lg shadow-sm border border-slate-200">
+                  <CheckCircle className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                  <h2 className="text-xl font-bold text-slate-700 mb-2">No completed courses yet</h2>
+                  <p className="text-slate-500 max-w-md mx-auto mb-6">
+                    Complete your active courses to see your recent activities here.
+                  </p>
+                </div>
+              );
+            }
+            return (
+              <div className="space-y-4">
+                {completedEnrollments.map(enrollment => {
+                  const course = enrollment.course_details;
+                  if (!course) return null;
+                  
+                  return (
+                    <div key={`activity-${enrollment.id}`} className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-4 items-center sm:items-start hover:shadow-md transition-shadow">
+                      <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center shrink-0">
+                        <CheckCircle className="w-6 h-6 text-green-500" />
+                      </div>
+                      <div className="flex-1 text-center sm:text-left">
+                        <h3 className="text-lg font-bold text-slate-900 mb-1">You completed the course "{course.title}"</h3>
+                        <p className="text-sm text-slate-500">Instructor: {course.instructor_name || 'TRUSTERLABS Ltd.'}</p>
+                      </div>
+                      <div className="shrink-0">
+                        <Link 
+                          to={`/learner/dashboard`}
+                          state={{ tab: 'certificates' }}
+                          className="px-4 py-2 border border-slate-200 rounded text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors inline-block"
+                        >
+                          View Certificate
+                        </Link>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()
         ) : null}
       </div>
     </div>

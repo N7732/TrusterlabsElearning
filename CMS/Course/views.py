@@ -12,6 +12,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from django.contrib import messages
+from django.db import transaction
 from .models import Course, Module, Lesson, Quizes, QuizQuestion, Enrollment, LessonProgress, CourseResource, QuizSubmission
 from Auth.views import send_course_enrollment_email
 import logging
@@ -205,6 +206,7 @@ class ModuleViewSet(viewsets.ModelViewSet):
 
 from django.db.models import Q
 
+@transaction.atomic
 def check_and_update_course_completion(learner, course):
     total_lessons = Lesson.objects.filter(module__course=course, is_published=True).count()
     completed_lessons = LessonProgress.objects.filter(
@@ -294,6 +296,11 @@ class LessonViewSet(viewsets.ModelViewSet):
         learner = getattr(user, 'learner_profile', None)
         if not learner:
             return Response({'detail': 'Only learners can track progress.'}, status=status.HTTP_403_FORBIDDEN)
+            
+        course = lesson.module.course
+        enrollment = Enrollment.objects.filter(learner=learner, course=course).first()
+        if not enrollment or enrollment.status not in ['active', 'completed']:
+            return Response({'detail': 'You must be actively enrolled in this course to track progress.'}, status=status.HTTP_403_FORBIDDEN)
         
         LessonProgress.objects.update_or_create(
             learner=learner,
@@ -371,6 +378,12 @@ class QuizesViewSet(viewsets.ModelViewSet):
         
         if not learner:
             return Response({"error": "Only registered learners can submit quizzes."}, status=status.HTTP_403_FORBIDDEN)
+            
+        course = self.get_course_for_quiz(quiz=quiz)
+        if course:
+            enrollment = Enrollment.objects.filter(learner=learner, course=course).first()
+            if not enrollment or enrollment.status not in ['active', 'completed']:
+                return Response({'error': 'You must be actively enrolled in this course to submit a quiz.'}, status=status.HTTP_403_FORBIDDEN)
             
         submitted_answers = request.data.get('answers', {})
         total_score = 0
@@ -512,6 +525,15 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
             certificate.is_issued = True
             certificate.save()
             
+        # Send congratulation email since the course is now marked completed and certificate is issued
+        try:
+            from Auth.views import certificate_email
+            certificate_email(enrollment.learner, course, certificate)
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to send certificate email after manual issue: {e}")
+            
         return Response({'detail': 'Certificate issued successfully.'})
 
     @action(detail=False, methods=['post'], url_path='bulk_enroll')
@@ -529,6 +551,8 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'You do not have permission to enroll students in this course.'}, status=status.HTTP_403_FORBIDDEN)
             
         from Auth.models import User
+        from Auth.models import Learner
+        
         enrolled_count = 0
         not_found = []
         

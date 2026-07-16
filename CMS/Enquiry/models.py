@@ -5,7 +5,8 @@ from Auth.models import User
 # Create your models here.
 
 class Requrement(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    name = models.CharField(max_length=255, blank=True, null=True)
     phone_number = models.CharField(max_length=12, blank=True, null=True)
     email = models.EmailField(max_length=100, blank=True, null=True)
     course = models.ForeignKey('Course.Course', on_delete=models.CASCADE, null=True, blank=True)

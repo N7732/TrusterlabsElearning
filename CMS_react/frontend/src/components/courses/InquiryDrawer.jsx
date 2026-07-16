@@ -25,6 +25,7 @@ const InquiryDrawer = ({ isOpen, onClose, course }) => {
     try {
       await apiClient.post('/enquiry/', {
         course: course.id,
+        name: formData.name,
         email: formData.email,
         phone_number: formData.phone
       });

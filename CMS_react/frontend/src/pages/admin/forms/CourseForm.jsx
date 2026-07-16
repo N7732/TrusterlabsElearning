@@ -136,7 +136,6 @@ const CourseForm = ({ isEditing, courseId }) => {
         if (formData.price) data.append('price', formData.price);
       } else if (formData.access_type === 'inquiry') {
         data.append('is_free', 'false');
-        data.append('price', '');
       }
       data.append('difficulty', formData.difficulty);
       data.append('course_status', formData.course_status);
@@ -203,7 +202,8 @@ const CourseForm = ({ isEditing, courseId }) => {
       navigate(`${basePath}/courses`);
     } catch (err) {
       console.error(err);
-      setError(err.message || 'Failed to save course.');
+      const errMsg = err.response?.data ? (typeof err.response.data === 'object' ? JSON.stringify(err.response.data) : err.response.data) : err.message;
+      setError(errMsg || 'Failed to save course.');
     } finally {
       setLoading(false);
     }
@@ -288,7 +288,7 @@ const CourseForm = ({ isEditing, courseId }) => {
                     >
                       <option value="USD">USD ($)</option>
                       <option value="EUR">EUR (€)</option>
-                      <option value="GBP">GBP (£)</option>
+                      <option value="Rwf">Rwf (FRW)</option>
                     </select>
                   </div>
                   <div>

@@ -160,7 +160,7 @@ const CertificateView = () => {
         </div>
 
         {/* Certificate Container */}
-        <div className="flex justify-center bg-white shadow-xl rounded-xl overflow-hidden print:shadow-none print:rounded-none">
+        <div id="certificate-container" className="flex justify-center bg-white shadow-xl rounded-xl overflow-hidden print:shadow-none print:rounded-none">
           <CertificateTemplate 
             learnerName={learnerName}
             courseName={customCourseName}
@@ -177,6 +177,31 @@ const CertificateView = () => {
 
       <style>{`
         @media print {
+          html, body {
+            height: 100%;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+          }
+          body * {
+            visibility: hidden;
+          }
+          #certificate-container, #certificate-container * {
+            visibility: visible;
+          }
+          #certificate-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+          }
           @page {
             size: landscape;
             margin: 0;
