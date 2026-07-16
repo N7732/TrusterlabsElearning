@@ -34,6 +34,7 @@ const CoursePlayer = () => {
   const [quizStarted, setQuizStarted] = useState(false);
 
   const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [courseCompletedState, setCourseCompletedState] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isTranslatorOpen, setIsTranslatorOpen] = useState(false);
 
@@ -98,6 +99,12 @@ const CoursePlayer = () => {
         setCompletedLessons(response.completed_lessons);
         localStorage.setItem(`course_progress_${courseId}`, JSON.stringify(response.completed_lessons));
       }
+      if (response && response.just_completed) {
+        setShowCompletionModal(true);
+      }
+      if (response && response.course_completed) {
+        setCourseCompletedState(true);
+      }
     } catch (err) {
       console.error('Failed to fetch progress from server', err);
     }
@@ -115,7 +122,7 @@ const CoursePlayer = () => {
       const enrollments = data.results || data || [];
       const enrolled = enrollments.some(e => 
         (e.course_details?.id === parseInt(courseId) || e.course === parseInt(courseId)) 
-        && e.status === 'active'
+        && ['active', 'completed'].includes(e.status)
       );
       setIsEnrolled(enrolled);
     } catch(err) {
@@ -241,6 +248,7 @@ const CoursePlayer = () => {
         const response = await apiClient.post(`/api/lessons/${lessonId}/mark_complete/`);
         if (response.course_completed) {
           setShowCompletionModal(true);
+          setCourseCompletedState(true);
         }
       } catch (err) {
         console.error('Failed to save progress to server', err);
@@ -908,14 +916,26 @@ const CoursePlayer = () => {
                   </button>
                 )}
                 {!nextLesson && (
-                  <button 
-                    onClick={() => markLessonComplete(activeLesson.id)}
-                    disabled={completedLessons.includes(activeLesson?.id)}
-                    className="flex items-center gap-2 px-6 py-3 bg-[#3b82f6] text-white rounded-lg font-semibold hover:bg-[#2563eb] transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {completedLessons.includes(activeLesson?.id) ? 'Course Completed' : 'Finish Course'}
-                    <CheckCircle className="w-5 h-5" />
-                  </button>
+                  <>
+                    {courseCompletedState ? (
+                      <button 
+                        onClick={() => navigate('/learner/dashboard')}
+                        className="flex items-center gap-2 px-6 py-3 bg-[#10b981] text-white rounded-lg font-semibold hover:bg-[#059669] transition-colors shadow-sm"
+                      >
+                        View Certificate
+                        <CheckCircle className="w-5 h-5" />
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={() => markLessonComplete(activeLesson.id)}
+                        disabled={completedLessons.includes(activeLesson?.id)}
+                        className="flex items-center gap-2 px-6 py-3 bg-[#3b82f6] text-white rounded-lg font-semibold hover:bg-[#2563eb] transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {completedLessons.includes(activeLesson?.id) ? 'Course Completed' : 'Finish Course'}
+                        <CheckCircle className="w-5 h-5" />
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             </>

@@ -148,12 +148,22 @@ class CourseViewSet(viewsets.ModelViewSet):
         if not learner:
             return Response({'completed_lessons': []}, status=status.HTTP_200_OK)
         
+        just_completed = check_and_update_course_completion(learner, course)
+        
+        enrollment = Enrollment.objects.filter(learner=learner, course=course).first()
+        is_course_completed = (enrollment and enrollment.status == 'completed')
+
         completed_lessons = LessonProgress.objects.filter(
             learner=learner,
             lesson__module__course=course,
             is_completed=True
         ).values_list('lesson_id', flat=True)
-        return Response({'completed_lessons': list(completed_lessons)}, status=status.HTTP_200_OK)
+        
+        return Response({
+            'completed_lessons': list(completed_lessons),
+            'course_completed': is_course_completed,
+            'just_completed': just_completed
+        }, status=status.HTTP_200_OK)
 
 def check_course_subentity_permission(user, course, action):
     if user.user_type == 'admin' or user.is_superuser:
