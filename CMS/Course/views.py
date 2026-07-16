@@ -193,6 +193,55 @@ class ModuleViewSet(viewsets.ModelViewSet):
         check_course_subentity_permission(self.request.user, instance.course, 'delete')
         instance.delete()
 
+from django.db.models import Q
+
+def check_and_update_course_completion(learner, course):
+    total_lessons = Lesson.objects.filter(module__course=course, is_published=True).count()
+    completed_lessons = LessonProgress.objects.filter(
+        learner=learner,
+        lesson__module__course=course,
+        is_completed=True
+    ).count()
+
+    # Even if total_lessons == 0, if there are quizzes, it can be completed.
+    # So if total_lessons > 0 and not all completed, return False
+    if total_lessons > 0 and completed_lessons < total_lessons:
+        return False
+
+    all_quizzes = Quizes.objects.filter(
+        Q(course=course) | Q(module__course=course) | Q(lesson__module__course=course),
+        is_published=True
+    )
+    
+    for quiz in all_quizzes:
+        submission = QuizSubmission.objects.filter(learner=learner, quiz=quiz).first()
+        if not submission or not submission.passed:
+            return False
+
+    enrollment = Enrollment.objects.filter(learner=learner, course=course).first()
+    if enrollment and enrollment.status != 'completed':
+        enrollment.status = 'completed'
+        enrollment.progress = 100
+        enrollment.save()
+        
+        certificate = None
+        if course.has_certificate:
+            from certification.models import Certificate
+            certificate, _ = Certificate.objects.get_or_create(
+                learner=learner,
+                course=course,
+                defaults={'is_issued': course.auto_issue_certificate}
+            )
+            
+        try:
+            from Auth.views import certificate_email
+            certificate_email(learner, course, certificate)
+        except Exception as e:
+            logger.error(f"Failed to send certificate email: {e}")
+            
+        return True
+    return False
+
 class LessonViewSet(viewsets.ModelViewSet):
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
@@ -229,30 +278,10 @@ class LessonViewSet(viewsets.ModelViewSet):
             defaults={'is_completed': True}
         )
         
-        # Check course completion
         course = lesson.module.course
-        total_lessons = Lesson.objects.filter(module__course=course, is_published=True).count()
-        completed_lessons = LessonProgress.objects.filter(
-            learner=learner,
-            lesson__module__course=course,
-            is_completed=True
-        ).count()
-        
-        if total_lessons > 0 and completed_lessons >= total_lessons:
-            enrollment = Enrollment.objects.filter(learner=learner, course=course).first()
-            if enrollment and enrollment.status != 'completed':
-                enrollment.status = 'completed'
-                enrollment.save()
-                
-                if course.has_certificate:
-                    from certification.models import Certificate
-                    Certificate.objects.get_or_create(
-                        learner=learner,
-                        course=course,
-                        defaults={'is_issued': course.auto_issue_certificate}
-                    )
+        course_completed = check_and_update_course_completion(learner, course)
                     
-        return Response({'detail': 'Lesson marked as complete.'}, status=status.HTTP_200_OK)
+        return Response({'detail': 'Lesson marked as complete.', 'course_completed': course_completed}, status=status.HTTP_200_OK)
 
 class QuizesViewSet(viewsets.ModelViewSet):
     queryset = Quizes.objects.all()
@@ -341,14 +370,19 @@ class QuizesViewSet(viewsets.ModelViewSet):
             passed=passed,
             answers_data=submitted_answers
         )
-        
+        course = quiz.course or (quiz.module.course if quiz.module else (quiz.lesson.module.course if quiz.lesson else None))
+        course_completed = False
+        if course and passed:
+            course_completed = check_and_update_course_completion(learner, course)
+
         return Response({
             "message": "Quiz submitted successfully!",
             "score": total_score,
             "total_marks": total_possible,
             "passed": passed,
             "percentage": percentage,
-            "required_pass_mark": quiz.pass_mark
+            "required_pass_mark": quiz.pass_mark,
+            "course_completed": course_completed
         })
 
 class QuizQuestionViewSet(viewsets.ModelViewSet):

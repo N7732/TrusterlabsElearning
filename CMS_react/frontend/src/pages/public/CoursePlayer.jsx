@@ -33,6 +33,7 @@ const CoursePlayer = () => {
   const [submittingQuiz, setSubmittingQuiz] = useState(false);
   const [quizStarted, setQuizStarted] = useState(false);
 
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isTranslatorOpen, setIsTranslatorOpen] = useState(false);
 
@@ -192,6 +193,9 @@ const CoursePlayer = () => {
       if (response.passed) {
         markLessonComplete(activeLesson.id);
       }
+      if (response.course_completed) {
+        setShowCompletionModal(true);
+      }
     } catch (err) {
       alert("Failed to submit quiz: " + (err.message || 'Unknown error'));
     } finally {
@@ -234,7 +238,10 @@ const CoursePlayer = () => {
 
     if (isAuthenticated) {
       try {
-        await apiClient.post(`/api/lessons/${lessonId}/mark_complete/`);
+        const response = await apiClient.post(`/api/lessons/${lessonId}/mark_complete/`);
+        if (response.course_completed) {
+          setShowCompletionModal(true);
+        }
       } catch (err) {
         console.error('Failed to save progress to server', err);
       }
@@ -926,6 +933,36 @@ const CoursePlayer = () => {
 
         </div>
       </div>
+      
+      {/* Course Completion Modal */}
+      {showCompletionModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 text-center animate-bounce-in relative">
+            <button 
+              onClick={() => setShowCompletionModal(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <div className="w-24 h-24 mx-auto mb-6 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-500">
+              <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </div>
+            <h2 className="text-3xl font-extrabold text-slate-800 mb-4">Congratulations!</h2>
+            <p className="text-lg text-slate-600 mb-8">
+              You have successfully completed all lessons and passed all quizzes for <strong>{courseData?.title}</strong>!
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button 
+                onClick={() => navigate('/learner/dashboard')}
+                className="px-6 py-3 bg-[#2563eb] text-white font-bold rounded-xl shadow-md hover:bg-[#1d4ed8] transition-all flex items-center justify-center gap-2"
+              >
+                View Certificate in Dashboard
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
