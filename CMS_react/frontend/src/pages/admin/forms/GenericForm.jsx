@@ -212,6 +212,8 @@ const GenericForm = ({ entityId, itemId, isEditing }) => {
                 if (isDate) inputType = 'date';
                 if (field.type) inputType = field.type;
 
+                const isReadOnly = isEditing && field.readOnlyOnEdit;
+
                 return (
                   <div key={field.field}>
                     <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -222,7 +224,8 @@ const GenericForm = ({ entityId, itemId, isEditing }) => {
                       name={field.field}
                       value={typeof formData[field.field] === 'object' && formData[field.field] !== null ? formData[field.field].id || '' : formData[field.field] || ''}
                       onChange={handleChange}
-                      className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent transition-all"
+                      readOnly={isReadOnly}
+                      className={`w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent transition-all ${isReadOnly ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : ''}`}
                     />
                   </div>
                 );

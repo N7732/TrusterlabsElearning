@@ -1,11 +1,13 @@
 from rest_framework import viewsets, mixins, status
 from rest_framework.response import Response
-from django.db.models import Count
+from django.db.models import Count, Sum
 from django.db.models.functions import TruncDate
 from django.utils import timezone
 from datetime import timedelta
 from Enquiry.models import Requrement
 from Course.models import Course, Enrollment
+from Auth.models import Learner, Instructor
+from payment.models import Payment
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAdminUser
 # pyrefly: ignore [missing-import]
@@ -159,6 +161,12 @@ class DashboardStatsViewSet(viewsets.ViewSet):
             start_date = now - timedelta(days=30)
 
         total_enrollments = Enrollment.objects.count()
+        total_learners = Learner.objects.count()
+        total_instructors = Instructor.objects.count()
+        total_courses = Course.objects.count()
+        
+        revenue_agg = Payment.objects.filter(status='Completed').aggregate(total=Sum('amount'))['total']
+        total_revenue = float(revenue_agg) if revenue_agg else 0.0
         
         if start_date:
             new_enrollments = Enrollment.objects.filter(enrolled_at__gte=start_date).count()
@@ -198,6 +206,10 @@ class DashboardStatsViewSet(viewsets.ViewSet):
         return Response({
             'total_enrollments': total_enrollments,
             'new_enrollments': new_enrollments,
+            'total_learners': total_learners,
+            'total_instructors': total_instructors,
+            'total_courses': total_courses,
+            'total_revenue': total_revenue,
             'chartData': chart_data,
             'topCourses': top_courses
         })

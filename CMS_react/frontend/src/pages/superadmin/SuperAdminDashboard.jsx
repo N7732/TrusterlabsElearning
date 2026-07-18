@@ -26,7 +26,7 @@ function CheckCircle(props) {
 const SuperAdminDashboard = () => {
   const navigate = useNavigate();
   const [stats, setStats] = useState({
-    courses: 54,
+    courses: 0,
     modules: 0,
     lessons: 0,
     enquiries: 0,
@@ -35,7 +35,11 @@ const SuperAdminDashboard = () => {
     chartData: [],
     topCourses: [],
     total_enrollments: 0,
-    new_enrollments: 0
+    new_enrollments: 0,
+    total_learners: 0,
+    total_instructors: 0,
+    total_courses: 0,
+    total_revenue: 0
   });
   const [timeFilter, setTimeFilter] = useState('month');
   const [recentActivities, setRecentActivities] = useState([]);
@@ -68,7 +72,11 @@ const SuperAdminDashboard = () => {
             chartData: dData.chartData || [],
             topCourses: dData.topCourses || [],
             total_enrollments: dData.total_enrollments || 0,
-            new_enrollments: dData.new_enrollments || 0
+            new_enrollments: dData.new_enrollments || 0,
+            total_learners: dData.total_learners || 0,
+            total_instructors: dData.total_instructors || 0,
+            total_courses: dData.total_courses || 0,
+            total_revenue: dData.total_revenue || 0
           });
         }
         
@@ -117,7 +125,7 @@ const SuperAdminDashboard = () => {
                   <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">Total Learners</p>
                   <button className="text-slate-400 hover:text-slate-600"><span className="text-[10px]">•••</span></button>
                 </div>
-                <h3 className="text-3xl font-black text-slate-800">1,248</h3>
+                <h3 className="text-3xl font-black text-slate-800">{dashboardData.total_learners.toLocaleString()}</h3>
               </div>
             </div>
             <div className="flex items-center justify-between">
@@ -146,7 +154,7 @@ const SuperAdminDashboard = () => {
                   <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">Active Instructors</p>
                   <button className="text-slate-400 hover:text-slate-600"><span className="text-[10px]">•••</span></button>
                 </div>
-                <h3 className="text-3xl font-black text-slate-800">86</h3>
+                <h3 className="text-3xl font-black text-slate-800">{dashboardData.total_instructors.toLocaleString()}</h3>
               </div>
             </div>
             <div className="flex items-center justify-between">
@@ -175,7 +183,7 @@ const SuperAdminDashboard = () => {
                   <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">Published Courses</p>
                   <button className="text-slate-400 hover:text-slate-600"><span className="text-[10px]">•••</span></button>
                 </div>
-                <h3 className="text-3xl font-black text-slate-800">{stats.courses}</h3>
+                <h3 className="text-3xl font-black text-slate-800">{dashboardData.total_courses.toLocaleString()}</h3>
               </div>
             </div>
             <div className="flex items-center justify-between">
@@ -204,7 +212,7 @@ const SuperAdminDashboard = () => {
                   <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">Revenue</p>
                   <button className="text-slate-400 hover:text-slate-600"><span className="text-[10px]">•••</span></button>
                 </div>
-                <h3 className="text-3xl font-black text-slate-800">$12,540</h3>
+                <h3 className="text-3xl font-black text-slate-800">${dashboardData.total_revenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
               </div>
             </div>
             <div className="flex items-center justify-between">

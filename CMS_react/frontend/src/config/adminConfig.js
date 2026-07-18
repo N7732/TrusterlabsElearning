@@ -8,6 +8,11 @@ export const adminConfig = {
       { field: 'email', label: 'Email' },
       { field: 'phone_number', label: 'Phone' },
     ],
+    formFields: [
+      { field: 'full_name', label: 'Name', type: 'text' },
+      { field: 'email', label: 'Email', type: 'email', readOnlyOnEdit: true },
+      { field: 'phone_number', label: 'Phone', type: 'text' },
+    ],
     canCreate: true,
     canEdit: true,
     canDelete: true,
