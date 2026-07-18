@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import Learner, Instructor, User
 from django.contrib.auth.hashers import make_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from .validators import ComplexPasswordValidator
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
@@ -35,7 +36,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'user_type']
 
 class LearnerRegistrationSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, validators=[ComplexPasswordValidator().validate])
     username = serializers.CharField(required=False)
     
     class Meta:
@@ -55,7 +56,7 @@ class LearnerRegistrationSerializer(serializers.ModelSerializer):
         return user
 
 class InstructorRegistrationSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, validators=[ComplexPasswordValidator().validate])
     bio = serializers.CharField(write_only=True, required=False)
     specialization = serializers.CharField(write_only=True, required=False)
     username = serializers.CharField(required=False)
@@ -79,7 +80,7 @@ class InstructorRegistrationSerializer(serializers.ModelSerializer):
         return user
 
 class AdminInstructorCreationSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, validators=[ComplexPasswordValidator().validate])
     can_create_courses = serializers.BooleanField(write_only=True, required=False, default=True)
     can_update_courses = serializers.BooleanField(write_only=True, required=False, default=True)
     can_delete_courses = serializers.BooleanField(write_only=True, required=False, default=True)

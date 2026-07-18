@@ -57,14 +57,20 @@ const SuperAdminDashboard = () => {
           apiClient.get(`/settings/dashboard-stats/?filter=${timeFilter}`).catch(() => null),
           apiClient.get('/settings/notifications/').catch(() => null),
           apiClient.get('/settings/system-alerts/').catch(() => null),
+          apiClient.get('/auth/api/learners/').catch(() => null),
+          apiClient.get('/auth/api/instructors/').catch(() => null),
         ]);
         
         setStats({
-          courses: cRes?.length || cRes?.results?.length || 54,
-          modules: mRes?.length || mRes?.results?.length || 0,
-          lessons: lRes?.length || lRes?.results?.length || 0,
-          enquiries: eRes?.length || eRes?.results?.length || 0,
+          courses: cRes?.length || cRes?.results?.length || cRes?.count || 0,
+          modules: mRes?.length || mRes?.results?.length || mRes?.count || 0,
+          lessons: lRes?.length || lRes?.results?.length || lRes?.count || 0,
+          enquiries: eRes?.length || eRes?.results?.length || eRes?.count || 0,
         });
+
+        const lCount = arguments[0][7]?.length || arguments[0][7]?.results?.length || arguments[0][7]?.count || 0;
+        const iCount = arguments[0][8]?.length || arguments[0][8]?.results?.length || arguments[0][8]?.count || 0;
+        const cCount = cRes?.length || cRes?.results?.length || cRes?.count || 0;
 
         if (dashboardStats) {
           const dData = dashboardStats.data || dashboardStats;
@@ -73,11 +79,18 @@ const SuperAdminDashboard = () => {
             topCourses: dData.topCourses || [],
             total_enrollments: dData.total_enrollments || 0,
             new_enrollments: dData.new_enrollments || 0,
-            total_learners: dData.total_learners || 0,
-            total_instructors: dData.total_instructors || 0,
-            total_courses: dData.total_courses || 0,
+            total_learners: dData.total_learners || lCount,
+            total_instructors: dData.total_instructors || iCount,
+            total_courses: dData.total_courses || cCount,
             total_revenue: dData.total_revenue || 0
           });
+        } else {
+          setDashboardData(prev => ({
+            ...prev,
+            total_learners: lCount,
+            total_instructors: iCount,
+            total_courses: cCount,
+          }));
         }
         
         if (notificationsRes) {
@@ -122,7 +135,12 @@ const SuperAdminDashboard = () => {
               </div>
               <div className="text-right">
                 <div className="flex items-center justify-end gap-1 mb-1">
-                  <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">Total Learners</p>
+                  <p 
+                    className="text-slate-500 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:text-blue-600 transition-colors"
+                    onClick={() => navigate('/superadmin/entity/learners')}
+                  >
+                    Total Learners
+                  </p>
                   <button className="text-slate-400 hover:text-slate-600"><span className="text-[10px]">•••</span></button>
                 </div>
                 <h3 className="text-3xl font-black text-slate-800">{dashboardData.total_learners.toLocaleString()}</h3>
@@ -151,7 +169,12 @@ const SuperAdminDashboard = () => {
               </div>
               <div className="text-right">
                 <div className="flex items-center justify-end gap-1 mb-1">
-                  <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">Active Instructors</p>
+                  <p 
+                    className="text-slate-500 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:text-purple-600 transition-colors"
+                    onClick={() => navigate('/superadmin/entity/instructors')}
+                  >
+                    Active Instructors
+                  </p>
                   <button className="text-slate-400 hover:text-slate-600"><span className="text-[10px]">•••</span></button>
                 </div>
                 <h3 className="text-3xl font-black text-slate-800">{dashboardData.total_instructors.toLocaleString()}</h3>
@@ -180,7 +203,12 @@ const SuperAdminDashboard = () => {
               </div>
               <div className="text-right">
                 <div className="flex items-center justify-end gap-1 mb-1">
-                  <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">Published Courses</p>
+                  <p 
+                    className="text-slate-500 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:text-emerald-600 transition-colors"
+                    onClick={() => navigate('/superadmin/entity/courses')}
+                  >
+                    Published Courses
+                  </p>
                   <button className="text-slate-400 hover:text-slate-600"><span className="text-[10px]">•••</span></button>
                 </div>
                 <h3 className="text-3xl font-black text-slate-800">{dashboardData.total_courses.toLocaleString()}</h3>
@@ -209,7 +237,12 @@ const SuperAdminDashboard = () => {
               </div>
               <div className="text-right">
                 <div className="flex items-center justify-end gap-1 mb-1">
-                  <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">Revenue</p>
+                  <p 
+                    className="text-slate-500 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:text-amber-500 transition-colors"
+                    onClick={() => navigate('/superadmin/entity/payments')}
+                  >
+                    Revenue
+                  </p>
                   <button className="text-slate-400 hover:text-slate-600"><span className="text-[10px]">•••</span></button>
                 </div>
                 <h3 className="text-3xl font-black text-slate-800">${dashboardData.total_revenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
