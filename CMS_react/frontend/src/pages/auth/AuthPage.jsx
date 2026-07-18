@@ -227,14 +227,19 @@ const AuthPage = () => {
                   value={regData.email}
                   onChange={(e) => setRegData({ ...regData, email: e.target.value })}
                 />
-                <Input
-                  label="Password"
-                  id="reg_password"
-                  type="password"
-                  required
-                  value={regData.password}
-                  onChange={(e) => setRegData({ ...regData, password: e.target.value })}
-                />
+                <div>
+                  <Input
+                    label="Password"
+                    id="reg_password"
+                    type="password"
+                    required
+                    value={regData.password}
+                    onChange={(e) => setRegData({ ...regData, password: e.target.value })}
+                  />
+                  <p className="text-xs text-slate-500 mt-1">
+                    Required: at least 8 characters, upper & lower letters, symbols, and numbers.
+                  </p>
+                </div>
                 <Input
                   label="Confirm Password"
                   id="confirmPassword"
