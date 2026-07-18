@@ -8,8 +8,8 @@ export const adminConfig = {
       { field: 'email', label: 'Email' },
       { field: 'phone_number', label: 'Phone' },
     ],
-    canCreate: false,
-    canEdit: false,
+    canCreate: true,
+    canEdit: true,
     canDelete: true,
   },
   instructors: {
@@ -103,8 +103,8 @@ export const adminConfig = {
       { field: 'status', label: 'Status' },
       { field: 'progress', label: 'Progress (%)' },
     ],
-    canCreate: false,
-    canEdit: false,
+    canCreate: true,
+    canEdit: true,
     canDelete: true,
   },
   reuse_requests: {
@@ -118,8 +118,8 @@ export const adminConfig = {
       { field: 'requester_name', label: 'Requested By' },
       { field: 'created_at', label: 'Date' }
     ],
-    canCreate: false,
-    canEdit: false,
+    canCreate: true,
+    canEdit: true,
     canDelete: true,
     customActions: [
       {
@@ -166,9 +166,9 @@ export const adminConfig = {
     ]
   },
   categories: {
-    canCreate: false,
-    canEdit: false,
-    canDelete: false,
+    canCreate: true,
+    canEdit: true,
+    canDelete: true,
     customActions: [
       {
         label: 'Issue Certificate',
@@ -189,8 +189,8 @@ export const adminConfig = {
       { field: 'course_title', label: 'Course' },
       { field: 'status', label: 'Status' },
     ],
-    canCreate: false,
-    canEdit: false,
+    canCreate: true,
+    canEdit: true,
     canDelete: true,
     customActions: [
       {
@@ -271,7 +271,7 @@ export const adminConfig = {
       { field: 'subject', label: 'Subject' },
       { field: 'is_read', label: 'Read Status' },
     ],
-    canCreate: false,
+    canCreate: true,
     canEdit: true,
     canDelete: true,
   },
@@ -286,9 +286,9 @@ export const adminConfig = {
       { field: 'ip_address', label: 'IP Address' },
       { field: 'created_at', label: 'Timestamp' },
     ],
-    canCreate: false,
-    canEdit: false,
-    canDelete: false,
+    canCreate: true,
+    canEdit: true,
+    canDelete: true,
   },
   site_settings: {
     label: 'Global Site Settings',
@@ -308,9 +308,9 @@ export const adminConfig = {
       { field: 'twitter_url', label: 'Twitter URL', type: 'url' },
       { field: 'linkedin_url', label: 'LinkedIn URL', type: 'url' },
     ],
-    canCreate: false,
+    canCreate: true,
     canEdit: true,
-    canDelete: false,
+    canDelete: true,
   },
   staff_members: {
     label: 'Staff Members',
@@ -400,7 +400,7 @@ export const adminConfig = {
       { field: 'membership_id', label: 'Membership ID', type: 'text' },
       { field: 'attended', label: 'Attended', type: 'boolean' },
     ],
-    canCreate: false,
+    canCreate: true,
     canEdit: true,
     canDelete: true,
   },
@@ -436,8 +436,8 @@ export const adminConfig = {
       { field: 'is_issued', label: 'Issued' },
       { field: 'issued_at', label: 'Date' },
     ],
-    canCreate: false,
-    canEdit: false,
+    canCreate: true,
+    canEdit: true,
     canDelete: true,
     customActions: [
       {

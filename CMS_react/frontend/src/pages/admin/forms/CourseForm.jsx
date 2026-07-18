@@ -43,6 +43,7 @@ const CourseForm = ({ isEditing, courseId }) => {
   }, [thumbnail]);
   const [modules, setModules] = useState([]);
   const [resources, setResources] = useState([]);
+  const [existingResources, setExistingResources] = useState([]);
 
   useEffect(() => {
     if (isEditing && courseId) {
@@ -73,6 +74,7 @@ const CourseForm = ({ isEditing, courseId }) => {
         certificate_description: data.certificate_description || '',
         existingThumbnail: data.thumbnail || null
       });
+      setExistingResources(data.resources || []);
       // We don't fetch or set thumbnail directly as a file object.
     } catch (err) {
       setError('Failed to load course data.');
@@ -115,6 +117,18 @@ const CourseForm = ({ isEditing, courseId }) => {
 
   const handleModuleChange = (id, field, value) => {
     setModules(prev => prev.map(m => m.id === id ? { ...m, [field]: value } : m));
+  };
+
+  const handleDeleteResource = async (id) => {
+    if (window.confirm('Are you sure you want to delete this resource?')) {
+      try {
+        await apiClient.delete(`/api/course-resources/${id}/`);
+        setExistingResources(prev => prev.filter(r => r.id !== id));
+      } catch (err) {
+        console.error(err);
+        alert('Failed to delete resource.');
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -497,7 +511,30 @@ const CourseForm = ({ isEditing, courseId }) => {
               <div className="mt-8">
                 <h3 className="text-lg font-bold border-b border-slate-200 pb-2 mb-4 text-slate-800">Course Resources</h3>
                 <div className="bg-slate-50 p-5 rounded-lg border border-slate-200 mb-6">
-                  <p className="text-sm text-slate-600 mb-3">Upload PDFs, documents, or other files for students to access.</p>
+                  {existingResources && existingResources.length > 0 && (
+                    <div className="mb-6">
+                      <p className="text-sm font-bold text-slate-700 mb-2">Existing Resources:</p>
+                      <ul className="space-y-2">
+                        {existingResources.map(res => (
+                          <li key={res.id} className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-md">
+                            <a href={getImageUrl(res.file)} target="_blank" rel="noopener noreferrer" className="text-sm text-[#0A66C2] hover:underline truncate mr-2 flex items-center gap-2">
+                              <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                              {res.title}
+                            </a>
+                            <button 
+                              type="button" 
+                              onClick={() => handleDeleteResource(res.id)}
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1.5 rounded transition-colors text-xs font-bold shrink-0"
+                            >
+                              Delete
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  <p className="text-sm text-slate-600 mb-3 font-semibold border-t border-slate-200 pt-4 mt-4">Upload New Resources (PDFs, Documents, etc.)</p>
                   <input 
                     type="file" multiple 
                     onChange={handleResourceChange}
@@ -505,7 +542,7 @@ const CourseForm = ({ isEditing, courseId }) => {
                   />
                   {resources.length > 0 && (
                     <div className="mt-3">
-                      <p className="text-xs font-semibold text-slate-700 mb-2">Files to upload:</p>
+                      <p className="text-xs font-semibold text-slate-700 mb-2">Files to upload upon saving:</p>
                       <ul className="list-disc pl-5 text-sm text-slate-600">
                         {resources.map((res, i) => (
                           <li key={i}>{res.name}</li>

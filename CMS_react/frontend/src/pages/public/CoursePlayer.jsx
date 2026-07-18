@@ -37,6 +37,19 @@ const CoursePlayer = () => {
   const [courseCompletedState, setCourseCompletedState] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isTranslatorOpen, setIsTranslatorOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsSidebarOpen(true);
+      } else {
+        setIsSidebarOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const toggleFullScreen = () => {
     if (!document.fullscreenElement) {
@@ -281,6 +294,9 @@ const CoursePlayer = () => {
         ? { ...mod, isOpen: true } 
         : mod
     ));
+    if (window.innerWidth < 1024) {
+      setIsSidebarOpen(false);
+    }
   };
 
   if (loading) {
@@ -381,8 +397,16 @@ const CoursePlayer = () => {
   return (
     <div className={`flex h-screen w-full font-sans overflow-hidden ${isDarkMode ? 'bg-slate-900 text-slate-200' : 'bg-white text-slate-800'}`}>
       
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden" 
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* LEFT SIDEBAR */}
-      <div className={`w-[320px] flex-shrink-0 border-r flex flex-col h-full relative z-20 ${isDarkMode ? 'border-slate-800 bg-slate-900' : 'border-slate-200 bg-white'}`}>
+      <div className={`absolute lg:relative w-[85%] max-w-[320px] lg:w-[320px] flex-shrink-0 border-r flex flex-col h-full z-40 transition-all duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} ${!isSidebarOpen && 'lg:hidden'} ${isDarkMode ? 'border-slate-800 bg-slate-900' : 'border-slate-200 bg-white'}`}>
         
         {/* Back Button / Header */}
         <div className="h-14 flex items-center px-4 border-b border-slate-800 bg-slate-900 text-white shrink-0">
@@ -608,7 +632,10 @@ const CoursePlayer = () => {
         {/* Top Header */}
         <div className={`h-14 border-b flex items-center justify-between px-4 shrink-0 shadow-sm z-20 relative ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
           <div className="flex items-center gap-3 max-w-[70%]">
-            <button className="p-1 hover:bg-slate-100 rounded text-slate-600 shrink-0">
+            <button 
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="p-1 hover:bg-slate-100 rounded text-slate-600 shrink-0"
+            >
               <Menu className="w-5 h-5" />
             </button>
             <h2 className="text-sm font-medium text-slate-600 truncate">
@@ -639,7 +666,7 @@ const CoursePlayer = () => {
               {prevLesson && (
                 <button 
                   onClick={() => handleNavigate(prevLesson)}
-                  className="fixed left-[320px] top-1/2 -translate-y-1/2 w-8 h-12 bg-white border border-[#3b82f6] border-l-0 rounded-r shadow-sm flex items-center justify-center text-[#3b82f6] z-30 hover:bg-[#f0f9ff] transition-colors cursor-pointer"
+                  className={`fixed ${isSidebarOpen ? 'left-[85%] sm:left-[320px] lg:left-[320px]' : 'left-0'} top-1/2 -translate-y-1/2 w-8 h-12 bg-white border border-[#3b82f6] border-l-0 rounded-r shadow-sm flex items-center justify-center text-[#3b82f6] z-30 hover:bg-[#f0f9ff] transition-all cursor-pointer`}
                 >
                   <ChevronLeft className="w-6 h-6" />
                 </button>

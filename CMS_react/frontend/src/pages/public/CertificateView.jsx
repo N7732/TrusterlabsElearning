@@ -178,11 +178,9 @@ const CertificateView = () => {
       <style>{`
         @media print {
           html, body {
-            height: 100vh;
-            max-height: 100vh;
             margin: 0 !important;
             padding: 0 !important;
-            overflow: hidden !important;
+            overflow: visible !important;
           }
           body * {
             visibility: hidden;
@@ -194,20 +192,15 @@ const CertificateView = () => {
             position: absolute;
             left: 0;
             top: 0;
-            width: 100%;
-            height: 99vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             margin: 0;
             padding: 0;
-            overflow: hidden;
-            page-break-after: avoid;
-            page-break-before: avoid;
-            page-break-inside: avoid;
+            width: 1123px;
+            height: 794px;
+            display: block;
+            overflow: visible;
           }
           @page {
-            size: landscape;
+            size: 1123px 794px;
             margin: 0;
           }
           body {

@@ -38,9 +38,24 @@ const AuthPage = () => {
 
   const from = location.state?.from?.pathname || '/';
 
+  const validatePassword = (password) => {
+    if (password.length < 8) return "Password must be at least 8 characters long.";
+    if (!/[a-zA-Z]/.test(password)) return "Password must contain at least one letter.";
+    if (!/[0-9]/.test(password)) return "Password must contain at least one number.";
+    if (!/[^a-zA-Z0-9]/.test(password)) return "Password must contain at least one symbol.";
+    return null;
+  };
+
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    
+    const passError = validatePassword(loginPassword);
+    if (passError) {
+      setError(passError);
+      return;
+    }
+
     setLoading(true);
     try {
       const userData = await login({ username: loginEmail, password: loginPassword });
@@ -63,6 +78,12 @@ const AuthPage = () => {
 
     if (regData.password !== regData.confirmPassword) {
       setError('Passwords do not match');
+      return;
+    }
+    
+    const passError = validatePassword(regData.password);
+    if (passError) {
+      setError(passError);
       return;
     }
 

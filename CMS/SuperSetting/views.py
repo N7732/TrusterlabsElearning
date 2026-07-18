@@ -94,7 +94,7 @@ class ContactMessageViewSet(viewsets.ModelViewSet):
         )
         email_thread.start()
 
-class SystemLogViewSet(viewsets.ReadOnlyModelViewSet):
+class SystemLogViewSet(viewsets.ModelViewSet):
     queryset = SystemLog.objects.all().order_by('-created_at')
     serializer_class = SystemLogSerializer
     permission_classes = [IsAdminUser]

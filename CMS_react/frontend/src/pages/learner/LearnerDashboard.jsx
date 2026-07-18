@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { apiClient, getImageUrl } from '../../api/apiClient';
-import { Play, Building2, BookOpen, Clock } from 'lucide-react';
+import { Play, Building2, BookOpen, Clock, CheckCircle } from 'lucide-react';
 
 const LearnerDashboard = () => {
   const [enrollments, setEnrollments] = useState([]);
@@ -257,7 +257,7 @@ const LearnerDashboard = () => {
               </p>
             </div>
           ) : (
-            <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+            <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden overflow-x-auto">
               <table className="min-w-full divide-y divide-slate-200">
                 <thead className="bg-slate-50">
                   <tr>

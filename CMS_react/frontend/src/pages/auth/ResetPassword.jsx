@@ -17,12 +17,26 @@ const ResetPassword = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
+  const validatePassword = (password) => {
+    if (password.length < 8) return "Password must be at least 8 characters long.";
+    if (!/[a-zA-Z]/.test(password)) return "Password must contain at least one letter.";
+    if (!/[0-9]/.test(password)) return "Password must contain at least one number.";
+    if (!/[^a-zA-Z0-9]/.test(password)) return "Password must contain at least one symbol.";
+    return null;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
     if (formData.new_password !== formData.re_new_password) {
       setError('Passwords do not match');
+      return;
+    }
+    
+    const passError = validatePassword(formData.new_password);
+    if (passError) {
+      setError(passError);
       return;
     }
 

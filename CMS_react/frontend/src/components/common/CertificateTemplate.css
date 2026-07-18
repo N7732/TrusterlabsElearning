@@ -250,17 +250,14 @@
 @media print {
     .certificate-wrapper {
         padding: 0;
+        margin: 0;
         page-break-after: avoid;
         page-break-before: avoid;
         page-break-inside: avoid;
     }
     .certificate-wrapper .certificate {
-        width: 100%;
-        height: 99vh;
-        max-height: 100%;
-        box-shadow: none;
-        margin: 0;
-        overflow: hidden;
+        box-shadow: none !important;
+        margin: 0 !important;
         page-break-after: avoid;
         page-break-before: avoid;
         page-break-inside: avoid;

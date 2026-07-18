@@ -497,9 +497,23 @@ const SuperAdminEntityList = () => {
                         } else {
                           displayVal = String(val || '-').substring(0, 150);
                         }
+                        
+                        const titleFields = ['title', 'name', 'full_name', 'company_name', 'course_title', 'learner_name', 'user_name'];
+                        const isTitleField = titleFields.includes(col.field) || col.label.toLowerCase() === 'title' || col.label.toLowerCase() === 'name';
+                        const canEditItem = (config.canUpdate || config.canEdit) && (viewMode === 'my' || !isInstructor);
+
                         return (
                           <td key={col.field} className="py-4 px-6 text-sm text-slate-700">
-                            {displayVal}
+                            {(isTitleField && canEditItem) ? (
+                              <button
+                                onClick={() => navigate(`${basePath}/${entityId}/${item.id}`)}
+                                className="font-semibold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer text-left focus:outline-none"
+                              >
+                                {displayVal}
+                              </button>
+                            ) : (
+                              displayVal
+                            )}
                           </td>
                         );
                       })}
@@ -541,7 +555,7 @@ const SuperAdminEntityList = () => {
                               <Users size={16} />
                             </button>
                           )}
-                          {(config.canUpdate && (viewMode === 'my' || !isInstructor)) && (
+                          {((config.canUpdate || config.canEdit) && (viewMode === 'my' || !isInstructor)) && (
                             <button
                               onClick={() => navigate(`${basePath}/${entityId}/${item.id}`)}
                               className="p-1.5 text-slate-400 hover:text-[#3182ce] hover:bg-blue-50 rounded transition-colors"
