@@ -273,14 +273,12 @@ User = get_user_model()
 import threading
 
 def send_email_async(email_message):
-    try:
-        print("Attempting to send email synchronously...")
-        res = email_message.send()
-        print("Email send result:", res)
-    except Exception as e:
-        print("CRITICAL EMAIL SEND ERROR:", e)
-        logger.error(f"Failed to send email: {e}")
-        raise e
+    def send_it():
+        try:
+            email_message.send()
+        except Exception as e:
+            logger.error(f"Failed to send email: {e}")
+    threading.Thread(target=send_it).start()
 
 class CustomPasswordResetView(PasswordResetView):
 
@@ -678,9 +676,9 @@ class PasswordResetRequestAPIView(APIView):
                 logging.getLogger(__name__).error(f"Failed to send password reset email: {e}")
                 return Response({'detail': 'Failed to send reset email due to server configuration. Please contact support.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except User.DoesNotExist:
-            pass # Silently fail for security
+            return Response({'detail': 'No account found with this email address.'}, status=status.HTTP_404_NOT_FOUND)
 
-        return Response({'message': 'If an account with that email exists, we sent you a reset link.'}, status=status.HTTP_200_OK)
+        return Response({'message': 'We have sent a password reset link to your email.'}, status=status.HTTP_200_OK)
 
 
 class PasswordResetConfirmAPIView(APIView):
