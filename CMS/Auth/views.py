@@ -643,8 +643,11 @@ class PasswordResetRequestAPIView(APIView):
         if not email:
             return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
         
+        user = User.objects.filter(email=email).first()
+        if not user:
+            return Response({'detail': 'No account found with this email address.'}, status=status.HTTP_404_NOT_FOUND)
+
         try:
-            user = User.objects.get(email=email)
             token = default_token_generator.make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             
@@ -673,8 +676,8 @@ class PasswordResetRequestAPIView(APIView):
                 import logging
                 logging.getLogger(__name__).error(f"Failed to send password reset email: {e}")
                 return Response({'detail': 'Failed to send reset email due to server configuration. Please contact support.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        except User.DoesNotExist:
-            return Response({'detail': 'No account found with this email address.'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'detail': 'An unexpected error occurred.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response({'message': 'We have sent a password reset link to your email.'}, status=status.HTTP_200_OK)
 
