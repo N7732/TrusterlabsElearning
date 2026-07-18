@@ -49,7 +49,7 @@ const SuperAdminDashboard = () => {
     // Quick fetches to get counts
     const fetchStats = async () => {
       try {
-        const [cRes, mRes, lRes, eRes, dashboardStats, notificationsRes, alertsRes] = await Promise.all([
+        const [cRes, mRes, lRes, eRes, dashboardStats, notificationsRes, alertsRes, lRes2, iRes] = await Promise.all([
           apiClient.get('/api/courses/').catch(() => null),
           apiClient.get('/api/modules/').catch(() => null),
           apiClient.get('/api/lessons/').catch(() => null),
@@ -68,8 +68,8 @@ const SuperAdminDashboard = () => {
           enquiries: eRes?.length || eRes?.results?.length || eRes?.count || 0,
         });
 
-        const lCount = arguments[0][7]?.length || arguments[0][7]?.results?.length || arguments[0][7]?.count || 0;
-        const iCount = arguments[0][8]?.length || arguments[0][8]?.results?.length || arguments[0][8]?.count || 0;
+        const lCount = lRes2?.length || lRes2?.results?.length || lRes2?.count || 0;
+        const iCount = iRes?.length || iRes?.results?.length || iRes?.count || 0;
         const cCount = cRes?.length || cRes?.results?.length || cRes?.count || 0;
 
         if (dashboardStats) {

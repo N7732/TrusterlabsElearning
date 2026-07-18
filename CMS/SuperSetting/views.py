@@ -10,6 +10,7 @@ from Auth.models import Learner, Instructor
 from payment.models import Payment
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAdminUser
+from Auth.permissions import IsSuperAdminOrAdmin
 # pyrefly: ignore [missing-import]
 from .models import Partner, ContactMessage, SystemLog, SiteSetting, Notification, StaffMember
 # pyrefly: ignore [missing-import]
@@ -29,7 +30,7 @@ class PartnerViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.request.method in ['GET']:
             return [AllowAny()]
-        return [IsAdminUser()]
+        return [IsSuperAdminOrAdmin()]
 
 class StaffMemberViewSet(viewsets.ModelViewSet):
     queryset = StaffMember.objects.all().order_by('-created_at')
@@ -38,7 +39,7 @@ class StaffMemberViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.request.method in ['GET']:
             return [AllowAny()]
-        return [IsAdminUser()]
+        return [IsSuperAdminOrAdmin()]
 
 class ContactMessageViewSet(viewsets.ModelViewSet):
     queryset = ContactMessage.objects.all().order_by('-created_at')
@@ -47,7 +48,7 @@ class ContactMessageViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.request.method == 'POST':
             return [AllowAny()]
-        return [IsAdminUser()]
+        return [IsSuperAdminOrAdmin()]
 
     def perform_create(self, serializer):
         message = serializer.save()
@@ -99,7 +100,7 @@ class ContactMessageViewSet(viewsets.ModelViewSet):
 class SystemLogViewSet(viewsets.ModelViewSet):
     queryset = SystemLog.objects.all().order_by('-created_at')
     serializer_class = SystemLogSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsSuperAdminOrAdmin]
 
 class SiteSettingViewSet(viewsets.ModelViewSet):
     """
@@ -111,7 +112,7 @@ class SiteSettingViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.request.method in ['GET']:
             return [AllowAny()]
-        return [IsAdminUser()]
+        return [IsSuperAdminOrAdmin()]
 
     def list(self, request, *args, **kwargs):
         setting, created = SiteSetting.objects.get_or_create()
@@ -137,7 +138,7 @@ class SiteSettingViewSet(viewsets.ModelViewSet):
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all().order_by('-created_at')
     serializer_class = NotificationSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsSuperAdminOrAdmin]
 
     @action(detail=False, methods=['post'], url_path='mark-all-read')
     def mark_all_read(self, request):
@@ -145,7 +146,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
         return Response({'status': 'All notifications marked as read'})
 
 class DashboardStatsViewSet(viewsets.ViewSet):
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsSuperAdminOrAdmin]
 
     def list(self, request):
         time_filter = request.query_params.get('filter', 'month')
@@ -215,7 +216,7 @@ class DashboardStatsViewSet(viewsets.ViewSet):
         })
 
 class SystemAlertsViewSet(viewsets.ViewSet):
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsSuperAdminOrAdmin]
 
     def list(self, request):
         alerts = []
