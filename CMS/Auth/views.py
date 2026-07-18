@@ -273,12 +273,10 @@ User = get_user_model()
 import threading
 
 def send_email_async(email_message):
-    def send_it():
-        try:
-            email_message.send()
-        except Exception as e:
-            logger.error(f"Failed to send email: {e}")
-    threading.Thread(target=send_it).start()
+    try:
+        email_message.send()
+    except Exception as e:
+        logger.error(f"Failed to send email: {e}")
 
 class CustomPasswordResetView(PasswordResetView):
 
