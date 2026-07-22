@@ -12,7 +12,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAdminUser
 from Auth.permissions import IsSuperAdminOrAdmin
 # pyrefly: ignore [missing-import]
-from .models import Partner, ContactMessage, SystemLog, SiteSetting, Notification, StaffMember
+from .models import Partner, ContactMessage, SystemLog, SiteSetting, Notification, StaffMember, EmailTemplate
 # pyrefly: ignore [missing-import]
 from .serializers import (
     PartnerSerializer,
@@ -20,7 +20,8 @@ from .serializers import (
     SystemLogSerializer,
     SiteSettingSerializer,
     NotificationSerializer,
-    StaffMemberSerializer
+    StaffMemberSerializer,
+    EmailTemplateSerializer
 )
 
 class PartnerViewSet(viewsets.ModelViewSet):
@@ -276,3 +277,42 @@ class SystemAlertsViewSet(viewsets.ViewSet):
             })
         
         return Response(alerts)
+
+class EmailTemplateViewSet(viewsets.ModelViewSet):
+    queryset = EmailTemplate.objects.all().order_by('-updated_at')
+    serializer_class = EmailTemplateSerializer
+    permission_classes = [IsSuperAdminOrAdmin]
+
+    @action(detail=True, methods=['post'])
+    def send_email(self, request, pk=None):
+        template = self.get_object()
+        emails = request.data.get('emails', [])
+        
+        if not emails:
+            return Response({"error": "No recipients provided."}, status=status.HTTP_400_BAD_REQUEST)
+            
+        from django.core.mail import EmailMultiAlternatives
+        from django.template import Template, Context
+        import threading
+        from django.conf import settings
+        from django.utils.html import strip_tags
+
+        def dispatch_emails():
+            django_template = Template(template.html_content)
+            for email in emails:
+                context = Context({"user_email": email}) # Add more context variables as needed
+                html_message = django_template.render(context)
+                text_content = strip_tags(html_message)
+                
+                email_message = EmailMultiAlternatives(
+                    template.subject,
+                    text_content,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [email]
+                )
+                email_message.attach_alternative(html_message, "text/html")
+                email_message.send(fail_silently=True)
+
+        threading.Thread(target=dispatch_emails).start()
+        
+        return Response({"message": f"Emails queued for sending to {len(emails)} recipient(s)."})

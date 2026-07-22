@@ -153,7 +153,7 @@ class RequirementViewSet(viewsets.ModelViewSet):
             from django.template.loader import render_to_string
             from django.utils.html import strip_tags
             from django.conf import settings
-            from Auth.views import send_email_async
+            from Auth.views import send_email_async, render_email_template
             
             context = {
                 'user': user_to_enroll,
@@ -163,10 +163,10 @@ class RequirementViewSet(viewsets.ModelViewSet):
                 'temp_password': temp_password,
                 'frontend_url': getattr(settings, 'FRONTEND_URL', 'https://frontend-omega-five-21.vercel.app')
             }
-            html_message = render_to_string('emails/enquiry_enrolled.html', context)
+            html_message, dynamic_subject = render_email_template('emails/enquiry_enrolled.html', context)
             text_content = strip_tags(html_message)
             email_message = EmailMultiAlternatives(
-                subject=f"You have been enrolled in {inquiry.course.title}!",
+                subject=dynamic_subject or f"You have been enrolled in {inquiry.course.title}!",
                 body=text_content,
                 from_email=settings.EMAIL_HOST_USER,
                 to=[user_to_enroll.email],

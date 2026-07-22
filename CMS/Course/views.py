@@ -59,6 +59,59 @@ class CourseViewSet(viewsets.ModelViewSet):
             return [permissions.AllowAny()]
         return [permissions.IsAuthenticated()]
 
+    @action(detail=False, methods=['post'], url_path='bulk_upload')
+    def bulk_upload(self, request):
+        if 'file' not in request.FILES:
+            return Response({'detail': 'No file provided.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        csv_file = request.FILES['file']
+        if not csv_file.name.endswith('.csv'):
+            return Response({'detail': 'File must be a CSV.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = request.user
+        # Allow admins or instructors with permission
+        if user.user_type == 'instructor' and not getattr(user.instructor_profile, 'can_create_courses', False):
+            return Response({'detail': 'You do not have permission to create courses.'}, status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            import csv
+            import io
+            from django.db import transaction
+            
+            decoded_file = csv_file.read().decode('utf-8')
+            io_string = io.StringIO(decoded_file)
+            reader = csv.DictReader(io_string)
+            
+            created_count = 0
+            
+            with transaction.atomic():
+                for row in reader:
+                    title = row.get('title', '').strip()
+                    if not title:
+                        continue
+                        
+                    course = Course(
+                        title=title,
+                        description=row.get('description', '').strip(),
+                        difficulty=row.get('difficulty', 'beginner').strip(),
+                        course_status=row.get('course_status', 'draft').strip()
+                    )
+                    
+                    price_str = row.get('price', '').strip()
+                    if price_str and price_str.replace('.', '', 1).isdigit():
+                        course.price = float(price_str)
+                    
+                    if user.user_type == 'instructor':
+                        course.instructor = user.instructor_profile
+                    
+                    course.save()
+                    created_count += 1
+                    
+            return Response({'detail': f'Bulk upload successful. Created {created_count} courses.'}, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
     def perform_create(self, serializer):
         user = self.request.user
         if user.user_type == 'instructor':

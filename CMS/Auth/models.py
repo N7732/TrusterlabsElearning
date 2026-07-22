@@ -58,6 +58,7 @@ class Instructor(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='instructor_profile')
     phone_number = models.CharField(max_length=15, blank=True)
     bio = models.TextField(blank=True)
+    profile_picture_url = models.URLField(max_length=1000, blank=True, null=True, help_text="Direct link to profile picture (e.g., Google Drive)")
     specialization = models.CharField(max_length=200, blank=True, help_text="Area of expertise")
     is_approved = models.BooleanField(default=False, help_text="Approved by partner admin")
     can_create_courses = models.BooleanField(default=True)

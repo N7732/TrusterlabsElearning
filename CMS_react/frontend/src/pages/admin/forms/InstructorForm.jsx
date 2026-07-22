@@ -18,6 +18,7 @@ const InstructorForm = ({ isEditing, instructorId }) => {
     password: '',
     specialization: '',
     bio: '',
+    profile_picture_url: '',
     
     // Course Privileges
     can_create_courses: true,
@@ -53,6 +54,7 @@ const InstructorForm = ({ isEditing, instructorId }) => {
         email: res.email || '',
         specialization: res.specialization || '',
         bio: res.bio || '',
+        profile_picture_url: res.profile_picture_url || '',
         can_create_courses: res.can_create_courses ?? true,
         can_update_courses: res.can_update_courses ?? true,
         can_delete_courses: res.can_delete_courses ?? true,
@@ -193,6 +195,15 @@ const InstructorForm = ({ isEditing, instructorId }) => {
                   value={formData.bio} onChange={handleChange}
                   className="w-full p-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A66C2]"
                 ></textarea>
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-slate-700 mb-2">Staff Photo / Profile Picture URL</label>
+                <input
+                  type="url" name="profile_picture_url" placeholder="e.g. https://drive.google.com/uc?id=..."
+                  value={formData.profile_picture_url} onChange={handleChange}
+                  className="w-full p-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A66C2]"
+                />
+                <p className="text-xs text-slate-500 mt-1">Provide a public link to the instructor's photo (e.g., from Google Drive).</p>
               </div>
             </div>
           </CardContent>

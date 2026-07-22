@@ -22,6 +22,7 @@ const CourseForm = ({ isEditing, courseId }) => {
     difficulty: 'Beginner',
     course_status: 'draft',
     is_locked: false,
+    thumbnail_url: '',
     has_certificate: false,
     auto_issue_certificate: false,
     certificate_duration: '',
@@ -72,6 +73,7 @@ const CourseForm = ({ isEditing, courseId }) => {
         certificate_type_text: data.certificate_type_text || '',
         certificate_program_title: data.certificate_program_title || '',
         certificate_description: data.certificate_description || '',
+        thumbnail_url: data.thumbnail_url || '',
         existingThumbnail: data.thumbnail || null
       });
       setExistingResources(data.resources || []);
@@ -168,10 +170,9 @@ const CourseForm = ({ isEditing, courseId }) => {
         data.append('certificate_description', formData.certificate_description);
       }
       
-      if (thumbnail) {
-        data.append('thumbnail', thumbnail);
-      }
-
+      if (thumbnail) data.append('thumbnail', thumbnail);
+      if (formData.thumbnail_url) data.append('thumbnail_url', formData.thumbnail_url);
+      
       let activeCourseId = isEditing ? courseId : null;
 
       if (isEditing) {
@@ -292,6 +293,15 @@ const CourseForm = ({ isEditing, courseId }) => {
                         />
                         <p className="text-xs text-slate-500 mt-1">Recommended size: 1920x1080px (16:9 ratio)</p>
                       </div>
+                    </div>
+                    <div className="mt-3">
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Or provide a Drive Image Link (Thumbnail URL)</label>
+                      <input 
+                        type="url" name="thumbnail_url" 
+                        value={formData.thumbnail_url} onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#3E8E41] outline-none text-sm"
+                        placeholder="https://drive.google.com/uc?id=..."
+                      />
                     </div>
                   </div>
                   <div>

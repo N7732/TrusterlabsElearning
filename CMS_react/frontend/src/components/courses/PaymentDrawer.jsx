@@ -27,7 +27,7 @@ const PaymentDrawer = ({ isOpen, onClose, course }) => {
           <div className="p-5 flex-grow">
             {/* Course Summary */}
             <div className="flex gap-3 mb-4 items-center">
-              <img src={getImageUrl(course.thumbnail)} onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1573164713988-8665fc963095?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80" }} alt={course.title} className="w-16 h-16 object-cover rounded-lg shadow-sm" />
+              <img src={getImageUrl(course.thumbnail || course.thumbnail_url)} onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1573164713988-8665fc963095?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80" }} alt={course.title} className="w-16 h-16 object-cover rounded-lg shadow-sm" />
               <div>
                 <h3 className="font-bold text-slate-900 line-clamp-2 text-sm leading-tight">{course.title}</h3>
                 <div className="mt-1 font-black text-blue-700 text-sm">
