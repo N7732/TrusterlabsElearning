@@ -3,7 +3,9 @@ from django.shortcuts import render, redirect
 from .models import Learner, Instructor, User
 from .form import LearnerForm, InstructorForm, AccountProfileForm, LearnerRegistrationForm, LoginForm, InstructorRegistrationForm
 from .serializer import LearnerSerializer, InstructorSerializer, AdminInstructorCreationSerializer
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -19,6 +21,57 @@ class LearnerViewSet(viewsets.ModelViewSet):
     serializer_class = LearnerSerializer
     permission_classes = [permissions.IsAdminUser]
 
+    @action(detail=False, methods=['post'], url_path='bulk_upload')
+    def bulk_upload(self, request):
+        if 'file' not in request.FILES:
+            return Response({'detail': 'No file provided.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        csv_file = request.FILES['file']
+        if not csv_file.name.endswith('.csv'):
+            return Response({'detail': 'File must be a CSV.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            import csv
+            import io
+            from django.db import transaction
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            
+            decoded_file = csv_file.read().decode('utf-8')
+            io_string = io.StringIO(decoded_file)
+            reader = csv.DictReader(io_string)
+            
+            created_count = 0
+            
+            with transaction.atomic():
+                for row_num, row in enumerate(reader, start=2):
+                    email = row.get('email', '').strip()
+                    if not email or User.objects.filter(email=email).exists():
+                        continue
+
+                    # Create Django User
+                    user = User.objects.create_user(
+                        username=email.split('@')[0] + str(row_num),
+                        email=email,
+                        password='ChangeMe123!',
+                        first_name=row.get('first_name', '').strip() or row.get('full_name', '').strip().split(' ')[0],
+                        last_name=row.get('last_name', '').strip() or ' '.join(row.get('full_name', '').strip().split(' ')[1:]),
+                        user_type='learner'
+                    )
+                    
+                    # Create Learner Profile
+                    Learner.objects.create(
+                        user=user,
+                        email=email,
+                        phone_number=row.get('phone_number', '').strip()
+                    )
+                    created_count += 1
+                    
+            return Response({'detail': f'Bulk upload successful. Created {created_count} learners.'}, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 class InstructorViewSet(viewsets.ModelViewSet):
     """
     ViewSet for viewing and editing Instructor instances.
@@ -26,6 +79,57 @@ class InstructorViewSet(viewsets.ModelViewSet):
     queryset = Instructor.objects.all()
     serializer_class = InstructorSerializer
     permission_classes = [permissions.IsAdminUser]
+
+    @action(detail=False, methods=['post'], url_path='bulk_upload')
+    def bulk_upload(self, request):
+        if 'file' not in request.FILES:
+            return Response({'detail': 'No file provided.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        csv_file = request.FILES['file']
+        if not csv_file.name.endswith('.csv'):
+            return Response({'detail': 'File must be a CSV.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            import csv
+            import io
+            from django.db import transaction
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            
+            decoded_file = csv_file.read().decode('utf-8')
+            io_string = io.StringIO(decoded_file)
+            reader = csv.DictReader(io_string)
+            
+            created_count = 0
+            
+            with transaction.atomic():
+                for row_num, row in enumerate(reader, start=2):
+                    email = row.get('email', '').strip()
+                    if not email or User.objects.filter(email=email).exists():
+                        continue
+
+                    # Create Django User
+                    user = User.objects.create_user(
+                        username=email.split('@')[0] + str(row_num),
+                        email=email,
+                        password='ChangeMe123!',
+                        first_name=row.get('first_name', '').strip() or row.get('full_name', '').strip().split(' ')[0],
+                        last_name=row.get('last_name', '').strip() or ' '.join(row.get('full_name', '').strip().split(' ')[1:]),
+                        user_type='instructor'
+                    )
+                    
+                    # Create Instructor Profile
+                    Instructor.objects.create(
+                        user=user,
+                        phone_number=row.get('phone_number', '').strip(),
+                        specialization=row.get('specialization', '').strip()
+                    )
+                    created_count += 1
+                    
+            return Response({'detail': f'Bulk upload successful. Created {created_count} instructors.'}, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 def learn_registration(request):
     """
@@ -269,6 +373,17 @@ import logging
 logger = logging.getLogger(__name__)
 User = get_user_model()
 
+from django.template import Template, Context
+from SuperSetting.models import EmailTemplate
+
+def render_email_template(template_name, context_dict, request=None):
+    from django.template.loader import render_to_string
+    basename = template_name.replace('emails/', '').replace('Resent_emali/', '').replace('.html', '')
+    try:
+        email_template = EmailTemplate.objects.get(template_name=basename)
+        return Template(email_template.html_content).render(Context(context_dict)), email_template.subject
+    except EmailTemplate.DoesNotExist:
+        return render_to_string(template_name, context_dict, request=request), None
 
 import threading
 
@@ -295,21 +410,21 @@ class CustomPasswordResetView(PasswordResetView):
             user = User.objects.get(email=email)
             token_generator = self.token_generator.make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
-
-            reset_url = self.request.build_absolute_uri(
-                reverse_lazy('Auth:password_reset_confirm', kwargs={'uidb64': uid, 'token': token_generator})
-            )
-
             context = {
+                'email': user.email,
+                'domain': 'trusterlab.com',
+                'site_name': 'TrusterLab Platform',
+                'uid': uid,
                 'user': user,
-                'reset_url': reset_url,
-                'expiry_hours': 1,
-                'settings': settings,
+                'token': token_generator,
+                'protocol': 'https',
             }
-            html_message = render_to_string(self.email_template_name, context)
+            
+            html_message, dynamic_subject = render_email_template(self.email_template_name, context, request=self.request)
             text_content = strip_tags(html_message)
+            
             email_message = EmailMultiAlternatives(
-                subject=self.subject,
+                subject=dynamic_subject or self.subject,
                 body=text_content,
                 from_email=settings.EMAIL_HOST_USER,
                 to = [user.email],
@@ -364,10 +479,10 @@ def send_welcome_email(user):
         'user': user,
         'settings': settings,
     }
-    html_message = render_to_string('emails/welcome_email.html', context)
+    html_message, dynamic_subject = render_email_template('emails/welcome_email.html', context)
     text_content = strip_tags(html_message)
     email_message = EmailMultiAlternatives(
-        subject=subject,
+        subject=dynamic_subject or subject,
         body=text_content,
         from_email=settings.EMAIL_HOST_USER,
         to=[user.email],
@@ -383,10 +498,10 @@ def send_course_enrollment_email(learner, course):
         'course': course,
         'settings': settings,
     }
-    html_message = render_to_string('emails/enrolled.html', context)
+    html_message, dynamic_subject = render_email_template('emails/enrolled.html', context)
     text_content = strip_tags(html_message)
     email_message = EmailMultiAlternatives(
-        subject=subject,
+        subject=dynamic_subject or subject,
         body=text_content,
         from_email=settings.EMAIL_HOST_USER,
         to=[learner.user.email],
@@ -401,10 +516,10 @@ def instructor_invitation_email(instructor, invitation):
         'invitation': invitation,
         'settings': settings,
     }
-    html_message = render_to_string('Resent_emali/instructor_invitation_email.html', context)
+    html_message, dynamic_subject = render_email_template('Resent_emali/instructor_invitation_email.html', context)
     text_content = strip_tags(html_message)
     email_message = EmailMultiAlternatives(
-        subject=subject,
+        subject=dynamic_subject or subject,
         body=text_content,
         from_email=settings.EMAIL_HOST_USER,
         to=[instructor.email],
@@ -420,10 +535,10 @@ def instructor_welcome_email(user, temporary_password="Set by admin"):
         'login_url': settings.LOGIN_URL,
         'settings': settings,
     }
-    html_message = render_to_string('emails/welcomeinstructor.html', context)
+    html_message, dynamic_subject = render_email_template('emails/welcomeinstructor.html', context)
     text_content = strip_tags(html_message)
     email_message = EmailMultiAlternatives(
-        subject=subject,
+        subject=dynamic_subject or subject,
         body=text_content,
         from_email=settings.EMAIL_HOST_USER,
         to=[user.email],
@@ -439,10 +554,10 @@ def send_membership_approved_email(membership):
         'profile_url': settings.LOGIN_URL,
         'settings': settings,
     }
-    html_message = render_to_string('emails/membership_approved.html', context)
+    html_message, dynamic_subject = render_email_template('emails/membership_approved.html', context)
     text_content = strip_tags(html_message)
     email_message = EmailMultiAlternatives(
-        subject=subject,
+        subject=dynamic_subject or subject,
         body=text_content,
         from_email=settings.EMAIL_HOST_USER,
         to=[membership.email],
@@ -458,10 +573,10 @@ def send_webinar_registration_email(registration):
         'webinar': registration.webinar,
         'settings': settings,
     }
-    html_message = render_to_string('emails/webinar_registration.html', context)
+    html_message, dynamic_subject = render_email_template('emails/webinar_registration.html', context)
     text_content = strip_tags(html_message)
     email_message = EmailMultiAlternatives(
-        subject=subject,
+        subject=dynamic_subject or subject,
         body=text_content,
         from_email=settings.EMAIL_HOST_USER,
         to=[registration.email],
@@ -480,10 +595,10 @@ def certificate_email(learner, course, certificate):
         'settings': settings,
         'frontend_url': frontend_url,
     }
-    html_message = render_to_string('Resent_emali/certificate_email.html', context)
+    html_message, dynamic_subject = render_email_template('Resent_emali/certificate_email.html', context)
     text_content = strip_tags(html_message)
     email_message = EmailMultiAlternatives(
-        subject=subject,
+        subject=dynamic_subject or subject,
         body=text_content,
         from_email=settings.EMAIL_HOST_USER,
         to=[learner.user.email],
@@ -514,12 +629,12 @@ def update_email_to_student(course, request=None):
         'request': request,
     }
     
-    html_message = render_to_string('emails/newcourse_published.html', context)
+    html_message, dynamic_subject = render_email_template('emails/newcourse_published.html', context)
     text_content = strip_tags(html_message)
     
     # Send in bulk using BCC to protect privacy
     email_message = EmailMultiAlternatives(
-        subject=subject,
+        subject=dynamic_subject or subject,
         body=text_content,
         from_email=settings.EMAIL_HOST_USER,
         to=[settings.EMAIL_HOST_USER],
@@ -544,10 +659,10 @@ def update_email_to_student(course, request=None):
         'settings': settings,
     }
         
-    html_message = render_to_string('emails/newcourse_published.html', context)
+    html_message, dynamic_subject = render_email_template('emails/newcourse_published.html', context)
     text_content = strip_tags(html_message)
     email_message = EmailMultiAlternatives(
-        subject=subject,
+        subject=dynamic_subject or subject,
         body=text_content,
         from_email=settings.EMAIL_HOST_USER,
         to=[instructor.email],
@@ -663,10 +778,10 @@ class PasswordResetRequestAPIView(APIView):
                 'expiry_hours': 1,
                 'settings': settings,
             }
-            html_message = render_to_string('emails/password_reset_email.html', context)
+            html_message, dynamic_subject = render_email_template('emails/password_reset_email.html', context)
             text_content = strip_tags(html_message)
             email_message = EmailMultiAlternatives(
-                subject="Password Reset Requested",
+                subject=dynamic_subject or "Password Reset Requested",
                 body=text_content,
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 to=[user.email],

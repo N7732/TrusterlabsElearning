@@ -13,6 +13,8 @@ import TrainingForm from '../admin/forms/TrainingForm';
 import ClassworkForm from '../admin/forms/ClassworkForm';
 import ExamForm from '../admin/forms/ExamForm';
 import InstructorForm from '../admin/forms/InstructorForm';
+import EmailTemplateForm from '../admin/forms/EmailTemplateForm';
+
 const SuperAdminEntityForm = () => {
   const { entityId, id } = useParams();
   const navigate = useNavigate();
@@ -48,6 +50,8 @@ const SuperAdminEntityForm = () => {
       return <ExamForm isEditing={isEditing} examId={isEditing ? id : null} />;
     case 'instructors':
       return <InstructorForm isEditing={isEditing} instructorId={isEditing ? id : null} />;
+    case 'email_templates':
+      return <EmailTemplateForm isEditing={isEditing} templateId={isEditing ? id : null} />;
     default:
       return <GenericForm entityId={entityId} itemId={isEditing ? id : null} isEditing={isEditing} />;
   }

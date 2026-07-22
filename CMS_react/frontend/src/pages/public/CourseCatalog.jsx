@@ -105,7 +105,7 @@ const CourseCatalog = () => {
                   {/* Image Header */}
                   <div className="relative h-48 w-full bg-slate-800 overflow-hidden">
                     <img 
-                      src={getImageUrl(course.thumbnail)} 
+                      src={getImageUrl(course.thumbnail || course.thumbnail_url)} 
                       alt={course.title} 
                       onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1573164713988-8665fc963095?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80" }}
                       className="w-full h-full object-cover group-hover:scale-105 opacity-80 group-hover:opacity-100 transition-all duration-500"

@@ -13,7 +13,7 @@ import InquiryDrawer from '../../components/courses/InquiryDrawer';
 const CoursePlayer = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
-  const { isAuthenticated, isAdmin } = useAuth();
+  const { isAuthenticated, isAdmin, user } = useAuth();
   const [courseData, setCourseData] = useState(null);
   const [activeTab, setActiveTab] = useState('outline');
   const [modules, setModules] = useState([]);
@@ -91,17 +91,20 @@ const CoursePlayer = () => {
 
   useEffect(() => {
     if (courseId) {
-      const stored = localStorage.getItem(`course_progress_${courseId}`);
-      if (stored) {
-        try {
-          setCompletedLessons(JSON.parse(stored));
-        } catch(e) {}
-      }
-      fetchCourseDetails();
-      checkEnrollment();
-      if (isAuthenticated) {
-        fetchProgress();
-      }
+      const init = async () => {
+        const stored = localStorage.getItem(`course_progress_${courseId}`);
+        if (stored) {
+          try {
+            setCompletedLessons(JSON.parse(stored));
+          } catch(e) {}
+        }
+        const data = await fetchCourseDetails();
+        await checkEnrollment(data);
+        if (isAuthenticated) {
+          fetchProgress();
+        }
+      };
+      init();
     }
   }, [courseId, isAuthenticated]);
 
@@ -123,7 +126,7 @@ const CoursePlayer = () => {
     }
   };
 
-  const checkEnrollment = async () => {
+  const checkEnrollment = async (fetchedCourseData) => {
     try {
       const token = localStorage.getItem('truster_lab_token');
       if (!token) {
@@ -133,6 +136,25 @@ const CoursePlayer = () => {
       }
       const data = await apiClient.get('/api/enrollments/');
       const enrollments = data.results || data || [];
+      
+      // Admin/Instructor bypass logic
+      if (isAdmin) {
+        setIsEnrolled(true);
+        setCheckingEnrollment(false);
+        return;
+      }
+      
+      const targetCourse = fetchedCourseData || courseData;
+      
+      if (user && user.user_type === 'instructor' && targetCourse) {
+        // If the user is the instructor of this course, let them preview it
+        if (targetCourse.instructor && targetCourse.instructor.user === user.id) {
+           setIsEnrolled(true);
+           setCheckingEnrollment(false);
+           return;
+        }
+      }
+
       const enrolled = enrollments.some(e => 
         (e.course_details?.id === parseInt(courseId) || e.course === parseInt(courseId)) 
         && ['active', 'completed'].includes(e.status)
@@ -197,9 +219,11 @@ const CoursePlayer = () => {
           selectLesson(initializedModules[0].lessons[0]);
         }
       }
+      return data;
     } catch (err) {
       console.error(err);
       setError('Failed to load course content.');
+      return null;
     } finally {
       setLoading(false);
     }
@@ -340,50 +364,225 @@ const CoursePlayer = () => {
     const isFree = courseData.is_free;
     const isPaid = !courseData.is_free && courseData.price > 0;
     const isInquiry = !courseData.is_free && (!courseData.price || parseFloat(courseData.price) === 0);
+    const instructorName = courseData.instructor?.user?.first_name 
+      ? `${courseData.instructor.user.first_name} ${courseData.instructor.user.last_name || ''}` 
+      : 'Unknown Instructor';
 
     return (
-      <div className="min-h-screen bg-[#F4F5F7] py-12 px-4 sm:px-6 lg:px-8 font-sans flex items-center justify-center">
-        <div className="max-w-4xl w-full mx-auto bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row">
-          <div className="md:w-1/2 relative bg-slate-100">
-            <img 
-              src={getImageUrl(courseData.thumbnail)} 
-              onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1573164713988-8665fc963095?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80" }}
-              alt={courseData.title}
-              className="w-full h-full object-cover min-h-[300px]"
-            />
+      <div className="min-h-screen bg-slate-50 font-sans pb-12">
+        {/* Course Header Banner */}
+        <div className="bg-slate-900 text-white py-12 lg:py-16 mb-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="lg:w-2/3 pr-4">
+              {/* Breadcrumb */}
+              <nav aria-label="breadcrumb" className="mb-6">
+                <ol className="flex text-sm text-slate-400 space-x-2">
+                  <li><button onClick={() => navigate('/courses')} className="hover:text-white transition-colors">Courses</button></li>
+                  <li><span className="mx-2">/</span></li>
+                  <li className="text-white font-medium truncate">{courseData.title.substring(0, 30)}{courseData.title.length > 30 ? '...' : ''}</li>
+                </ol>
+              </nav>
+
+              <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">{courseData.title}</h1>
+              <div 
+                className="text-lg text-slate-300 mb-8 leading-relaxed max-w-3xl line-clamp-3"
+                dangerouslySetInnerHTML={{ __html: courseData.description }}
+              ></div>
+              
+              <div className="flex flex-wrap items-center gap-6 mb-4 text-sm">
+                <div className="flex items-center text-yellow-400">
+                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                  <span className="text-white font-medium ml-1">4.8 <span className="text-slate-400 font-normal">(120 ratings)</span></span>
+                </div>
+                <div className="flex items-center text-slate-200">
+                  <Users className="w-4 h-4 mr-2 text-slate-400" />
+                  <span>1,245 Students</span>
+                </div>
+                <div className="flex items-center text-slate-200">
+                  <svg className="w-4 h-4 mr-2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
+                  <span>{courseData.difficulty || 'All Levels'}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center mt-6 text-sm">
+                <span className="text-slate-400 mr-2">Created by</span>
+                <span className="text-white font-bold border-b border-blue-500 pb-0.5 cursor-pointer hover:text-blue-400 transition-colors">
+                  {instructorName}
+                </span>
+                {courseData.created_at && (
+                  <span className="ml-6 text-slate-400 flex items-center">
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    Last updated {new Date(courseData.created_at).toLocaleDateString(undefined, {month: 'numeric', year: 'numeric'})}
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
-          <div className="md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
-            <h1 className="text-3xl font-black text-slate-900 mb-4 leading-tight">{courseData.title}</h1>
-            <div 
-              className="text-slate-600 mb-8 leading-relaxed line-clamp-4 prose prose-sm max-w-none"
-              dangerouslySetInnerHTML={{ __html: courseData.description }}
-            ></div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
             
-            <div className="mt-auto pt-4">
-              {isFree && (
-                <button 
-                  onClick={() => isAuthenticated ? enrollUser() : navigate('/login')}
-                  className="w-full py-4 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all"
-                >
-                  Enroll Now for Free
-                </button>
-              )}
-              {isPaid && (
-                <button 
-                  onClick={() => isAuthenticated ? setIsPaymentDrawerOpen(true) : navigate('/login')}
-                  className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all"
-                >
-                  Purchase Course - ${courseData.price}
-                </button>
-              )}
-              {isInquiry && (
-                <button 
-                  onClick={() => isAuthenticated ? setIsInquiryDrawerOpen(true) : navigate('/login')}
-                  className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all"
-                >
-                  Request Access
-                </button>
-              )}
+            {/* Main Content Column */}
+            <div className="lg:w-2/3 pb-12">
+              
+              {/* What you'll learn */}
+              <div className="bg-white rounded-2xl p-6 md:p-8 mb-10 shadow-sm border border-slate-100">
+                <h4 className="text-xl font-bold mb-6 text-slate-900">What you'll learn</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-600">
+                  <div className="flex items-start">
+                    <CheckCircle className="w-5 h-5 text-emerald-500 mr-3 shrink-0 mt-0.5" />
+                    <span>Master the core concepts of {courseData.title.split(' ').slice(0,3).join(' ')}.</span>
+                  </div>
+                  <div className="flex items-start">
+                    <CheckCircle className="w-5 h-5 text-emerald-500 mr-3 shrink-0 mt-0.5" />
+                    <span>Build real-world projects from scratch.</span>
+                  </div>
+                  <div className="flex items-start">
+                    <CheckCircle className="w-5 h-5 text-emerald-500 mr-3 shrink-0 mt-0.5" />
+                    <span>Implement best practices and modern design patterns.</span>
+                  </div>
+                  <div className="flex items-start">
+                    <CheckCircle className="w-5 h-5 text-emerald-500 mr-3 shrink-0 mt-0.5" />
+                    <span>Gain confidence to apply for related jobs.</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Curriculum */}
+              <div className="mb-10">
+                <h3 className="text-2xl font-bold mb-6 text-slate-900">Course Content</h3>
+                <div className="flex justify-between items-center mb-4 text-slate-500 text-sm">
+                  <span>{courseData.modules?.length || 0} sections • Comprehensive lectures</span>
+                </div>
+
+                {courseData.modules && courseData.modules.length > 0 ? (
+                  <div className="space-y-3">
+                    {courseData.modules.map((module, idx) => (
+                      <div key={module.id} className="border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white">
+                        <button 
+                          onClick={() => toggleModule(module.id)}
+                          className="w-full px-6 py-4 flex justify-between items-center bg-slate-50 hover:bg-slate-100 transition-colors text-left"
+                        >
+                          <span className="font-bold text-slate-900">{module.title}</span>
+                          <div className="flex items-center gap-4">
+                            <span className="text-xs text-slate-500 font-medium bg-white px-3 py-1 rounded-full border border-slate-200">{module.lessons?.length || 0} lectures</span>
+                            {module.isOpen ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+                          </div>
+                        </button>
+                        
+                        {module.isOpen && (
+                          <div className="divide-y divide-slate-100">
+                            {module.lessons?.map(lesson => (
+                              <div key={lesson.id} className="px-6 py-4 flex justify-between items-center hover:bg-slate-50 transition-colors">
+                                <div className="flex items-center gap-4">
+                                  <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                  <span className="text-slate-700 font-medium">{lesson.title}</span>
+                                </div>
+                                {lesson.duration && <span className="text-sm text-slate-400">{lesson.duration} min</span>}
+                              </div>
+                            ))}
+                            {module.quizzes?.map(quiz => (
+                              <div key={quiz.id} className="px-6 py-4 flex justify-between items-center hover:bg-slate-50 transition-colors">
+                                <div className="flex items-center gap-4">
+                                  <svg className="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+                                  <span className="text-slate-700 font-medium">{quiz.title}</span>
+                                </div>
+                                <span className="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded-full font-medium">Quiz</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-slate-50 p-10 text-center rounded-2xl border border-slate-200">
+                    <svg className="w-12 h-12 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" /></svg>
+                    <h5 className="font-bold text-lg text-slate-700">Content Coming Soon</h5>
+                    <p className="text-slate-500">The instructor is currently preparing the curriculum.</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Requirements */}
+              <div className="mb-8">
+                <h4 className="text-xl font-bold mb-4 text-slate-900">Requirements</h4>
+                <ul className="list-disc pl-5 text-slate-600 space-y-2">
+                  <li>Basic understanding of the subject matter.</li>
+                  <li>A computer with internet connection.</li>
+                  <li>Willingness to learn and complete assignments.</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Sidebar / Sticky Card */}
+            <div className="lg:w-1/3">
+              <div className="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden sticky top-24 z-10">
+                <div className="relative h-56 bg-slate-100">
+                  <img 
+                    src={getImageUrl(courseData.thumbnail || courseData.thumbnail_url)} 
+                    onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1573164713988-8665fc963095?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" }}
+                    alt={courseData.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/20 group cursor-pointer transition-colors hover:bg-black/40">
+                    <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                      <svg className="w-8 h-8 text-blue-600 ml-1" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-8">
+                  <h2 className="text-3xl font-black text-slate-900 mb-6">
+                    {isFree ? 'Free' : `${courseData.currency || '$'} ${courseData.price}`}
+                  </h2>
+
+                  <div className="flex flex-col gap-3 mb-6">
+                    {isFree && (
+                      <button 
+                        onClick={() => isAuthenticated ? enrollUser() : navigate('/login')}
+                        className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all"
+                      >
+                        Enroll Now for Free
+                      </button>
+                    )}
+                    {isPaid && (
+                      <button 
+                        onClick={() => isAuthenticated ? setIsPaymentDrawerOpen(true) : navigate('/login')}
+                        className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all"
+                      >
+                        Enroll in Course
+                      </button>
+                    )}
+                    {isInquiry && (
+                      <button 
+                        onClick={() => isAuthenticated ? setIsInquiryDrawerOpen(true) : navigate('/login')}
+                        className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all"
+                      >
+                        Request Access
+                      </button>
+                    )}
+                  </div>
+
+                  <p className="text-center text-sm text-slate-500 mb-6">30-Day Money-Back Guarantee</p>
+
+                  <h6 className="font-bold text-slate-900 mb-4">This course includes:</h6>
+                  <ul className="space-y-3 text-sm text-slate-600 mb-8">
+                    <li className="flex items-center"><svg className="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>On-demand video</li>
+                    <li className="flex items-center"><svg className="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>Downloadable resources</li>
+                    <li className="flex items-center"><svg className="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>Access on mobile and TV</li>
+                    <li className="flex items-center"><svg className="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" /></svg>Full lifetime access</li>
+                    <li className="flex items-center"><svg className="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>Certificate of completion</li>
+                  </ul>
+                  
+                  <div className="pt-6 border-t border-slate-100 flex justify-between text-sm font-medium text-slate-700">
+                    <button className="hover:text-blue-600 transition-colors">Share</button>
+                    <button className="hover:text-blue-600 transition-colors">Gift this course</button>
+                    <button className="hover:text-blue-600 transition-colors">Apply Coupon</button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -732,8 +931,8 @@ const CoursePlayer = () => {
                       {/* Fallback Hero Image for text lessons */}
                       <div className="absolute inset-0 z-0">
                         <img 
-                          src={getImageUrl(courseData.thumbnail)} 
-                          alt="Lesson Cover" 
+                          src={getImageUrl(courseData.thumbnail || courseData.thumbnail_url)} 
+                          alt={courseData.title} 
                           className="w-full h-full object-cover opacity-60"
                         />
                         <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-transparent"></div>

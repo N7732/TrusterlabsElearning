@@ -85,7 +85,7 @@ class CertificateViewSet(viewsets.ModelViewSet):
         
         # Send email notification
         from django.core.mail import EmailMultiAlternatives
-        from django.template.loader import render_to_string
+        from Auth.views import render_email_template
         from django.conf import settings
         import os
         
@@ -108,8 +108,8 @@ class CertificateViewSet(viewsets.ModelViewSet):
             'verify_url': verify_url
         }
         
-        html_content = render_to_string('emails/certificate_issued.html', context)
-        subject = f"Your Certificate for {program_title} is Ready!"
+        html_content, dynamic_subject = render_email_template('emails/certificate_issued.html', context)
+        subject = dynamic_subject or f"Your Certificate for {program_title} is Ready!"
         from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@trusterlabs.com')
         to_email = cert.learner.user.email
         

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { apiClient } from '../../api/apiClient';
+import { apiClient, getImageUrl } from '../../api/apiClient';
 import { Link } from 'react-router-dom';
 import Button from '../../components/common/Button';
 import Card, { CardContent, CardTitle, CardFooter } from '../../components/common/Card';
@@ -73,6 +73,12 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Statistics Section */}
+      <StatsSection />
+
+      {/* Featured Courses Section */}
+      <FeaturedCourses />
 
       {/* Partners Slider Section */}
       <PartnersSection />
@@ -157,6 +163,107 @@ const PartnersSection = () => {
             ))}
           </div>
         )}
+      </div>
+    </section>
+  );
+};
+
+const StatsSection = () => (
+  <section className="py-16 bg-[#030712] border-t border-[#D4AF37]/20">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+        <div className="p-6 bg-[#111827] rounded-xl border border-white/10 hover:border-[#D4AF37]/30 transition-colors">
+          <h2 className="text-5xl font-extrabold text-[#D4AF37] mb-2">5000+</h2>
+          <p className="text-gray-400 font-medium uppercase tracking-widest text-sm">Students Enrolled</p>
+        </div>
+        <div className="p-6 bg-[#111827] rounded-xl border border-white/10 hover:border-[#D4AF37]/30 transition-colors">
+          <h2 className="text-5xl font-extrabold text-[#D4AF37] mb-2">100+</h2>
+          <p className="text-gray-400 font-medium uppercase tracking-widest text-sm">Premium Courses</p>
+        </div>
+        <div className="p-6 bg-[#111827] rounded-xl border border-white/10 hover:border-[#D4AF37]/30 transition-colors">
+          <h2 className="text-5xl font-extrabold text-[#D4AF37] mb-2">50+</h2>
+          <p className="text-gray-400 font-medium uppercase tracking-widest text-sm">Expert Instructors</p>
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
+const FeaturedCourses = () => {
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const data = await apiClient.get('/api/courses/');
+        const results = data.results || data || [];
+        setCourses(results.slice(0, 3));
+      } catch (err) {
+        console.error("Failed to load courses", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCourses();
+  }, []);
+
+  if (loading || courses.length === 0) return null;
+
+  return (
+    <section className="py-20 bg-[#0b162c] border-t border-[#D4AF37]/20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-end mb-12">
+          <div>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-4">Featured Courses</h2>
+            <p className="text-gray-400 text-lg">Discover our most popular programs hand-picked for you.</p>
+          </div>
+          <Link to="/courses" className="hidden md:inline-flex items-center text-[#D4AF37] hover:text-white font-bold transition-colors">
+            View All Courses <span className="ml-2">→</span>
+          </Link>
+        </div>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {courses.map(course => (
+            <Link to={`/course/${course.id}`} key={course.id} className="block group">
+              <div className="bg-[#111827] border border-white/10 rounded-xl overflow-hidden flex flex-col h-full hover:border-[#D4AF37]/50 hover:shadow-[0_0_20px_rgba(212,175,55,0.1)] transition-all duration-300">
+                <div className="relative h-48 w-full bg-slate-800 overflow-hidden">
+                  <img 
+                    src={getImageUrl(course.thumbnail || course.thumbnail_url)} 
+                    alt={course.title} 
+                    onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1573164713988-8665fc963095?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80" }}
+                    className="w-full h-full object-cover group-hover:scale-105 opacity-80 group-hover:opacity-100 transition-all duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#111827] via-transparent to-transparent opacity-80"></div>
+                  <div className="absolute top-4 left-4 bg-[#D4AF37] text-black text-[10px] font-bold px-3 py-1 uppercase tracking-wider rounded-full shadow-lg">
+                    {course.difficulty || 'BEGINNER'}
+                  </div>
+                </div>
+                <div className="p-6 flex flex-col flex-grow">
+                  <h3 className="text-lg font-bold text-white leading-snug mb-2 group-hover:text-[#D4AF37] transition-colors line-clamp-2">
+                    {course.title}
+                  </h3>
+                  <p className="text-sm text-gray-400 mb-6 line-clamp-2 leading-relaxed flex-grow">
+                    {course.description ? course.description.replace(/<[^>]+>/g, '') : ''}
+                  </p>
+                  <div className="pt-4 border-t border-white/10 flex items-center justify-between mt-auto">
+                    <span className="text-sm text-gray-300 font-medium">
+                      {course.instructor_name || 'TRUSTERLABS Ltd.'}
+                    </span>
+                    <span className="text-[#D4AF37] font-bold">
+                      {course.is_free ? 'Free' : (course.price ? `$${course.price}` : 'Premium')}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+        <div className="mt-10 text-center md:hidden">
+          <Link to="/courses" className="inline-flex items-center text-[#D4AF37] hover:text-white font-bold transition-colors">
+            View All Courses <span className="ml-2">→</span>
+          </Link>
+        </div>
       </div>
     </section>
   );

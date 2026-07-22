@@ -4,7 +4,7 @@ import { adminConfig } from '../../config/adminConfig';
 import { apiClient } from '../../api/apiClient';
 import Button from '../../components/common/Button';
 import Card, { CardContent } from '../../components/common/Card';
-import { Plus, Edit, Trash2, Upload, Loader2, Users, Copy, Filter, ArrowLeft } from 'lucide-react';
+import { Plus, Edit, Trash2, Upload, Loader2, Users, Copy, Filter, ArrowLeft, Eye } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import ReuseRequestModal from '../../components/common/ReuseRequestModal';
 
@@ -541,6 +541,15 @@ const SuperAdminEntityList = () => {
                               title="Bulk Enroll Learners"
                             >
                               <Users size={16} />
+                            </button>
+                          )}
+                          {entityId === 'courses' && (
+                            <button
+                              onClick={() => navigate(`/course/${item.id}`)}
+                              className="p-1.5 text-purple-600 hover:bg-purple-50 hover:text-purple-700 rounded transition-colors"
+                              title="Preview Course Player"
+                            >
+                              <Eye size={16} />
                             </button>
                           )}
                           {entityId === 'trainings' && (

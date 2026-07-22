@@ -16,6 +16,7 @@ export const adminConfig = {
     canCreate: true,
     canEdit: true,
     canDelete: true,
+    canBulkUpload: true,
   },
   instructors: {
     label: 'Instructors',
@@ -31,6 +32,7 @@ export const adminConfig = {
     canCreate: true,
     canEdit: true,
     canDelete: true,
+    canBulkUpload: true,
   },
   courses: {
     label: 'Courses',
@@ -45,6 +47,7 @@ export const adminConfig = {
     canCreate: true,
     canEdit: true,
     canDelete: true,
+    canBulkUpload: true,
   },
   modules: {
     label: 'Modules',
@@ -458,5 +461,25 @@ export const adminConfig = {
         showIf: (item) => !item.is_issued
       }
     ]
+  },
+  email_templates: {
+    label: 'Email Templates',
+    endpoint: '/superadmin/api/email-templates/',
+    columns: [
+      { field: 'id', label: 'ID' },
+      { field: 'template_name', label: 'Template Name' },
+      { field: 'subject', label: 'Subject' },
+      { field: 'is_active', label: 'Active' },
+    ],
+    formFields: [
+      { field: 'template_name', label: 'Template Name', type: 'text', readOnlyOnEdit: true },
+      { field: 'subject', label: 'Subject', type: 'text' },
+      { field: 'html_content', label: 'HTML Content', type: 'textarea' },
+      { field: 'text_content', label: 'Text Fallback (Optional)', type: 'textarea' },
+      { field: 'is_active', label: 'Active', type: 'boolean' },
+    ],
+    canCreate: true,
+    canEdit: true,
+    canDelete: true,
   }
 };

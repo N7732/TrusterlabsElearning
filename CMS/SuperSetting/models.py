@@ -88,3 +88,18 @@ class StaffMember(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.position}"
+
+class EmailTemplate(models.Model):
+    """
+    Stores HTML email templates dynamically so they can be edited from the admin UI.
+    """
+    template_name = models.CharField(max_length=255, unique=True, help_text="e.g., 'welcome_email', 'password_reset_email'")
+    subject = models.CharField(max_length=255, default="Notification from TrusterLab")
+    html_content = models.TextField(help_text="HTML content of the email.")
+    text_content = models.TextField(null=True, blank=True, help_text="Plain text fallback (optional).")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.template_name
