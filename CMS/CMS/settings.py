@@ -31,25 +31,29 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-zq$+97%!p2ih7t*)yylexlfk18
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-
+RENDER_EXTERNAL_HOSTNAME = os.getenv('RENDER_EXTERNAL_HOSTNAME')
 ALLOWED_HOSTS = [
+    '*',
     'payment-gateway-api-2c52.onrender.com',
     'trusterlabselearning.onrender.com',
-    'localhost', #for local testing
-    '127.0.0.1' , #For local testing
+    'trusterlabsacademy.com',
+    'www.trusterlabsacademy.com',
+    'academytrustl.trusterlabsacademy.com',
+    'localhost',
+    '127.0.0.1',
 ]
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 PAYPAL_CLIENT_ID = os.getenv('PAYPAL_CLIENT_ID')
 PAYPAL_CLIENT_SECRET = os.getenv('PAYPAL_CLIENT_SECRET')
 PAYPAL_MODE = os.getenv('PAYPAL_MODE', 'sandbox')  # Use 'live' for production
-# Application definition
 
 paypalrestsdk.configure({
     "mode": PAYPAL_MODE,  # sandbox or live
     "client_id": PAYPAL_CLIENT_ID,
     "client_secret": PAYPAL_CLIENT_SECRET
 })
-#Application Definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -72,7 +76,6 @@ INSTALLED_APPS = [
     'rest_framework',
 ]
 
-
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -92,6 +95,7 @@ REST_FRAMEWORK = {
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Must be directly after SecurityMiddleware for serving static files in production
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -99,7 +103,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # For serving static files in production
     'SuperSetting.middleware.AuditLogMiddleware',  # Automatically logs system actions
 ]
 
@@ -125,25 +128,35 @@ WSGI_APPLICATION = 'CMS.wsgi.application'
 
 
 # Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'postgres'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT', '5432'),
+# Supports Render PostgreSQL environment variable DATABASE_URL directly as well as standard DB credentials
+DATABASE_URL = os.getenv('DATABASE_URL')
+if DATABASE_URL:
+    import urllib.parse
+    url = urllib.parse.urlparse(DATABASE_URL)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': url.path[1:],
+            'USER': url.username,
+            'PASSWORD': url.password,
+            'HOST': url.hostname,
+            'PORT': url.port or 5432,
+        }
     }
-}
-
-
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DB_NAME', 'postgres'),
+            'USER': os.getenv('DB_USER'),
+            'PASSWORD': os.getenv('DB_PASSWORD'),
+            'HOST': os.getenv('DB_HOST'),
+            'PORT': os.getenv('DB_PORT', '5432'),
+        }
+    }
 
 
 # Password validation
-# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -165,20 +178,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-#Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
-
-STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-#Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
-
 
 # Internationalization
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
@@ -189,16 +190,13 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
-
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'Auth.User'  # Custom user model
@@ -208,14 +206,24 @@ LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'Auth:login'
 
 # CORS Config
-# CORS_ALLOW_ALL_ORIGINS = True (Removed for security)
+CORS_ALLOW_ALL_ORIGINS = os.getenv('CORS_ALLOW_ALL_ORIGINS', 'False') == 'True'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:5173",
     "https://frontend-omega-five-21.vercel.app",
     "https://trusterlabselearning.onrender.com",
-    "https://frontend-6od8rks2q-n7732s-projects.vercel.app"
+    "https://frontend-6od8rks2q-n7732s-projects.vercel.app",
+    "https://trusterlabsacademy.com",
+    "https://www.trusterlabsacademy.com",
+    "https://academytrustl.trusterlabsacademy.com"
 ]
+extra_cors = os.getenv('CORS_ALLOWED_ORIGINS')
+if extra_cors:
+    for origin in extra_cors.split(','):
+        if origin.strip() and origin.strip() not in CORS_ALLOWED_ORIGINS:
+            CORS_ALLOWED_ORIGINS.append(origin.strip())
+
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://trusterlabsacademy.com')
 
 # Media files (Uploads)
 MEDIA_URL = '/media/'
@@ -229,3 +237,4 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+

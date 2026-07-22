@@ -1,3 +1,4 @@
+import os
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -17,12 +18,13 @@ class PaymentCreateView(APIView):
 
             data = serializer.validated_data
 
+            base_url = os.getenv('BACKEND_URL', request.build_absolute_uri('/').rstrip('/'))
             payment = paypalrestsdk.Payment({
                 "intent": "sale",
                 "payer": {"payment_method": "paypal"},
                 "redirect_urls": {
-                    "return_url": "https://payment-gateway-api-2c52.onrender.com/api/v1/payment/execute",
-                    "cancel_url": "https://payment-gateway-api-2c52.onrender.com/api/v1/payment/cancel"
+                    "return_url": f"{base_url}/api/v1/payment/execute",
+                    "cancel_url": f"{base_url}/api/v1/payment/cancel"
                 },
                 "transactions": [{
                     "item_list": {
