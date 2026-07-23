@@ -757,26 +757,7 @@ def lesson_detail(request, lesson_id):
             )
             
             # Check course completion
-            total_lessons = Lesson.objects.filter(module__course=course, is_published=True).count()
-            completed_lessons = LessonProgress.objects.filter(
-                learner=learner,
-                lesson__module__course=course,
-                is_completed=True
-            ).count()
-            
-            if total_lessons > 0 and completed_lessons >= total_lessons:
-                enrollment = Enrollment.objects.filter(learner=learner, course=course).first()
-                if enrollment and enrollment.status != 'completed':
-                    enrollment.status = 'completed'
-                    enrollment.save()
-                    
-                    if course.has_certificate:
-                        from certification.models import Certificate
-                        Certificate.objects.get_or_create(
-                            learner=learner,
-                            course=course,
-                            defaults={'is_issued': course.auto_issue_certificate}
-                        )
+            check_and_update_course_completion(learner, course)
             
             # Find next lesson
             next_lesson = Lesson.objects.filter(
@@ -797,7 +778,11 @@ def lesson_detail(request, lesson_id):
             if next_lesson:
                 return redirect('lesson_detail', lesson_id=next_lesson.id)
             else:
-                messages.success(request, "Course completed!")
+                enrollment = Enrollment.objects.filter(learner=learner, course=course).first()
+                if enrollment and enrollment.status == 'completed':
+                    messages.success(request, "Course completed successfully!")
+                else:
+                    messages.success(request, "All lessons completed! Please ensure you have passed all quizzes to complete the course.")
                 return redirect('course_detail', course_id=course.id)
 
     # Get Sidebar Data (Modules & Lessons with Progress)
