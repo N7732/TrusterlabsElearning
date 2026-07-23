@@ -103,7 +103,7 @@ const Footer = () => {
           <p>&copy; {new Date().getFullYear()} {settings?.company_name || 'TrusterLabs'}. All rights reserved.</p>
           <div className="flex gap-4 mt-4 md:mt-0">
             <a href="#" className="hover:text-[#D4AF37] transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-[#D4AF37] transition-colors">Terms of Service</a>
+            <Link to="/terms-and-conditions" className="hover:text-[#D4AF37] transition-colors">Terms and Conditions</Link>
           </div>
         </div>
       </div>

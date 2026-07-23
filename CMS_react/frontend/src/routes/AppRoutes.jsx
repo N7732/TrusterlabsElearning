@@ -25,6 +25,7 @@ const ResearchWebinars = lazy(() => import('../pages/public/ResearchWebinars'));
 const Academics = lazy(() => import('../pages/public/Academics'));
 const CertificateView = lazy(() => import('../pages/public/CertificateView'));
 const CertificateSearch = lazy(() => import('../pages/public/CertificateSearch'));
+const TermsAndConditions = lazy(() => import('../pages/public/TermsAndConditions'));
 
 // SuperAdmin Pages
 const SuperAdminLayout = lazy(() => import('../layouts/SuperAdminLayout'));
@@ -67,6 +68,7 @@ const AppRoutes = () => {
             <Route path="/course/:courseId" element={<CoursePlayer />} />
             <Route path="/verify" element={<CertificateSearch />} />
             <Route path="/verify/:code" element={<CertificateView />} />
+            <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
             
             {/* Superadmin Routes */}
             <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
