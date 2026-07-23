@@ -5,7 +5,7 @@ import { apiClient, getImageUrl } from '../../api/apiClient';
 import { 
   Menu, Search, Moon, Languages, Accessibility, Maximize, 
   ChevronDown, ChevronUp, CheckCircle, ChevronLeft, ChevronRight,
-  ArrowDown
+  ArrowDown, Users
 } from 'lucide-react';
 import PaymentDrawer from '../../components/courses/PaymentDrawer';
 import InquiryDrawer from '../../components/courses/InquiryDrawer';
@@ -25,6 +25,7 @@ const CoursePlayer = () => {
   const [completedLessons, setCompletedLessons] = useState([]);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [checkingEnrollment, setCheckingEnrollment] = useState(true);
+  const [isEnrolling, setIsEnrolling] = useState(false);
   const [isPaymentDrawerOpen, setIsPaymentDrawerOpen] = useState(false);
   const [isInquiryDrawerOpen, setIsInquiryDrawerOpen] = useState(false);
 
@@ -92,6 +93,7 @@ const CoursePlayer = () => {
   useEffect(() => {
     if (courseId) {
       const init = async () => {
+        setLoading(true);
         const stored = localStorage.getItem(`course_progress_${courseId}`);
         if (stored) {
           try {
@@ -103,6 +105,7 @@ const CoursePlayer = () => {
         if (isAuthenticated) {
           fetchProgress();
         }
+        setLoading(false);
       };
       init();
     }
@@ -169,7 +172,7 @@ const CoursePlayer = () => {
 
   const enrollUser = async () => {
     try {
-      setLoading(true);
+      setIsEnrolling(true);
       const response = await apiClient.post(`/api/courses/${courseId}/enroll/`);
       if (response.enrollment_status === 'active') {
         setIsEnrolled(true);
@@ -188,7 +191,7 @@ const CoursePlayer = () => {
       }
       alert(errorMsg);
     } finally {
-      setLoading(false);
+      setIsEnrolling(false);
     }
   };
 
@@ -224,8 +227,6 @@ const CoursePlayer = () => {
       console.error(err);
       setError('Failed to load course content.');
       return null;
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -245,6 +246,25 @@ const CoursePlayer = () => {
     } finally {
       setSubmittingQuiz(false);
     }
+  };
+
+  const getEmbedUrl = (url) => {
+    if (!url) return '';
+    if (url.includes('drive.google.com/file/d/')) {
+      const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      if (match && match[1]) {
+        return `https://drive.google.com/file/d/${match[1]}/preview`;
+      }
+    }
+    if (url.includes('youtube.com/watch?v=')) {
+      const videoId = url.split('v=')[1]?.split('&')[0];
+      if (videoId) return `https://www.youtube.com/embed/${videoId}`;
+    }
+    if (url.includes('youtu.be/')) {
+      const videoId = url.split('youtu.be/')[1]?.split('?')[0];
+      if (videoId) return `https://www.youtube.com/embed/${videoId}`;
+    }
+    return url;
   };
 
   const toggleModule = (moduleId) => {
@@ -542,9 +562,10 @@ const CoursePlayer = () => {
                     {isFree && (
                       <button 
                         onClick={() => isAuthenticated ? enrollUser() : navigate('/login')}
-                        className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all"
+                        disabled={isEnrolling}
+                        className={`w-full py-4 ${isEnrolling ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-600 hover:bg-blue-700'} text-white rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all`}
                       >
-                        Enroll Now for Free
+                        {isEnrolling ? 'Start Running...' : 'Enroll Now for Free'}
                       </button>
                     )}
                     {isPaid && (
@@ -920,7 +941,7 @@ const CoursePlayer = () => {
                    ) : activeLesson.video_url || activeLesson.embed_url ? (
                      <div className="w-full h-full max-h-[70vh] aspect-video">
                        <iframe 
-                         src={activeLesson.embed_url || activeLesson.video_url} 
+                         src={activeLesson.embed_url || getEmbedUrl(activeLesson.video_url)} 
                          className="w-full h-full"
                          allowFullScreen
                          title={activeLesson.title}
