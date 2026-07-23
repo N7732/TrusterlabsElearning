@@ -445,11 +445,11 @@ class QuizesViewSet(viewsets.ModelViewSet):
         for question in quiz.questions.all():
             total_possible += question.marks
             submitted = submitted_answers.get(str(question.id))
-            if submitted and submitted.upper() == question.correct_option.upper():
+            if submitted and question.correct_option and submitted.upper() == question.correct_option.upper():
                 total_score += question.marks
                 
         percentage = (total_score / total_possible * 100) if total_possible > 0 else 0
-        passed = percentage >= quiz.pass_mark
+        passed = percentage >= (quiz.pass_mark or 0)
         
         submission = QuizSubmission.objects.create(
             learner=learner,
