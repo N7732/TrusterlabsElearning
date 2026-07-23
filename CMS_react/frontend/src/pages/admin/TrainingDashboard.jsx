@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { apiClient } from '../../api/apiClient';
 import Card, { CardContent } from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import { Calendar, Users, BookOpen, FileText, Settings, Plus, Trash2 } from 'lucide-react';
+import { Calendar, Users, BookOpen, FileText, Settings, Plus, Trash2, Award } from 'lucide-react';
 
 const TrainingDashboard = () => {
   const { id } = useParams();
@@ -32,12 +32,27 @@ const TrainingDashboard = () => {
   const [currentClasswork, setCurrentClasswork] = useState(null);
   const [classworkSubmissions, setClassworkSubmissions] = useState([]);
 
+  // New state for certificates
+  const [eligibleLearners, setEligibleLearners] = useState([]);
+  const [processingCert, setProcessingCert] = useState(false);
+
   useEffect(() => {
     fetchTrainingData();
     fetchAllCourses();
     fetchAllQuizzes();
     fetchGradeData();
+    fetchEligibleLearners();
   }, [id]);
+
+  const fetchEligibleLearners = async () => {
+    try {
+      const res = await apiClient.get('/certification/api/certificates/eligible_learners/');
+      const data = res.data || res;
+      setEligibleLearners(data.filter(l => l.program_type === 'training' && l.program_id === Number(id)));
+    } catch (err) {
+      console.error('Failed to fetch eligible learners', err);
+    }
+  };
 
   const fetchGradeData = async () => {
     try {
@@ -166,6 +181,24 @@ const TrainingDashboard = () => {
     }
   };
 
+  const handleIssueCertificate = async (learner) => {
+    if (processingCert) return;
+    setProcessingCert(true);
+    try {
+      await apiClient.post('/certification/api/certificates/', {
+        learner: learner.learner_id,
+        training: learner.program_id,
+        is_issued: true
+      });
+      alert(`Certificate successfully issued to ${learner.learner_name}!`);
+    } catch (err) {
+      console.error(err);
+      alert(`Failed to issue certificate: ${err.response?.data?.detail || err.message}`);
+    } finally {
+      setProcessingCert(false);
+    }
+  };
+
   const location = useLocation();
   const basePath = location.pathname.startsWith('/superadmin') ? '/superadmin/entity' : '/admin';
 
@@ -188,6 +221,7 @@ const TrainingDashboard = () => {
     { id: 'exams', label: 'Final Exams', icon: <FileText size={18} /> },
     { id: 'participants', label: 'Participants', icon: <Users size={18} /> },
     { id: 'grades', label: 'Student Marks', icon: <FileText size={18} /> },
+    { id: 'certificates', label: 'Certificates', icon: <Award size={18} /> },
   ];
 
   return (
@@ -592,6 +626,59 @@ const TrainingDashboard = () => {
           </div>
         )}
       </div>
+
+        {activeTab === 'certificates' && (
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-bold text-slate-800">Eligible Learners for Certificates</h3>
+                <p className="text-sm text-slate-500">Only participants with status COMPLETED appear here.</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider border-b border-slate-200">
+                      <th className="px-6 py-4 font-semibold">Learner Name</th>
+                      <th className="px-6 py-4 font-semibold">Final Score</th>
+                      <th className="px-6 py-4 font-semibold text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {eligibleLearners.length === 0 ? (
+                      <tr>
+                        <td colSpan="3" className="px-6 py-8 text-center text-slate-500">
+                          No eligible learners found for this training. Make sure they are marked as 'COMPLETED'.
+                        </td>
+                      </tr>
+                    ) : (
+                      eligibleLearners.map(learner => (
+                        <tr key={learner.id} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="px-6 py-4">
+                            <p className="text-sm font-medium text-slate-900">{learner.learner_name}</p>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`text-sm font-bold ${learner.score >= 70 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                              {learner.score}%
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <Button
+                              onClick={() => handleIssueCertificate(learner)}
+                              disabled={processingCert}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#153474] text-white text-xs font-medium rounded-lg hover:bg-[#0b1b3d] transition-colors disabled:opacity-50"
+                            >
+                              <Plus size={14} className="mr-1" /> Issue Certificate
+                            </Button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
       {/* Submissions Modal */}
       {submissionModalOpen && (

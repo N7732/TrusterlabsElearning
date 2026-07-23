@@ -44,12 +44,13 @@ const SuperAdminDashboard = () => {
   const [timeFilter, setTimeFilter] = useState('month');
   const [recentActivities, setRecentActivities] = useState([]);
   const [systemAlerts, setSystemAlerts] = useState([]);
+  const [recentVisitors, setRecentVisitors] = useState([]);
 
   useEffect(() => {
     // Quick fetches to get counts
     const fetchStats = async () => {
       try {
-        const [cRes, mRes, lRes, eRes, dashboardStats, notificationsRes, alertsRes, lRes2, iRes] = await Promise.all([
+        const [cRes, mRes, lRes, eRes, dashboardStats, notificationsRes, alertsRes, lRes2, iRes, visitorsRes] = await Promise.all([
           apiClient.get('/api/courses/').catch(() => null),
           apiClient.get('/api/modules/').catch(() => null),
           apiClient.get('/api/lessons/').catch(() => null),
@@ -59,6 +60,7 @@ const SuperAdminDashboard = () => {
           apiClient.get('/settings/system-alerts/').catch(() => null),
           apiClient.get('/auth/api/learners/').catch(() => null),
           apiClient.get('/auth/api/instructors/').catch(() => null),
+          apiClient.get('/settings/site-visitors/').catch(() => null),
         ]);
         
         setStats({
@@ -95,12 +97,18 @@ const SuperAdminDashboard = () => {
         
         if (notificationsRes) {
           const notifs = notificationsRes.results || notificationsRes.data?.results || (Array.isArray(notificationsRes.data) ? notificationsRes.data : (Array.isArray(notificationsRes) ? notificationsRes : []));
-          setRecentActivities(notifs.slice(0, 5));
+          // Limit to 4 recent activities as requested (FIFO principle where old ones are removed)
+          setRecentActivities(notifs.slice(0, 4));
         }
         
         if (alertsRes) {
           const alerts = alertsRes.data || (Array.isArray(alertsRes) ? alertsRes : []);
           setSystemAlerts(alerts);
+        }
+        
+        if (visitorsRes) {
+          const visitors = visitorsRes.results || visitorsRes.data?.results || (Array.isArray(visitorsRes.data) ? visitorsRes.data : (Array.isArray(visitorsRes) ? visitorsRes : []));
+          setRecentVisitors(visitors);
         }
       } catch (error) {
         console.error("Failed to load stats", error);
@@ -511,6 +519,44 @@ const SuperAdminDashboard = () => {
           </CardContent>
         </Card>
 
+      </div>
+
+      {/* Website Visitors */}
+      <div className="mt-6">
+        <Card className="border border-slate-100 shadow-sm rounded-xl bg-white flex flex-col">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-bold text-slate-800">Recent Website Visitors</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="text-xs text-slate-500 bg-slate-50 uppercase border-b border-slate-100">
+                  <tr>
+                    <th className="px-4 py-3 font-semibold rounded-tl-lg">IP Address</th>
+                    <th className="px-4 py-3 font-semibold">Path Visited</th>
+                    <th className="px-4 py-3 font-semibold">Device / User Agent</th>
+                    <th className="px-4 py-3 font-semibold rounded-tr-lg">Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentVisitors.slice(0, 10).map((visitor) => (
+                    <tr key={visitor.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                      <td className="px-4 py-3 font-medium text-slate-700">{visitor.ip_address || 'Unknown'}</td>
+                      <td className="px-4 py-3 text-slate-600 truncate max-w-xs">{visitor.path || '/'}</td>
+                      <td className="px-4 py-3 text-slate-500 truncate max-w-sm">{visitor.user_agent ? visitor.user_agent.substring(0, 50) + (visitor.user_agent.length > 50 ? '...' : '') : 'Unknown'}</td>
+                      <td className="px-4 py-3 text-slate-500">{new Date(visitor.visited_date).toLocaleDateString()}</td>
+                    </tr>
+                  ))}
+                  {recentVisitors.length === 0 && (
+                    <tr>
+                      <td colSpan="4" className="px-4 py-8 text-center text-slate-500">No recent visitors logged.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -564,6 +564,15 @@ const SuperAdminEntityList = () => {
                               <Users size={16} />
                             </button>
                           )}
+                          {entityId === 'trainings' && (
+                            <button
+                              onClick={() => navigate(`${basePath}/trainings/${item.id}/dashboard`)}
+                              className="p-1.5 text-blue-600 hover:bg-blue-50 hover:text-blue-700 rounded transition-colors"
+                              title="View Training Dashboard"
+                            >
+                              <Eye size={16} />
+                            </button>
+                          )}
                           {((config.canUpdate || config.canEdit) && (viewMode === 'my' || !isInstructor)) && (
                             <button
                               onClick={() => navigate(`${basePath}/${entityId}/${item.id}`)}
