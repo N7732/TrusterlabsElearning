@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Partner, ContactMessage, SystemLog, SiteSetting, Notification, StaffMember, EmailTemplate
+from .models import Partner, ContactMessage, SystemLog, SiteSetting, Notification, StaffMember, EmailTemplate, SiteVisitor
 
 class PartnerSerializer(serializers.ModelSerializer):
     class Meta:
@@ -43,4 +43,9 @@ class StaffMemberSerializer(serializers.ModelSerializer):
 class EmailTemplateSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmailTemplate
+        fields = '__all__'
+
+class SiteVisitorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SiteVisitor
         fields = '__all__'

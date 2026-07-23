@@ -104,6 +104,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'SuperSetting.middleware.AuditLogMiddleware',  # Automatically logs system actions
+    'SuperSetting.middleware.VisitorTrackingMiddleware',  # Tracks website visitors
 ]
 
 ROOT_URLCONF = 'CMS.urls'

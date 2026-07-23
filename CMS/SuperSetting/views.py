@@ -12,7 +12,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAdminUser
 from Auth.permissions import IsSuperAdminOrAdmin
 # pyrefly: ignore [missing-import]
-from .models import Partner, ContactMessage, SystemLog, SiteSetting, Notification, StaffMember, EmailTemplate
+from .models import Partner, ContactMessage, SystemLog, SiteSetting, Notification, StaffMember, EmailTemplate, SiteVisitor
 # pyrefly: ignore [missing-import]
 from .serializers import (
     PartnerSerializer,
@@ -21,7 +21,8 @@ from .serializers import (
     SiteSettingSerializer,
     NotificationSerializer,
     StaffMemberSerializer,
-    EmailTemplateSerializer
+    EmailTemplateSerializer,
+    SiteVisitorSerializer
 )
 
 class PartnerViewSet(viewsets.ModelViewSet):
@@ -316,3 +317,8 @@ class EmailTemplateViewSet(viewsets.ModelViewSet):
         threading.Thread(target=dispatch_emails).start()
         
         return Response({"message": f"Emails queued for sending to {len(emails)} recipient(s)."})
+
+class SiteVisitorViewSet(viewsets.ModelViewSet):
+    queryset = SiteVisitor.objects.all().order_by('-created_at')
+    serializer_class = SiteVisitorSerializer
+    permission_classes = [IsSuperAdminOrAdmin]
