@@ -152,7 +152,7 @@ const PartnerForm = ({ isEditing, partnerId }) => {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-slate-700 mb-2">Or Logo URL (Google Drive link)</label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Or Logo URL (Cloudinary link)</label>
                 <input
                   type="url"
                   name="logo_url"
