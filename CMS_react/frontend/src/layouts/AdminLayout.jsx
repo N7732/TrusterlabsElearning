@@ -80,7 +80,7 @@ const AdminLayout = () => {
   const settingsItems = [
     { path: '/admin/partners', label: 'Partners', icon: <Package size={18} /> },
     { path: '/admin/contact_messages', label: 'Contact Messages', icon: <MessageSquare size={18} /> },
-    { path: '/admin/site_settings', label: 'Site Settings', icon: <AlignLeft size={18} /> },
+    { path: '/admin/site_settings/1', label: 'Site Settings', icon: <AlignLeft size={18} /> },
     { path: '/admin/staff_members', label: 'Staff Members', icon: <Users size={18} /> },
     { path: '/admin/system_logs', label: 'System Logs', icon: <LayoutDashboard size={18} /> },
   ];

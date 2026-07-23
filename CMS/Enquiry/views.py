@@ -135,7 +135,7 @@ class RequirementViewSet(viewsets.ModelViewSet):
                 
         learner = getattr(user_to_enroll, 'learner_profile', None)
         if not learner:
-            learner = Learner.objects.create(user=user_to_enroll)
+            learner = Learner.objects.create(user=user_to_enroll, email=user_to_enroll.email)
             
         Enrollment.objects.get_or_create(
             learner=learner, 
@@ -179,3 +179,20 @@ class RequirementViewSet(viewsets.ModelViewSet):
         
         return Response({'message': 'Student successfully enrolled!'}, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['post'])
+    @transaction.atomic
+    def reject_inquiry(self, request, pk=None):
+        inquiry = self.get_object()
+        if inquiry.status == 'rejected':
+            return Response({'message': 'Already rejected.'}, status=status.HTTP_200_OK)
+        
+        inquiry.status = 'rejected'
+        inquiry.save()
+        
+        if inquiry.user and hasattr(inquiry.user, 'learner_profile') and inquiry.course:
+            enrollment = Enrollment.objects.filter(learner=inquiry.user.learner_profile, course=inquiry.course).first()
+            if enrollment:
+                enrollment.status = 'dropped'
+                enrollment.save()
+                
+        return Response({'message': 'Inquiry rejected and enrollment dropped.'}, status=status.HTTP_200_OK)

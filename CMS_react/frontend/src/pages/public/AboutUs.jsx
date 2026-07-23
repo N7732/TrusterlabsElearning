@@ -140,7 +140,7 @@ const AboutUs = () => {
               <div key={member.id} className="bg-[#111827] border border-white/5 rounded-xl overflow-hidden group hover:border-[#D4AF37]/50 transition-colors duration-300">
                 <div className="h-64 bg-slate-800 relative overflow-hidden">
                   <img 
-                    src={member.photo ? getImageUrl(member.photo) : image2} 
+                    src={member.photo_url ? getImageUrl(member.photo_url) : (member.photo ? getImageUrl(member.photo) : image2)} 
                     alt={member.name} 
                     className="w-full h-full object-cover grayscale opacity-70 group-hover:grayscale-0 group-hover:scale-105 transition-all duration-500" 
                   />

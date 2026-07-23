@@ -29,6 +29,11 @@ const SuperAdminEntityList = () => {
   const [bulkEmails, setBulkEmails] = useState('');
   const [bulkCourseId, setBulkCourseId] = useState('');
 
+  // Delete Confirmation specific state
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [deleteInput, setDeleteInput] = useState('');
+
   // Filtering state
   const [filterData, setFilterData] = useState({ courses: [], modules: [], quizzes: [] });
   const [selectedCourse, setSelectedCourse] = useState(localStorage.getItem('truster_filter_course') || '');
@@ -224,15 +229,27 @@ const SuperAdminEntityList = () => {
     return filtered;
   }, [data, selectedCourse, selectedModule, selectedQuiz, filterData, entityId]);
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this item?')) {
-      try {
-        await apiClient.delete(`${config.endpoint}${id}/`);
-        fetchData();
-      } catch (err) {
-        console.error('Failed to delete', err);
-        alert('Failed to delete item.');
+  const handleDelete = (id) => {
+    const item = data.find(d => d.id === id);
+    if (entityId === 'courses' && item) {
+      setItemToDelete(item);
+      setDeleteInput('');
+      setDeleteModalOpen(true);
+    } else {
+      if (window.confirm('Are you sure you want to delete this item?')) {
+        executeDelete(id);
       }
+    }
+  };
+
+  const executeDelete = async (id) => {
+    try {
+      await apiClient.delete(`${config.endpoint}${id}/`);
+      fetchData();
+      setDeleteModalOpen(false);
+    } catch (err) {
+      console.error('Failed to delete', err);
+      alert('Failed to delete item.');
     }
   };
 
@@ -243,6 +260,27 @@ const SuperAdminEntityList = () => {
     } catch (err) {
       console.error(`Failed to toggle ${field}`, err);
       alert('Failed to update status.');
+    }
+  };
+
+  const handleStatusChange = async (item, field, newValue) => {
+    try {
+      if (entityId === 'enquiries' && field === 'status') {
+        if (newValue === 'enrolled') {
+          await apiClient.post(`/enquiry/${item.id}/enroll_student/`);
+        } else if (newValue === 'rejected') {
+          await apiClient.post(`/enquiry/${item.id}/reject_inquiry/`);
+        } else {
+          await apiClient.patch(`${config.endpoint}${item.id}/`, { [field]: newValue });
+        }
+      } else {
+        await apiClient.patch(`${config.endpoint}${item.id}/`, { [field]: newValue });
+      }
+      fetchData(); // Refresh list
+    } catch (err) {
+      console.error(`Failed to update ${field}`, err);
+      alert(err.message || 'Failed to update status.');
+      fetchData(); // Revert select value on fail
     }
   };
 
@@ -262,7 +300,7 @@ const SuperAdminEntityList = () => {
         fetchData(); // refresh list
       } catch (err) {
         console.error('Custom action failed', err);
-        alert('Action failed.');
+        alert(err.message || 'Action failed.');
       }
     }
   };
@@ -487,6 +525,30 @@ const SuperAdminEntityList = () => {
                           );
                         }
 
+                        if (col.type === 'select') {
+                          const currentOpt = col.options?.find(opt => opt.value === val) || {};
+                          let colorClasses = 'bg-slate-100 text-slate-800';
+                          if (currentOpt.color === 'yellow') colorClasses = 'bg-yellow-100 text-yellow-800';
+                          else if (currentOpt.color === 'green') colorClasses = 'bg-green-100 text-green-800';
+                          else if (currentOpt.color === 'red') colorClasses = 'bg-red-100 text-red-800';
+                          
+                          return (
+                            <td key={col.field} className="py-4 px-6 text-sm">
+                              <select
+                                value={val || ''}
+                                onChange={(e) => handleStatusChange(item, col.field, e.target.value)}
+                                className={`px-2 py-1 rounded text-xs font-bold uppercase cursor-pointer outline-none border-0 ${colorClasses}`}
+                              >
+                                {col.options?.map(opt => (
+                                  <option key={opt.value} value={opt.value} className="bg-white text-black capitalize">
+                                    {opt.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </td>
+                          );
+                        }
+
                         let displayVal = val;
                         if (typeof val === 'boolean') {
                           displayVal = val ? 'Yes' : 'No';
@@ -524,7 +586,7 @@ const SuperAdminEntityList = () => {
                             <button
                               key={idx}
                               onClick={() => handleCustomAction(item, actionCfg)}
-                              className="text-sm font-medium text-[#3E8E41] hover:text-green-800 transition-colors"
+                              className="px-3 py-1.5 text-xs font-bold bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors shadow-sm"
                             >
                               {actionCfg.label}
                             </button>
@@ -670,6 +732,41 @@ const SuperAdminEntityList = () => {
         entityId={reuseEntity.id}
         entityTitle={reuseEntity.title}
       />
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && itemToDelete && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl">
+            <h3 className="text-xl font-bold mb-2 text-slate-800">Delete Course</h3>
+            <p className="text-sm text-slate-600 mb-4">
+              This action cannot be undone. This will permanently delete the course <strong className="font-bold text-black">{itemToDelete.title}</strong> and all associated data.
+            </p>
+            <div className="mb-6">
+              <label className="block text-sm font-medium mb-2 text-slate-700">
+                Please type <strong className="bg-slate-100 p-1 rounded font-mono text-red-600 select-all">{itemToDelete.title} delete</strong> to confirm.
+              </label>
+              <input 
+                type="text" 
+                value={deleteInput} 
+                onChange={(e) => setDeleteInput(e.target.value)} 
+                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                placeholder="Type to confirm..."
+                autoFocus
+              />
+            </div>
+            <div className="flex justify-end gap-3">
+              <Button variant="secondary" onClick={() => setDeleteModalOpen(false)}>Cancel</Button>
+              <Button 
+                onClick={() => executeDelete(itemToDelete.id)} 
+                disabled={deleteInput !== `${itemToDelete.title} delete`}
+                className={`bg-red-600 hover:bg-red-700 text-white ${deleteInput !== `${itemToDelete.title} delete` ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
