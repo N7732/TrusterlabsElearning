@@ -2,8 +2,10 @@ asgiref>=3.7.0
 certifi
 cffi
 charset-normalizer
+cloudinary
 cryptography
 Django==5.0.6
+django-cloudinary-storage
 django-cors-headers>=4.3.0
 django-filter>=23.5,<25.0
 djangorestframework>=3.14.0
