@@ -195,20 +195,20 @@ export const adminConfig = {
       { field: 'user_name', label: 'User' },
       { field: 'email', label: 'Email' },
       { field: 'course_title', label: 'Course' },
-      { field: 'status', label: 'Status' },
+      { 
+        field: 'status', 
+        label: 'Status',
+        type: 'select',
+        options: [
+          { value: 'pending', label: 'Pending', color: 'yellow' },
+          { value: 'enrolled', label: 'Enrolled', color: 'green' },
+          { value: 'rejected', label: 'Rejected', color: 'red' }
+        ]
+      },
     ],
-    canCreate: true,
-    canEdit: true,
+    canCreate: false,
+    canEdit: false,
     canDelete: true,
-    customActions: [
-      {
-        label: 'Enroll',
-        actionType: 'api',
-        apiEndpoint: (id) => `/enquiry/${id}/enroll_student/`,
-        method: 'POST',
-        showIf: (item) => item.status === 'pending'
-      }
-    ]
   },
   trainings: {
     label: 'Training Sessions',
@@ -315,6 +315,7 @@ export const adminConfig = {
       { field: 'facebook_url', label: 'Facebook URL', type: 'url' },
       { field: 'twitter_url', label: 'Twitter URL', type: 'url' },
       { field: 'linkedin_url', label: 'LinkedIn URL', type: 'url' },
+      { field: 'navbar_logo', label: 'Navbar Logo', type: 'image' },
     ],
     canCreate: true,
     canEdit: true,
@@ -332,7 +333,8 @@ export const adminConfig = {
     formFields: [
       { field: 'name', label: 'Name', type: 'text' },
       { field: 'position', label: 'Position', type: 'text' },
-      { field: 'photo', label: 'Photo', type: 'image' },
+      { field: 'photo', label: 'Upload Photo', type: 'image' },
+      { field: 'photo_url', label: 'Or Photo URL (Drive link)', type: 'url' },
       { field: 'bio', label: 'Bio', type: 'textarea' },
       { field: 'is_active', label: 'Is Active', type: 'boolean' },
     ],
@@ -422,14 +424,14 @@ export const adminConfig = {
       { field: 'phone_number', label: 'Phone' },
     ],
     formFields: [
-      { field: 'Fullname', label: 'Full Name', type: 'text' },
-      { field: 'email', label: 'Email', type: 'email' },
-      { field: 'phone_number', label: 'Phone', type: 'text' },
-      { field: 'Where_heard_about_us', label: 'Source', type: 'text' },
+      { field: 'Fullname', label: 'Full Name', type: 'text', readOnly: true },
+      { field: 'email', label: 'Email', type: 'email', readOnly: true },
+      { field: 'phone_number', label: 'Phone', type: 'text', readOnly: true },
+      { field: 'Where_heard_about_us', label: 'Source', type: 'text', readOnly: true },
       { field: 'duration_days', label: 'Duration (Days)', type: 'number' },
-      { field: 'description', label: 'Description', type: 'textarea' },
+      { field: 'description', label: 'Description', type: 'textarea', readOnly: true },
     ],
-    canCreate: true,
+    canCreate: false,
     canEdit: true,
     canDelete: true,
     canBulkUpload: true,

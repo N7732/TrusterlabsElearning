@@ -100,11 +100,11 @@ const ResearchWebinars = () => {
           ) : webinars.length > 0 ? (
             webinars.map((webinar) => (
               <div key={webinar.id} className="bg-[#111827] rounded-xl border border-white/10 overflow-hidden group hover:border-[#D4AF37]/30 transition-colors flex flex-col h-full">
-                <div className="h-48 relative overflow-hidden bg-slate-800">
+                <div className="h-48 overflow-hidden relative group">
                   <img 
-                    src={webinar.thumbnail ? webinar.thumbnail : (webinar.thumbnail_url ? webinar.thumbnail_url : image2)} 
+                    src={webinar.thumbnail ? getImageUrl(webinar.thumbnail) : (webinar.thumbnail_url ? getImageUrl(webinar.thumbnail_url) : image2)} 
                     alt={webinar.title} 
-                    className="w-full h-full object-cover opacity-60 group-hover:scale-105 group-hover:opacity-80 transition-all duration-500" 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 flex items-center justify-center">
                     <PlayCircle size={48} className="text-white/70 group-hover:text-[#D4AF37] transition-colors" />

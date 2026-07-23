@@ -123,7 +123,17 @@ export const apiClient = new APIClient(BASE_URL);
 
 export const getImageUrl = (path) => {
   if (!path) return "https://images.unsplash.com/photo-1573164713988-8665fc963095?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80";
-  if (path.startsWith('http')) return path;
+  
+  if (path.startsWith('http')) {
+    // Check if it's a Google Drive link that needs converting to direct view link
+    if (path.includes('drive.google.com/file/d/')) {
+      const match = path.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      if (match && match[1]) {
+        return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+      }
+    }
+    return path;
+  }
   
   const cleanBase = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
   const cleanPath = path.startsWith('/') ? path : `/${path}`;

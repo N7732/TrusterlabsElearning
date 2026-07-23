@@ -16,6 +16,25 @@ const Navbar = () => {
   const [mobileResearchOpen, setMobileResearchOpen] = useState(false);
   const [mobileAboutOpen, setMobileAboutOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const [settings, setSettings] = useState(null);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const data = await apiClient.get('/settings/site-settings/');
+        if (data && !data.results && !Array.isArray(data)) {
+          setSettings(data);
+        } else if (data.results && data.results.length > 0) {
+          setSettings(data.results[0]);
+        } else if (Array.isArray(data) && data.length > 0) {
+          setSettings(data[0]);
+        }
+      } catch (err) {
+        console.error('Failed to fetch site settings:', err);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   const isCoursePlayer = location.pathname.startsWith('/course/');
   
@@ -70,7 +89,7 @@ const Navbar = () => {
             )}
             <Link to="/" className="flex items-center group py-2 relative z-50">
               <div className="flex items-center justify-center">
-                <img src={logo} alt="Truster Lab" className="h-10 md:h-12 w-auto object-contain rounded" />
+                <img src={settings?.navbar_logo || logo} alt={settings?.company_name || "Truster Lab"} className="h-10 md:h-12 w-auto object-contain rounded" />
               </div>
             </Link>
           </div>

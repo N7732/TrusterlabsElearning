@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Download, Share2, CheckCircle, ArrowLeft, ShieldCheck, User, Mail, Calendar, BookOpen, Award } from 'lucide-react';
 import { apiClient } from '../../api/apiClient';
 import CertificateTemplate from '../../components/common/CertificateTemplate';
+import html2pdf from 'html2pdf.js';
 
 const CertificateView = () => {
   const { code } = useParams();
@@ -31,8 +32,33 @@ const CertificateView = () => {
     }
   };
 
-  const handlePrint = () => {
-    window.print();
+  const handleDownloadPDF = () => {
+    const element = document.getElementById('certificate-container');
+    if (!element) return;
+    
+    const opt = {
+      margin:       0,
+      filename:     `Certificate-${certificate?.certificate_id || code}.pdf`,
+      image:        { type: 'jpeg', quality: 1.0 },
+      html2canvas:  { 
+        scale: 2, 
+        useCORS: true,
+        logging: false,
+        onclone: (doc) => {
+          // Force the scaler to 100% size for perfect PDF generation regardless of screen size
+          const scaler = doc.querySelector('.certificate-scaler');
+          const cert = doc.querySelector('.certificate');
+          if (scaler && cert) {
+            scaler.style.width = '1123px';
+            scaler.style.height = '794px';
+            cert.style.transform = 'scale(1)';
+          }
+        }
+      },
+      jsPDF:        { unit: 'px', format: [1123, 794], orientation: 'landscape' }
+    };
+
+    html2pdf().set(opt).from(element).save();
   };
 
   const handleCopyLink = () => {
@@ -110,7 +136,7 @@ const CertificateView = () => {
               Share on LinkedIn
             </button>
             <button 
-              onClick={handlePrint}
+              onClick={handleDownloadPDF}
               className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-black transition-colors"
             >
               <Download size={16} />

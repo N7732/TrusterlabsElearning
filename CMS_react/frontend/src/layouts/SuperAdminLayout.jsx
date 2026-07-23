@@ -66,7 +66,7 @@ const SuperAdminLayout = () => {
   const settingsItems = [
     { path: '/superadmin/entity/partners', label: 'Partners', icon: <Briefcase size={18} /> },
     { path: '/superadmin/entity/contact_messages', label: 'Contact Messages', icon: <MessageSquare size={18} /> },
-    { path: '/superadmin/entity/site_settings', label: 'Site Settings', icon: <Settings size={18} /> },
+    { path: '/superadmin/entity/site_settings/1', label: 'Site Settings', icon: <Settings size={18} /> },
     { path: '/superadmin/entity/staff_members', label: 'Staff Members', icon: <Users size={18} /> },
     { path: '/superadmin/entity/system_logs', label: 'System Logs', icon: <Monitor size={18} /> },
   ];

@@ -10,7 +10,7 @@ class Requrement(models.Model):
     phone_number = models.CharField(max_length=12, blank=True, null=True)
     email = models.EmailField(max_length=100, blank=True, null=True)
     course = models.ForeignKey('Course.Course', on_delete=models.CASCADE, null=True, blank=True)
-    status = models.CharField(max_length=20, default='pending', choices=[('pending', 'Pending'), ('enrolled', 'Enrolled')])
+    status = models.CharField(max_length=20, default='pending', choices=[('pending', 'Pending'), ('enrolled', 'Enrolled'), ('rejected', 'Rejected')])
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):

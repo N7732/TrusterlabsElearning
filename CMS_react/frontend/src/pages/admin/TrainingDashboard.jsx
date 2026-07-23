@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { apiClient } from '../../api/apiClient';
 import Card, { CardContent } from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import { Calendar, Users, BookOpen, FileText, Settings, Plus, Trash2, Award } from 'lucide-react';
+import { Calendar, Users, BookOpen, FileText, Settings, Plus, Trash2, Award, ArrowLeft } from 'lucide-react';
 
 const TrainingDashboard = () => {
   const { id } = useParams();
@@ -227,9 +227,18 @@ const TrainingDashboard = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">{training.title}</h1>
-          <p className="text-slate-500 mt-1">Training Dashboard</p>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate(`${basePath}/trainings`)}
+            className="p-2 text-slate-500 hover:text-[#0A66C2] hover:bg-blue-50 rounded-lg transition-colors border border-slate-200"
+            title="Back to Trainings"
+          >
+            <ArrowLeft size={20} />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">{training.title}</h1>
+            <p className="text-slate-500 mt-1">Training Dashboard</p>
+          </div>
         </div>
         <Button onClick={() => navigate(`${basePath}/trainings/${id}`)} variant="outline" className="flex items-center">
           <Settings size={18} className="mr-2" /> Settings

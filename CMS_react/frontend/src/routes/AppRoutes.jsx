@@ -77,7 +77,7 @@ const AppRoutes = () => {
                 <Route path="dashboard" element={<SuperAdminDashboard />} />
                 <Route path="entity/certificates/overview" element={<CertificateOverview />} />
                 <Route path="entity/certificates/offer" element={<OfferCertificates />} />
-                <Route path="trainings/:id/dashboard" element={<TrainingDashboard />} />
+                <Route path="entity/trainings/:id/dashboard" element={<TrainingDashboard />} />
                 <Route path="entity/:entityId" element={<SuperAdminEntityList />} />
                 <Route path="entity/:entityId/:id" element={<SuperAdminEntityForm />} />
               </Route>
@@ -99,6 +99,7 @@ const AppRoutes = () => {
               <Route path="/instructor" element={<InstructorLayout />}>
                 <Route index element={<InstructorDashboard />} />
                 <Route path="dashboard" element={<InstructorDashboard />} />
+                <Route path="entity/trainings/:id/dashboard" element={<TrainingDashboard />} />
                 <Route path="entity/:entityId" element={<SuperAdminEntityList />} />
                 <Route path="entity/:entityId/:id" element={<SuperAdminEntityForm />} />
               </Route>

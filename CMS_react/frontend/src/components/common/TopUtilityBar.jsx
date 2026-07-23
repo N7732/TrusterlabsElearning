@@ -9,10 +9,12 @@ const TopUtilityBar = () => {
     const fetchSettings = async () => {
       try {
         const data = await apiClient.get('/settings/site-settings/');
-        // Handle both pagination format and direct array format
-        const items = data.results ? data.results : data;
-        if (items && items.length > 0) {
-          setSettings(items[0]);
+        if (data && !data.results && !Array.isArray(data)) {
+          setSettings(data);
+        } else if (data.results && data.results.length > 0) {
+          setSettings(data.results[0]);
+        } else if (Array.isArray(data) && data.length > 0) {
+          setSettings(data[0]);
         }
       } catch (err) {
         console.error('Failed to fetch site settings:', err);

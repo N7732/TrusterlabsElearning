@@ -129,6 +129,7 @@ const GenericForm = ({ entityId, itemId, isEditing }) => {
                 const isDate = field.type === 'date' || field.field.includes('date');
                 const isImage = field.type === 'image';
                 const isTextarea = field.type === 'textarea';
+                const isReadOnly = field.readOnly || (isEditing && field.readOnlyOnEdit);
                 
                 if (isBoolean) {
                   return (
@@ -139,7 +140,8 @@ const GenericForm = ({ entityId, itemId, isEditing }) => {
                         name={field.field}
                         checked={formData[field.field] || false}
                         onChange={handleChange}
-                        className="h-5 w-5 rounded border-slate-300 text-[#0A66C2] focus:ring-[#0A66C2]"
+                        disabled={isReadOnly}
+                        className={`h-5 w-5 rounded border-slate-300 text-[#0A66C2] focus:ring-[#0A66C2] ${isReadOnly ? 'bg-slate-100 cursor-not-allowed opacity-60' : ''}`}
                       />
                       <label htmlFor={field.field} className="text-sm font-medium text-slate-700">
                         {field.label}
@@ -180,8 +182,9 @@ const GenericForm = ({ entityId, itemId, isEditing }) => {
                         name={field.field}
                         value={formData[field.field] || ''}
                         onChange={handleChange}
+                        readOnly={isReadOnly}
                         rows={4}
-                        className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A66C2] transition-all"
+                        className={`w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A66C2] transition-all ${isReadOnly ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : ''}`}
                       ></textarea>
                     </div>
                   );
@@ -197,7 +200,8 @@ const GenericForm = ({ entityId, itemId, isEditing }) => {
                         name={field.field}
                         value={formData[field.field] || ''}
                         onChange={handleChange}
-                        className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A66C2] bg-white transition-all"
+                        disabled={isReadOnly}
+                        className={`w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A66C2] transition-all ${isReadOnly ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`}
                       >
                         <option value="">Select an option</option>
                         {field.options.map(opt => (
@@ -211,8 +215,6 @@ const GenericForm = ({ entityId, itemId, isEditing }) => {
                 let inputType = 'text';
                 if (isDate) inputType = 'date';
                 if (field.type) inputType = field.type;
-
-                const isReadOnly = isEditing && field.readOnlyOnEdit;
 
                 return (
                   <div key={field.field}>

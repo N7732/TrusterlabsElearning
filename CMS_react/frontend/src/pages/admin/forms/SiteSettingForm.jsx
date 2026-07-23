@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { apiClient } from '../../../api/apiClient';
-import Card, { CardContent } from '../../../components/common/Card';
-import Button from '../../../components/common/Button';
+import { apiClient, getImageUrl } from '../../../api/apiClient';
+import { Settings, Phone, Share2, Save, ArrowLeft, Image as ImageIcon, ChevronUp, FileText } from 'lucide-react';
 
 const SiteSettingForm = ({ isEditing, settingId }) => {
   const navigate = useNavigate();
@@ -13,8 +12,12 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
     location_address: '',
     facebook_url: '',
     twitter_url: '',
-    linkedin_url: ''
+    linkedin_url: '',
+    navbar_logo: null
   });
+  
+  const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState(null);
   const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -22,6 +25,8 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
   useEffect(() => {
     if (isEditing && settingId) {
       fetchSettingData();
+    } else {
+      setLoading(false);
     }
   }, [isEditing, settingId]);
 
@@ -36,7 +41,8 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
         location_address: res.location_address || '',
         facebook_url: res.facebook_url || '',
         twitter_url: res.twitter_url || '',
-        linkedin_url: res.linkedin_url || ''
+        linkedin_url: res.linkedin_url || '',
+        navbar_logo: res.navbar_logo || null
       });
     } catch (err) {
       console.error(err);
@@ -54,16 +60,37 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
     }));
   };
 
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setLogoFile(file);
+      setLogoPreview(URL.createObjectURL(file));
+    }
+  };
+
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setSaving(true);
     setError(null);
 
     try {
+      const data = new FormData();
+      data.append('company_name', formData.company_name);
+      data.append('contact_email', formData.contact_email);
+      data.append('contact_phone', formData.contact_phone);
+      data.append('location_address', formData.location_address);
+      data.append('facebook_url', formData.facebook_url);
+      data.append('twitter_url', formData.twitter_url);
+      data.append('linkedin_url', formData.linkedin_url);
+      
+      if (logoFile) {
+        data.append('navbar_logo', logoFile);
+      }
+
       if (isEditing) {
-        await apiClient.put(`/settings/site-settings/${settingId}/`, formData);
+        await apiClient.put(`/settings/site-settings/${settingId}/`, data);
       } else {
-        await apiClient.post('/settings/site-settings/', formData);
+        await apiClient.post('/settings/site-settings/', data);
       }
       navigate(-1);
     } catch (err) {
@@ -77,116 +104,224 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
   if (loading) {
     return (
       <div className="p-12 flex justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3E8E41]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0A66C2]"></div>
       </div>
     );
   }
 
+  // Common input classes
+  const inputClass = "w-full p-2 border border-slate-200 rounded focus:outline-none focus:border-[#0A66C2] focus:ring-1 focus:ring-[#0A66C2] text-sm text-slate-700 bg-white";
+  const labelClass = "block text-sm text-slate-600 w-1/3 min-w-[120px] pt-2";
+  const rowClass = "flex flex-col sm:flex-row gap-2 sm:gap-6 pb-4 border-b border-slate-100 last:border-0 last:pb-0";
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-slate-800">
-          {isEditing ? 'Edit Site Settings' : 'Site Settings'}
-        </h2>
-        <Button variant="outline" onClick={() => navigate(-1)}>Cancel</Button>
+    <div className="max-w-7xl mx-auto pb-12">
+      {/* Header section identical to screenshot */}
+      <div className="flex justify-between items-center bg-white p-4 mb-6 shadow-sm border-b border-slate-200 sticky top-0 z-10">
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate(-1)} className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors">
+            <ArrowLeft size={20} />
+          </button>
+          <h2 className="text-xl font-medium text-slate-800 hidden sm:flex items-center gap-2">
+            <span className="text-slate-400">≡</span> Website Settings
+          </h2>
+        </div>
+        <button 
+          onClick={handleSubmit} 
+          disabled={saving} 
+          className="flex items-center gap-2 bg-[#2D6AE0] hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors shadow-sm disabled:opacity-70"
+        >
+          <Save size={16} />
+          {saving ? 'Saving...' : 'Save Changes'}
+        </button>
       </div>
 
-      <Card>
-        <CardContent>
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700">
-              {error}
-            </div>
-          )}
+      {error && (
+        <div className="mb-6 mx-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded shadow-sm">
+          {error}
+        </div>
+      )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Company Name</label>
+      {/* Grid Layout matching screenshot */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 px-6">
+        
+        {/* Panel 1: General Information */}
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 h-fit">
+          <div className="flex justify-between items-center p-4 border-b border-slate-100">
+            <div className="flex items-center gap-2 text-slate-700 font-medium">
+              <FileText size={16} className="text-[#2D6AE0]" />
+              <span>General Information</span>
+            </div>
+            <ChevronUp size={16} className="text-slate-400" />
+          </div>
+          <div className="p-5 space-y-5">
+            <div className={rowClass}>
+              <label className={labelClass}>Website Name</label>
+              <div className="flex-1">
                 <input
                   type="text"
                   name="company_name"
                   value={formData.company_name}
                   onChange={handleChange}
-                  className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A66C2]"
+                  className={inputClass}
+                  placeholder="e.g. Trusterlabs Academy"
                 />
               </div>
+            </div>
+            
+            <div className={rowClass}>
+              <label className={labelClass}>Website Logo</label>
+              <div className="flex-1">
+                <div className="flex items-center gap-4 p-2 border border-slate-200 rounded-md">
+                  <div className="w-10 h-10 flex items-center justify-center overflow-hidden shrink-0">
+                    {logoPreview || formData.navbar_logo ? (
+                      <img 
+                        src={logoPreview || getImageUrl(formData.navbar_logo)} 
+                        alt="Logo" 
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    ) : (
+                      <ImageIcon className="text-slate-300" size={24} />
+                    )}
+                  </div>
+                  <div className="flex-1 font-medium text-sm">Trusterlabs Academy</div>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleFileChange}
+                    className="hidden" 
+                    id="logo-upload"
+                  />
+                  <label 
+                    htmlFor="logo-upload" 
+                    className="cursor-pointer bg-[#2D6AE0] text-white px-3 py-1 rounded text-xs font-medium hover:bg-blue-700"
+                  >
+                    Change
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Contact Email</label>
+        {/* Panel 2: Contact Information */}
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 h-fit">
+          <div className="flex justify-between items-center p-4 border-b border-slate-100">
+            <div className="flex items-center gap-2 text-slate-700 font-medium">
+              <Phone size={16} className="text-[#2D6AE0]" />
+              <span>Contact Information</span>
+            </div>
+            <ChevronUp size={16} className="text-slate-400" />
+          </div>
+          <div className="p-5 space-y-5">
+            <div className={rowClass}>
+              <label className={labelClass}>Primary Email</label>
+              <div className="flex-1">
                 <input
                   type="email"
                   name="contact_email"
                   value={formData.contact_email}
                   onChange={handleChange}
-                  className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A66C2]"
+                  className={inputClass}
+                  placeholder="e.g. info@domain.com"
                 />
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Contact Phone</label>
+            </div>
+            
+            <div className={rowClass}>
+              <label className={labelClass}>Primary Phone Number</label>
+              <div className="flex-1">
                 <input
                   type="text"
                   name="contact_phone"
                   value={formData.contact_phone}
                   onChange={handleChange}
-                  className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A66C2]"
+                  className={inputClass}
+                  placeholder="e.g. +250 788 123 456"
                 />
               </div>
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Location Address</label>
+            <div className={rowClass}>
+              <label className={labelClass}>Office Address</label>
+              <div className="flex-1">
                 <textarea
                   name="location_address"
                   value={formData.location_address}
                   onChange={handleChange}
-                  rows="3"
-                  className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A66C2]"
+                  rows="2"
+                  className={inputClass}
+                  placeholder="e.g. KG 541 St, Nyarugenge, Kigali, Rwanda"
                 ></textarea>
               </div>
+            </div>
+          </div>
+        </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Facebook URL</label>
+        {/* Panel 3: Social Media */}
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 h-fit">
+          <div className="flex justify-between items-center p-4 border-b border-slate-100">
+            <div className="flex items-center gap-2 text-slate-700 font-medium">
+              <Share2 size={16} className="text-[#2D6AE0]" />
+              <span>Social Media</span>
+            </div>
+            <ChevronUp size={16} className="text-slate-400" />
+          </div>
+          <div className="p-5 space-y-5">
+            <div className={rowClass}>
+              <label className="block text-sm text-slate-600 w-1/3 min-w-[120px] pt-2 flex items-center gap-2">
+                <div className="w-5 h-5 rounded bg-[#1877F2] text-white flex items-center justify-center font-bold text-[10px]">f</div>
+                Facebook URL
+              </label>
+              <div className="flex-1">
                 <input
                   type="url"
                   name="facebook_url"
                   value={formData.facebook_url}
                   onChange={handleChange}
-                  className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A66C2]"
+                  className={inputClass}
+                  placeholder="https://facebook.com/trusterlabs"
                 />
               </div>
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Twitter URL</label>
+            <div className={rowClass}>
+              <label className="block text-sm text-slate-600 w-1/3 min-w-[120px] pt-2 flex items-center gap-2">
+                <div className="w-5 h-5 rounded bg-black text-white flex items-center justify-center font-bold text-[10px]">X</div>
+                X (Twitter) URL
+              </label>
+              <div className="flex-1">
                 <input
                   type="url"
                   name="twitter_url"
                   value={formData.twitter_url}
                   onChange={handleChange}
-                  className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A66C2]"
+                  className={inputClass}
+                  placeholder="https://twitter.com/trusterlabs"
                 />
               </div>
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">LinkedIn URL</label>
+            <div className={rowClass}>
+              <label className="block text-sm text-slate-600 w-1/3 min-w-[120px] pt-2 flex items-center gap-2">
+                <div className="w-5 h-5 rounded bg-[#0A66C2] text-white flex items-center justify-center font-bold text-[10px]">in</div>
+                LinkedIn URL
+              </label>
+              <div className="flex-1">
                 <input
                   type="url"
                   name="linkedin_url"
                   value={formData.linkedin_url}
                   onChange={handleChange}
-                  className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A66C2]"
+                  className={inputClass}
+                  placeholder="https://linkedin.com/company/trusterlabs"
                 />
               </div>
             </div>
+          </div>
+        </div>
 
-            <div className="flex justify-end pt-6 border-t border-slate-200 mt-8">
-              <Button type="submit" disabled={saving} className="bg-[#0A66C2] hover:bg-blue-700 text-white min-w-[120px]">
-                {saving ? 'Saving...' : 'Save Settings'}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+      </div>
     </div>
   );
 };
