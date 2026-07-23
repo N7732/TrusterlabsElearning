@@ -32,10 +32,18 @@ const TopUtilityBar = () => {
             {/* We duplicate the content to create a seamless infinite loop */}
             {[...Array(2)].map((_, i) => (
               <div key={i} className="flex gap-12 pr-12">
-                <span><span className="text-[#D4AF37] mr-2">✦</span>Latest News: TrusterLabs recognized as top cybersecurity provider in East Africa</span>
-                <span><span className="text-[#D4AF37] mr-2">✦</span>Training: Next Cohort for Advanced Penetration Testing starts Sept 1st</span>
-                <span><span className="text-[#D4AF37] mr-2">✦</span>Updates: New Enterprise Security Operations Center (SOC) officially launched</span>
-                <span><span className="text-[#D4AF37] mr-2">✦</span>Services: 24/7 Incident Response and Threat Hunting now available</span>
+                {settings?.top_announcements ? (
+                  settings.top_announcements.split('\n').filter(a => a.trim()).map((announcement, idx) => (
+                    <span key={idx}><span className="text-[#D4AF37] mr-2">✦</span>{announcement.trim()}</span>
+                  ))
+                ) : (
+                  <>
+                    <span><span className="text-[#D4AF37] mr-2">✦</span>Latest News: TrusterLabs recognized as top cybersecurity provider in East Africa</span>
+                    <span><span className="text-[#D4AF37] mr-2">✦</span>Training: Next Cohort for Advanced Penetration Testing starts Sept 1st</span>
+                    <span><span className="text-[#D4AF37] mr-2">✦</span>Updates: New Enterprise Security Operations Center (SOC) officially launched</span>
+                    <span><span className="text-[#D4AF37] mr-2">✦</span>Services: 24/7 Incident Response and Threat Hunting now available</span>
+                  </>
+                )}
               </div>
             ))}
           </div>

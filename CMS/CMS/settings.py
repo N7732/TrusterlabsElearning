@@ -142,6 +142,7 @@ if DATABASE_URL:
             'PASSWORD': url.password,
             'HOST': url.hostname,
             'PORT': url.port or 5432,
+            'CONN_MAX_AGE': int(os.getenv('CONN_MAX_AGE', 60)),
         }
     }
 else:
@@ -153,6 +154,7 @@ else:
             'PASSWORD': os.getenv('DB_PASSWORD'),
             'HOST': os.getenv('DB_HOST'),
             'PORT': os.getenv('DB_PORT', '5432'),
+            'CONN_MAX_AGE': int(os.getenv('CONN_MAX_AGE', 60)),
         }
     }
 

@@ -49,6 +49,7 @@ const SuperAdminLayout = () => {
     { path: '/superadmin/entity/trainings', label: 'Trainings', icon: <Calendar size={18} /> },
     { path: '/superadmin/entity/classwork', label: 'Classwork', icon: <FileText size={18} /> },
     { path: '/superadmin/entity/exams', label: 'Exams', icon: <HelpCircle size={18} /> },
+    { path: '/superadmin/entity/custom_training_requests', label: 'Requested Training', icon: <BookOpen size={18} /> },
   ];
 
   const researchWebinarItems = [
