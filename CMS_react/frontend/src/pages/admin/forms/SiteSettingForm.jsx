@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient, getImageUrl } from '../../../api/apiClient';
-import { Settings, Phone, Share2, Save, ArrowLeft, Image as ImageIcon, ChevronUp, FileText } from 'lucide-react';
+import { Settings, Phone, Share2, Save, ArrowLeft, Image as ImageIcon, ChevronUp, FileText, Megaphone } from 'lucide-react';
 
 const SiteSettingForm = ({ isEditing, settingId }) => {
   const navigate = useNavigate();
@@ -13,7 +13,8 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
     facebook_url: '',
     twitter_url: '',
     linkedin_url: '',
-    navbar_logo: null
+    navbar_logo: null,
+    top_announcements: ''
   });
   
   const [logoFile, setLogoFile] = useState(null);
@@ -21,6 +22,7 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
   const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     if (isEditing && settingId) {
@@ -42,7 +44,8 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
         facebook_url: res.facebook_url || '',
         twitter_url: res.twitter_url || '',
         linkedin_url: res.linkedin_url || '',
-        navbar_logo: res.navbar_logo || null
+        navbar_logo: res.navbar_logo || null,
+        top_announcements: res.top_announcements || ''
       });
     } catch (err) {
       console.error(err);
@@ -82,6 +85,7 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
       data.append('facebook_url', formData.facebook_url);
       data.append('twitter_url', formData.twitter_url);
       data.append('linkedin_url', formData.linkedin_url);
+      data.append('top_announcements', formData.top_announcements);
       
       if (logoFile) {
         data.append('navbar_logo', logoFile);
@@ -92,7 +96,8 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
       } else {
         await apiClient.post('/settings/site-settings/', data);
       }
-      navigate(-1);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       console.error(err);
       setError(err.message || 'Failed to save settings.');
@@ -111,17 +116,19 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
 
   // Common input classes
   const inputClass = "w-full p-2 border border-slate-200 rounded focus:outline-none focus:border-[#0A66C2] focus:ring-1 focus:ring-[#0A66C2] text-sm text-slate-700 bg-white";
-  const labelClass = "block text-sm text-slate-600 w-1/3 min-w-[120px] pt-2";
-  const rowClass = "flex flex-col sm:flex-row gap-2 sm:gap-6 pb-4 border-b border-slate-100 last:border-0 last:pb-0";
+  const labelClass = "block text-sm text-slate-600";
+  const rowClass = "grid grid-cols-[140px_1fr] gap-4 items-center pb-4 border-b border-slate-100 last:border-0 last:pb-0";
 
   return (
     <div className="max-w-7xl mx-auto pb-12">
       {/* Header section identical to screenshot */}
       <div className="flex justify-between items-center bg-white p-4 mb-6 shadow-sm border-b border-slate-200 sticky top-0 z-10">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors">
-            <ArrowLeft size={20} />
+        <div className="flex items-center gap-4">
+          <button onClick={() => navigate(-1)} className="flex items-center gap-1 p-2 hover:bg-slate-100 rounded text-slate-600 font-medium transition-colors">
+            <ArrowLeft size={18} />
+            <span>Back</span>
           </button>
+          <div className="h-6 w-px bg-slate-300"></div>
           <h2 className="text-xl font-medium text-slate-800 hidden sm:flex items-center gap-2">
             <span className="text-slate-400">≡</span> Website Settings
           </h2>
@@ -139,6 +146,12 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
       {error && (
         <div className="mb-6 mx-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded shadow-sm">
           {error}
+        </div>
+      )}
+
+      {success && (
+        <div className="mb-6 mx-6 p-4 bg-green-50 border-l-4 border-green-500 text-green-700 rounded shadow-sm flex justify-between items-center transition-all">
+          <span>Settings successfully saved and applied!</span>
         </div>
       )}
 
@@ -166,39 +179,6 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
                   className={inputClass}
                   placeholder="e.g. Trusterlabs Academy"
                 />
-              </div>
-            </div>
-            
-            <div className={rowClass}>
-              <label className={labelClass}>Website Logo</label>
-              <div className="flex-1">
-                <div className="flex items-center gap-4 p-2 border border-slate-200 rounded-md">
-                  <div className="w-10 h-10 flex items-center justify-center overflow-hidden shrink-0">
-                    {logoPreview || formData.navbar_logo ? (
-                      <img 
-                        src={logoPreview || getImageUrl(formData.navbar_logo)} 
-                        alt="Logo" 
-                        className="max-w-full max-h-full object-contain"
-                      />
-                    ) : (
-                      <ImageIcon className="text-slate-300" size={24} />
-                    )}
-                  </div>
-                  <div className="flex-1 font-medium text-sm">Trusterlabs Academy</div>
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    onChange={handleFileChange}
-                    className="hidden" 
-                    id="logo-upload"
-                  />
-                  <label 
-                    htmlFor="logo-upload" 
-                    className="cursor-pointer bg-[#2D6AE0] text-white px-3 py-1 rounded text-xs font-medium hover:bg-blue-700"
-                  >
-                    Change
-                  </label>
-                </div>
               </div>
             </div>
           </div>
@@ -269,7 +249,7 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
           </div>
           <div className="p-5 space-y-5">
             <div className={rowClass}>
-              <label className="block text-sm text-slate-600 w-1/3 min-w-[120px] pt-2 flex items-center gap-2">
+              <label className="flex items-center gap-2 text-sm text-slate-600 min-w-[140px] shrink-0">
                 <div className="w-5 h-5 rounded bg-[#1877F2] text-white flex items-center justify-center font-bold text-[10px]">f</div>
                 Facebook URL
               </label>
@@ -286,7 +266,7 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
             </div>
 
             <div className={rowClass}>
-              <label className="block text-sm text-slate-600 w-1/3 min-w-[120px] pt-2 flex items-center gap-2">
+              <label className="flex items-center gap-2 text-sm text-slate-600 min-w-[140px] shrink-0">
                 <div className="w-5 h-5 rounded bg-black text-white flex items-center justify-center font-bold text-[10px]">X</div>
                 X (Twitter) URL
               </label>
@@ -303,7 +283,7 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
             </div>
 
             <div className={rowClass}>
-              <label className="block text-sm text-slate-600 w-1/3 min-w-[120px] pt-2 flex items-center gap-2">
+              <label className="flex items-center gap-2 text-sm text-slate-600 min-w-[140px] shrink-0">
                 <div className="w-5 h-5 rounded bg-[#0A66C2] text-white flex items-center justify-center font-bold text-[10px]">in</div>
                 LinkedIn URL
               </label>
@@ -316,6 +296,35 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
                   className={inputClass}
                   placeholder="https://linkedin.com/company/trusterlabs"
                 />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Panel 4: Header Top Bar */}
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 h-fit lg:col-span-2 xl:col-span-3">
+          <div className="flex justify-between items-center p-4 border-b border-slate-100 bg-blue-50/50">
+            <div className="flex items-center gap-2 text-[#0A66C2] font-semibold">
+              <Megaphone size={18} />
+              <span>Header Top Bar (Announcement Belt)</span>
+            </div>
+            <ChevronUp size={16} className="text-[#0A66C2]" />
+          </div>
+          <div className="p-5 space-y-5">
+            <div className="flex flex-col sm:flex-row gap-4 items-start">
+              <div className="w-full sm:w-1/3 min-w-[200px]">
+                <label className="block text-sm font-medium text-slate-700 mb-1">Announcement Text</label>
+                <span className="text-xs text-slate-500">Put each scrolling announcement on a new line. They will cycle infinitely on the top banner.</span>
+              </div>
+              <div className="flex-1 w-full">
+                <textarea
+                  name="top_announcements"
+                  value={formData.top_announcements}
+                  onChange={handleChange}
+                  rows="4"
+                  className={`${inputClass} font-mono text-xs`}
+                  placeholder={`✦ Latest News: TrusterLabs recognized as top cybersecurity provider...\n✦ Training: Next Cohort for Advanced Penetration Testing starts Sept 1st`}
+                ></textarea>
               </div>
             </div>
           </div>

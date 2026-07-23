@@ -342,6 +342,51 @@ export const adminConfig = {
     canEdit: true,
     canDelete: true,
   },
+  custom_training_requests: {
+    label: 'Custom Training Requests',
+    endpoint: '/training/custom-requests/',
+    columns: [
+      { field: 'id', label: 'ID' },
+      { field: 'full_name', label: 'Name' },
+      { field: 'email', label: 'Email' },
+      { field: 'training_type', label: 'Type' },
+      { 
+        field: 'status', 
+        label: 'Status',
+        type: 'select',
+        options: [
+          { value: 'PENDING', label: 'Pending', color: 'yellow' },
+          { value: 'REVIEWED', label: 'Reviewed', color: 'blue' },
+          { value: 'APPROVED', label: 'Approved', color: 'green' },
+          { value: 'REJECTED', label: 'Rejected', color: 'red' }
+        ]
+      },
+      { field: 'created_at', label: 'Date Requested' },
+    ],
+    formFields: [
+      { field: 'full_name', label: 'Name', type: 'text', readOnlyOnEdit: true },
+      { field: 'email', label: 'Email', type: 'email', readOnlyOnEdit: true },
+      { field: 'phone_number', label: 'Phone', type: 'text', readOnlyOnEdit: true },
+      { field: 'training_type', label: 'Training Type', type: 'text', readOnlyOnEdit: true },
+      { field: 'college', label: 'College', type: 'text', readOnlyOnEdit: true },
+      { field: 'learning_fields', label: 'Learning Fields', type: 'textarea', readOnlyOnEdit: true },
+      { field: 'additional_info', label: 'Additional Info', type: 'textarea', readOnlyOnEdit: true },
+      { 
+        field: 'status', 
+        label: 'Status', 
+        type: 'select', 
+        options: [
+          { value: 'PENDING', label: 'Pending' },
+          { value: 'REVIEWED', label: 'Reviewed' },
+          { value: 'APPROVED', label: 'Approved' },
+          { value: 'REJECTED', label: 'Rejected' }
+        ] 
+      }
+    ],
+    canCreate: false,
+    canEdit: true,
+    canDelete: true,
+  },
   research_publications: {
     label: 'Research Publications',
     endpoint: '/api/research/publications/',

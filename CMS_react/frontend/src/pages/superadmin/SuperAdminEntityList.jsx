@@ -96,7 +96,7 @@ const SuperAdminEntityList = () => {
         config.canCreate = profile.can_update_courses ?? config.canCreate;
         config.canUpdate = profile.can_update_courses ?? config.canUpdate;
         config.canDelete = profile.can_delete_courses ?? config.canDelete;
-      } else if (['trainings', 'classwork', 'exams'].includes(entityId)) {
+      } else if (['trainings', 'classwork', 'exams', 'custom_training_requests'].includes(entityId)) {
         config.canCreate = profile.can_create_trainings ?? config.canCreate;
         config.canUpdate = profile.can_update_trainings ?? config.canUpdate;
         config.canDelete = profile.can_delete_trainings ?? config.canDelete;

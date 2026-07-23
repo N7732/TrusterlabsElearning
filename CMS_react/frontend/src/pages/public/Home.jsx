@@ -273,9 +273,9 @@ const PartnersSection = () => {
         <div className={`flex ${isAnimating ? 'animate-ticker whitespace-nowrap w-max' : 'flex-wrap justify-center gap-x-12 gap-y-8'}`}>
           {displayPartners.map((partner, index) => (
             <div key={`${partner.id}-${index}`} className="flex flex-col items-center gap-3 mx-8 opacity-80 hover:opacity-100 transition-opacity duration-300">
-              {partner.logo ? (
+              {partner.logo_url || partner.logo ? (
                 <>
-                  <img src={partner.logo} alt={partner.name} className="h-16 w-auto object-contain hover:scale-105 transition-transform duration-300" />
+                  <img src={partner.logo_url ? getImageUrl(partner.logo_url) : getImageUrl(partner.logo)} alt={partner.name} className="h-16 w-auto object-contain hover:scale-105 transition-transform duration-300" />
                   <span className="text-sm font-medium text-slate-300 tracking-wide">{partner.name}</span>
                 </>
               ) : (

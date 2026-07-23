@@ -5,6 +5,7 @@ from Auth.models import User
 class Partner(models.Model):
     name = models.CharField(max_length=255)
     logo = models.ImageField(upload_to='partners/', null=True, blank=True)
+    logo_url = models.URLField(max_length=500, null=True, blank=True)
     website_url = models.URLField(max_length=500, null=True, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -45,6 +46,7 @@ class SiteSetting(models.Model):
     twitter_url = models.URLField(max_length=500, null=True, blank=True)
     linkedin_url = models.URLField(max_length=500, null=True, blank=True)
     navbar_logo = models.ImageField(upload_to='site_logos/', null=True, blank=True)
+    top_announcements = models.TextField(blank=True, null=True, help_text="Enter announcements separated by new lines")
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):

@@ -9,6 +9,7 @@ const PartnerForm = ({ isEditing, partnerId }) => {
   const [formData, setFormData] = useState({
     name: '',
     website_url: '',
+    logo_url: '',
     is_active: true
   });
   const [logoFile, setLogoFile] = useState(null);
@@ -30,6 +31,7 @@ const PartnerForm = ({ isEditing, partnerId }) => {
       setFormData({
         name: res.name || '',
         website_url: res.website_url || '',
+        logo_url: res.logo_url || '',
         is_active: res.is_active !== undefined ? res.is_active : true
       });
       setCurrentLogo(res.logo);
@@ -63,6 +65,7 @@ const PartnerForm = ({ isEditing, partnerId }) => {
     const submitData = new FormData();
     submitData.append('name', formData.name);
     if (formData.website_url) submitData.append('website_url', formData.website_url);
+    if (formData.logo_url) submitData.append('logo_url', formData.logo_url);
     submitData.append('is_active', formData.is_active);
     if (logoFile) {
       submitData.append('logo', logoFile);
@@ -134,7 +137,7 @@ const PartnerForm = ({ isEditing, partnerId }) => {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-slate-700 mb-2">Partner Logo</label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Partner Logo (Upload)</label>
                 <input
                   type="file"
                   accept="image/*"
@@ -146,6 +149,21 @@ const PartnerForm = ({ isEditing, partnerId }) => {
                     Current Logo: <a href={currentLogo} target="_blank" rel="noreferrer" className="text-blue-600 underline">View</a>
                   </div>
                 )}
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-slate-700 mb-2">Or Logo URL (Google Drive link)</label>
+                <input
+                  type="url"
+                  name="logo_url"
+                  value={formData.logo_url}
+                  onChange={handleChange}
+                  placeholder="https://drive.google.com/file/d/.../view"
+                  className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A66C2]"
+                />
+                <p className="mt-1 text-xs text-slate-500">
+                  Paste a standard Google Drive sharing link here. The image will automatically load if it's set to "Anyone with the link can view".
+                </p>
               </div>
 
               <div className="flex items-center space-x-3 pt-6">

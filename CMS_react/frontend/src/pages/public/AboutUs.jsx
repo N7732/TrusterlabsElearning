@@ -178,8 +178,8 @@ const AboutUs = () => {
                    rel="noopener noreferrer"
                    className="bg-[#111827] border border-white/10 rounded-lg p-6 flex flex-col items-center justify-center hover:bg-white/5 transition-colors aspect-square"
                  >
-                    {partner.logo ? (
-                      <img src={getImageUrl(partner.logo)} alt={partner.name} className="max-h-full max-w-full object-contain mb-2" />
+                    {partner.logo_url || partner.logo ? (
+                      <img src={partner.logo_url ? getImageUrl(partner.logo_url) : getImageUrl(partner.logo)} alt={partner.name} className="max-h-full max-w-full object-contain mb-2" />
                     ) : (
                       <span className="text-gray-500 font-bold uppercase tracking-wider text-center">{partner.name}</span>
                     )}
