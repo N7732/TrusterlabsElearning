@@ -10,6 +10,14 @@ import {
 import PaymentDrawer from '../../components/courses/PaymentDrawer';
 import InquiryDrawer from '../../components/courses/InquiryDrawer';
 
+import Prism from 'prismjs';
+import 'prismjs/themes/prism-tomorrow.css';
+import 'prismjs/plugins/line-numbers/prism-line-numbers.js';
+import 'prismjs/plugins/line-numbers/prism-line-numbers.css';
+import 'prismjs/components/prism-python';
+import 'prismjs/components/prism-javascript';
+import 'prismjs/components/prism-css';
+
 const CoursePlayer = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
@@ -89,6 +97,22 @@ const CoursePlayer = () => {
       document.body.appendChild(script);
     }
   };
+
+  useEffect(() => {
+    if (activeLesson && activeLesson.content) {
+      setTimeout(() => {
+        const preTags = document.querySelectorAll('.prose-container pre');
+        preTags.forEach(pre => {
+          pre.classList.add('line-numbers');
+          // If TinyMCE doesn't add language, add a default so it highlights
+          if (!pre.className.includes('language-')) {
+            pre.classList.add('language-python');
+          }
+        });
+        Prism.highlightAll();
+      }, 0);
+    }
+  }, [activeLesson]);
 
   useEffect(() => {
     if (courseId) {
@@ -637,7 +661,7 @@ const CoursePlayer = () => {
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <span className="font-semibold text-sm truncate">Course Player</span>
+          <span className="font-semibold text-sm truncate">{courseData?.title || 'Course Player'}</span>
         </div>
 
         
@@ -820,7 +844,7 @@ const CoursePlayer = () => {
 
           {activeTab === 'resources' && (
             <div className="flex flex-col pb-8 p-4">
-              <h3 className="font-bold text-slate-800 mb-4">Course Resources</h3>
+              <h3 className={`font-bold mb-4 ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>Course Resources</h3>
               {courseData?.resources && courseData.resources.length > 0 ? (
                 <div className="flex flex-col gap-3">
                   {courseData.resources.map(res => (
@@ -829,17 +853,20 @@ const CoursePlayer = () => {
                       href={res.file ? (res.file.startsWith('http') ? res.file : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}${res.file}`) : "#"} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 border border-slate-200 rounded hover:bg-slate-50 transition-colors"
+                      download
+                      className={`flex items-center gap-3 p-3 border rounded transition-colors ${isDarkMode ? 'border-slate-700 hover:bg-slate-800' : 'border-slate-200 hover:bg-slate-50'}`}
                     >
                       <div className="bg-[#eff6ff] text-[#2563eb] p-2 rounded">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                       </div>
-                      <span className="text-sm font-medium text-slate-700 truncate">{res.title}</span>
+                      <span className={`text-sm font-medium truncate ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>{res.title}</span>
                     </a>
                   ))}
                 </div>
               ) : (
-                <div className="text-sm text-slate-500 italic p-4 bg-slate-50 rounded border border-slate-100">No resources have been uploaded for this course yet.</div>
+                <div className={`text-sm italic p-4 rounded border ${isDarkMode ? 'text-slate-400 bg-slate-800 border-slate-700' : 'text-slate-500 bg-slate-50 border-slate-100'}`}>
+                  No resource is available for this course.
+                </div>
               )}
             </div>
           )}
@@ -1136,6 +1163,24 @@ const CoursePlayer = () => {
                             aspect-ratio: 16 / 9;
                             border-radius: 0.5rem;
                             margin: 2rem 0;
+                          }
+                          /* PrismJS Overrides to match UI */
+                          .prose-container pre[class*="language-"] {
+                            background: #282c34 !important;
+                            border-radius: 0.5rem !important;
+                            padding: 1.5em !important;
+                            margin: 1.5em 0 !important;
+                            font-size: 0.9em;
+                            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                          }
+                          .prose-container .line-numbers .line-numbers-rows {
+                            border-right: 1px solid #4b5563 !important;
+                            padding-right: 10px !important;
+                          }
+                          .prose-container code[class*="language-"], 
+                          .prose-container pre[class*="language-"] {
+                            text-shadow: none !important;
+                            font-family: 'Fira Code', Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace !important;
                           }
                         `}</style>
                         <div 
