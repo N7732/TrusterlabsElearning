@@ -192,20 +192,39 @@ const CoursePlayer = () => {
     try {
       setIsEnrolling(true);
       const response = await apiClient.post(`/api/courses/${courseId}/enroll/`);
-      if (response.enrollment_status === 'active') {
+      // Any successful response (active, pending, or already enrolled) marks as enrolled
+      if (response.enrollment_status === 'active' || response.enrollment_status === 'pending') {
         setIsEnrolled(true);
+        if (response.enrollment_status === 'pending') {
+          alert('Your enrollment request has been submitted and is pending approval.');
+        }
       } else {
-        alert('Your request is pending approval.');
+        // Fallback: treat any successful response as enrolled
+        setIsEnrolled(true);
       }
     } catch(err) {
       console.error(err);
-      let errorMsg = 'Failed to enroll or prerequisite not met.';
+      const errMsg = err.message || '';
+      // If the error says already enrolled, treat it as success - just mark enrolled
+      if (
+        errMsg.toLowerCase().includes('already enrolled') ||
+        errMsg.toLowerCase().includes('already exist') ||
+        errMsg.toLowerCase().includes('duplicate') ||
+        errMsg.toLowerCase().includes('unique') ||
+        errMsg.toLowerCase().includes('already registered')
+      ) {
+        setIsEnrolled(true);
+        return;
+      }
+      // Show a friendly alert only for real errors
+      let errorMsg = 'Failed to enroll. Please try again.';
       try {
-        const parsed = JSON.parse(err.message);
+        const parsed = JSON.parse(errMsg);
         if (parsed.error) errorMsg = parsed.error;
-        if (parsed.message) errorMsg = parsed.message;
+        else if (parsed.message) errorMsg = parsed.message;
+        else if (parsed.detail) errorMsg = parsed.detail;
       } catch (e) {
-        if (err.message) errorMsg = err.message;
+        if (errMsg && !errMsg.toLowerCase().includes('fetch')) errorMsg = errMsg;
       }
       alert(errorMsg);
     } finally {
@@ -577,30 +596,43 @@ const CoursePlayer = () => {
                   </h2>
 
                   <div className="flex flex-col gap-3 mb-6">
-                    {isFree && (
+                    {isEnrolled ? (
+                      // Already enrolled - show green Start Learning button
                       <button 
-                        onClick={() => isAuthenticated ? enrollUser() : navigate('/login')}
-                        disabled={isEnrolling}
-                        className={`w-full py-4 ${isEnrolling ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-600 hover:bg-blue-700'} text-white rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all`}
+                        onClick={() => navigate('/learner/dashboard')}
+                        className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
                       >
-                        {isEnrolling ? 'Start Running...' : 'Enroll Now for Free'}
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        Start Learning
                       </button>
-                    )}
-                    {isPaid && (
-                      <button 
-                        onClick={() => isAuthenticated ? setIsPaymentDrawerOpen(true) : navigate('/login')}
-                        className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all"
-                      >
-                        Enroll in Course
-                      </button>
-                    )}
-                    {isInquiry && (
-                      <button 
-                        onClick={() => isAuthenticated ? setIsInquiryDrawerOpen(true) : navigate('/login')}
-                        className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all"
-                      >
-                        Request Access
-                      </button>
+                    ) : (
+                      <>
+                        {isFree && (
+                          <button 
+                            onClick={() => isAuthenticated ? enrollUser() : navigate('/login')}
+                            disabled={isEnrolling}
+                            className={`w-full py-4 ${isEnrolling ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-600 hover:bg-blue-700'} text-white rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all`}
+                          >
+                            {isEnrolling ? 'Enrolling...' : 'Enroll Now for Free'}
+                          </button>
+                        )}
+                        {isPaid && (
+                          <button 
+                            onClick={() => isAuthenticated ? setIsPaymentDrawerOpen(true) : navigate('/login')}
+                            className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all"
+                          >
+                            Enroll in Course
+                          </button>
+                        )}
+                        {isInquiry && (
+                          <button 
+                            onClick={() => isAuthenticated ? setIsInquiryDrawerOpen(true) : navigate('/login')}
+                            className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all"
+                          >
+                            Request Access
+                          </button>
+                        )}
+                      </>
                     )}
                   </div>
 

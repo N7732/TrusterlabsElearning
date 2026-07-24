@@ -25,7 +25,15 @@ class APIClient {
 
     // Handle 401 Unauthorized (Token Expiration or Invalid Token)
     if (response.status === 401) {
+      const currentToken = localStorage.getItem('truster_lab_token');
       const refreshToken = localStorage.getItem('truster_lab_refresh');
+      
+      // If the user wasn't logged in to begin with, don't force a redirect.
+      // Just throw the error so the component can handle it silently.
+      if (!currentToken && !refreshToken) {
+        throw new Error('Unauthorized.');
+      }
+
       if (refreshToken) {
         try {
           const refreshResponse = await fetch(`${this.baseURL}/auth/api/auth/refresh/`, {
