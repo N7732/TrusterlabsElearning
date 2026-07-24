@@ -268,11 +268,11 @@ def check_and_update_course_completion(learner, course):
         is_completed=True
     ).count()
 
-    # Even if total_lessons == 0, if there are quizzes, it can be completed.
-    # So if total_lessons > 0 and not all completed, return False
+    # If there are lessons and not all are completed, course is not done yet
     if total_lessons > 0 and completed_lessons < total_lessons:
         return False
 
+    # Check all published quizzes must be passed
     all_quizzes = Quizes.objects.filter(
         Q(course=course) | Q(module__course=course) | Q(lesson__module__course=course),
         is_published=True
@@ -283,42 +283,46 @@ def check_and_update_course_completion(learner, course):
         if not submission or not submission.passed:
             return False
 
+    # All conditions met - mark enrollment complete immediately
     enrollment = Enrollment.objects.filter(learner=learner, course=course).first()
-    if enrollment:
-        needs_update = False
-        just_completed = False
+    if not enrollment:
+        return False
+
+    just_completed = False
+    if enrollment.status != 'completed':
+        enrollment.status = 'completed'
+        enrollment.progress = 100
+        enrollment.save()
+        just_completed = True
+    elif enrollment.progress < 100:
+        enrollment.progress = 100
+        enrollment.save()
+
+    # Issue certificate immediately if course has one
+    certificate = None
+    certificate_created = False
+    if course.has_certificate:
+        from certification.models import Certificate
+        certificate, certificate_created = Certificate.objects.get_or_create(
+            learner=learner,
+            course=course,
+            defaults={'is_issued': True}  # Always issue immediately on completion
+        )
+        # If certificate existed but wasn't issued yet, issue it now
+        if certificate and not certificate.is_issued:
+            certificate.is_issued = True
+            certificate.save()
         
-        if enrollment.status != 'completed':
-            enrollment.status = 'completed'
-            needs_update = True
-            just_completed = True
-            
-        if enrollment.progress < 100:
-            enrollment.progress = 100
-            needs_update = True
-            
-        if needs_update:
-            enrollment.save()
+    # Send email notification asynchronously (non-blocking)
+    if just_completed or certificate_created:
+        try:
+            from Auth.views import certificate_email
+            certificate_email(learner, course, certificate)
+        except Exception as e:
+            logger.error(f"Failed to send certificate email: {e}")
         
-        certificate = None
-        certificate_created = False
-        if course.has_certificate:
-            from certification.models import Certificate
-            certificate, certificate_created = Certificate.objects.get_or_create(
-                learner=learner,
-                course=course,
-                defaults={'is_issued': course.auto_issue_certificate}
-            )
-            
-        if just_completed or certificate_created:
-            try:
-                from Auth.views import certificate_email
-                certificate_email(learner, course, certificate)
-            except Exception as e:
-                logger.error(f"Failed to send certificate email: {e}")
-            
-        return just_completed or certificate_created
-    return False
+    return just_completed or certificate_created
+
 
 class LessonViewSet(viewsets.ModelViewSet):
     queryset = Lesson.objects.all()
