@@ -197,15 +197,18 @@ const CoursePlayer = () => {
         setIsEnrolled(true);
         if (response.enrollment_status === 'pending') {
           alert('Your enrollment request has been submitted and is pending approval.');
+        } else {
+          navigate('/learner/dashboard');
         }
       } else {
         // Fallback: treat any successful response as enrolled
         setIsEnrolled(true);
+        navigate('/learner/dashboard');
       }
     } catch(err) {
       console.error(err);
       const errMsg = err.message || '';
-      // If the error says already enrolled, treat it as success - just mark enrolled
+      // If the error says already enrolled, treat it as success - just navigate
       if (
         errMsg.toLowerCase().includes('already enrolled') ||
         errMsg.toLowerCase().includes('already exist') ||
@@ -214,6 +217,7 @@ const CoursePlayer = () => {
         errMsg.toLowerCase().includes('already registered')
       ) {
         setIsEnrolled(true);
+        navigate('/learner/dashboard');
         return;
       }
       // Show a friendly alert only for real errors
@@ -339,6 +343,8 @@ const CoursePlayer = () => {
   };
 
   const markLessonComplete = async (lessonId) => {
+    const isQuiz = activeLesson?.max_attempts !== undefined;
+
     setCompletedLessons(prev => {
       if (prev.includes(lessonId)) return prev;
       const updated = [...prev, lessonId];
@@ -347,14 +353,20 @@ const CoursePlayer = () => {
     });
 
     if (isAuthenticated) {
-      try {
-        const response = await apiClient.post(`/api/lessons/${lessonId}/mark_complete/`);
-        if (response.course_completed) {
-          setShowCompletionModal(true);
-          setCourseCompletedState(true);
+      if (!isQuiz) {
+        try {
+          const response = await apiClient.post(`/api/lessons/${lessonId}/mark_complete/`);
+          if (response.course_completed) {
+            setShowCompletionModal(true);
+            setCourseCompletedState(true);
+          }
+        } catch (err) {
+          console.error('Failed to save progress to server', err);
         }
-      } catch (err) {
-        console.error('Failed to save progress to server', err);
+      } else {
+        // For quizzes, we don't hit the lessons API. 
+        // We just fetch progress to trigger the backend completion check.
+        await fetchProgress();
       }
     }
   };
@@ -964,27 +976,23 @@ const CoursePlayer = () => {
 
               {/* Media Section (Video or Cover) */}
               {activeLesson.max_attempts !== undefined ? (
-                <div className="relative w-full bg-slate-900 flex flex-col justify-center items-center min-h-[400px]">
+                <div className="relative w-full bg-slate-900 flex flex-col justify-center items-center py-12 px-6 border-b border-slate-800">
                   <div className="absolute inset-0 z-0">
-                    <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-900/40 to-emerald-900/40"></div>
                   </div>
-                  <div className="relative z-10 p-8 sm:p-12 max-w-4xl w-full text-center">
-                    <div className="inline-flex items-center justify-center p-4 bg-white/10 rounded-full mb-6">
-                      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                  <div className="relative z-10 w-full text-center max-w-4xl">
+                    <div className="inline-flex items-center justify-center p-3 bg-white/10 rounded-full mb-4 shadow-lg backdrop-blur-sm">
+                      <svg className="w-8 h-8 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                     </div>
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white leading-tight mb-4 tracking-tight">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
                       {activeLesson.title}
                     </h1>
-                    <p className="text-slate-300 text-lg mb-8 max-w-2xl mx-auto">{activeLesson.description || 'Test your knowledge with this quiz.'}</p>
+                    <p className="text-slate-300 text-base max-w-2xl mx-auto">{activeLesson.description || 'Test your knowledge with this quiz.'}</p>
                     
-                    {activeLesson.is_locked && !isAdmin ? (
-                      <div className="inline-flex items-center gap-2 px-6 py-3 bg-red-500/20 text-red-300 rounded-full font-semibold border border-red-500/30">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                    {activeLesson.is_locked && !isAdmin && (
+                      <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-red-500/20 text-red-300 rounded-full font-semibold border border-red-500/30">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                         This Quiz is Locked
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-center gap-2 text-white/90 text-sm font-medium animate-bounce mt-8">
-                        Scroll to begin <ArrowDown className="w-4 h-4 bg-white/20 rounded-full p-0.5" />
                       </div>
                     )}
                   </div>
