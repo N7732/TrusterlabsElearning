@@ -194,11 +194,14 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+# Disable Whitenoise compression to prevent crashing on cloudinary_cors.html
+STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
 
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
+static_dir = BASE_DIR / 'static'
+if static_dir.exists():
+    STATICFILES_DIRS = [static_dir]
+else:
+    STATICFILES_DIRS = []
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'Auth.User'  # Custom user model
