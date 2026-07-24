@@ -36,7 +36,8 @@ const AdminEnrollments = () => {
       setLoading(true);
       setError(null);
       const data = await apiClient.get('/api/enrollments/');
-      setEnrollments(data.results || data || []);
+      const results = data.results || data;
+      setEnrollments(Array.isArray(results) ? results : []);
     } catch (err) {
       console.error(err);
       setError('Failed to load enrollments. Make sure the server is running.');
