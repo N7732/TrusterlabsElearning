@@ -148,3 +148,22 @@ export const getImageUrl = (path) => {
   
   return `${cleanBase}${cleanPath}`;
 };
+
+// Use this for VIDEO files (not images). Google Drive videos must be embedded
+// using the /preview URL inside an iframe, NOT the /uc?export=view URL which causes redirect loops.
+export const getVideoUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith('http')) {
+    if (path.includes('drive.google.com/file/d/')) {
+      const match = path.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      if (match && match[1]) {
+        return { url: `https://drive.google.com/file/d/${match[1]}/preview`, isEmbed: true };
+      }
+    }
+    return { url: path, isEmbed: false };
+  }
+  // Relative path from backend - build full URL
+  const cleanBase = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  return { url: `${cleanBase}${cleanPath}`, isEmbed: false };
+};

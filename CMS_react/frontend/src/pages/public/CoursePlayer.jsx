@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { apiClient, getImageUrl } from '../../api/apiClient';
+import { apiClient, getImageUrl, getVideoUrl } from '../../api/apiClient';
 import { 
   Menu, Search, Moon, Languages, Accessibility, Maximize, 
   ChevronDown, ChevronUp, CheckCircle, ChevronLeft, ChevronRight,
@@ -983,14 +983,33 @@ const CoursePlayer = () => {
               ) : (
                 <div className="relative w-full bg-black flex flex-col justify-center items-center min-h-[400px]">
                    {activeLesson.video_file ? (
-                     <div className="w-full h-full max-h-[70vh] aspect-video flex items-center justify-center bg-black">
-                       <video 
-                         src={getImageUrl(activeLesson.video_file)} 
-                         controls
-                         controlsList="nodownload"
-                         className="w-full h-full max-h-[70vh]"
-                       ></video>
-                     </div>
+                     (() => {
+                       const videoInfo = getVideoUrl(activeLesson.video_file);
+                       if (videoInfo?.isEmbed) {
+                         return (
+                           <div className="w-full h-full max-h-[70vh] aspect-video">
+                             <iframe
+                               src={videoInfo.url}
+                               className="w-full h-full"
+                               allowFullScreen
+                               allow="autoplay"
+                               title={activeLesson.title}
+                               style={{ border: 'none' }}
+                             ></iframe>
+                           </div>
+                         );
+                       }
+                       return (
+                         <div className="w-full h-full max-h-[70vh] aspect-video flex items-center justify-center bg-black">
+                           <video
+                             src={videoInfo?.url}
+                             controls
+                             controlsList="nodownload"
+                             className="w-full h-full max-h-[70vh]"
+                           ></video>
+                         </div>
+                       );
+                     })()
                    ) : activeLesson.video_url || activeLesson.embed_url ? (
                      <div className="w-full h-full max-h-[70vh] aspect-video">
                        <iframe 
@@ -998,6 +1017,7 @@ const CoursePlayer = () => {
                          className="w-full h-full"
                          allowFullScreen
                          title={activeLesson.title}
+                         style={{ border: 'none' }}
                        ></iframe>
                      </div>
                    ) : (
