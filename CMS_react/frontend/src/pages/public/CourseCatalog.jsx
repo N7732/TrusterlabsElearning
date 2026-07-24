@@ -18,7 +18,8 @@ const CourseCatalog = () => {
     try {
       setLoading(true);
       const data = await apiClient.get('/api/courses/');
-      setCourses(data.results || data || []);
+      const results = data.results || data;
+      setCourses(Array.isArray(results) ? results : []);
     } catch (err) {
       setError('Failed to load courses. Make sure the backend server is running.');
       console.error(err);
@@ -28,9 +29,10 @@ const CourseCatalog = () => {
   };
   
   const filteredCourses = courses.filter(course => {
-    const titleMatch = course.title?.toLowerCase().includes(searchTerm.toLowerCase());
+    const safeSearchTerm = (searchTerm || '').toLowerCase();
+    const titleMatch = (course.title || '').toLowerCase().includes(safeSearchTerm);
     const instructorName = course.instructor_name || course.instructor?.name || '';
-    const instructorMatch = instructorName.toLowerCase().includes(searchTerm.toLowerCase());
+    const instructorMatch = instructorName.toLowerCase().includes(safeSearchTerm);
     return titleMatch || instructorMatch;
   });
 
