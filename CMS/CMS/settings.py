@@ -33,14 +33,11 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 RENDER_EXTERNAL_HOSTNAME = os.getenv('RENDER_EXTERNAL_HOSTNAME')
 ALLOWED_HOSTS = [
-    '*',
-    'payment-gateway-api-2c52.onrender.com',
-    'trusterlabselearning.onrender.com',
-    'trusterlabsacademy.com',
-    'www.trusterlabsacademy.com',
-    'academytrustl.trusterlabsacademy.com',
-    'localhost',
-    '127.0.0.1',
+    "*",
+    "frontend-omega-five-21.vercel.app",
+    "trusterlabselearning-production.up.railway.app",
+    "localhost",
+    "127.0.0.1"
 ]
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
@@ -213,22 +210,17 @@ LOGOUT_REDIRECT_URL = 'Auth:login'
 # CORS Config
 CORS_ALLOW_ALL_ORIGINS = os.getenv('CORS_ALLOW_ALL_ORIGINS', 'False') == 'True'
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:5173",
     "https://frontend-omega-five-21.vercel.app",
-    "https://trusterlabselearning.onrender.com",
     "https://frontend-6od8rks2q-n7732s-projects.vercel.app",
-    "https://trusterlabsacademy.com",
-    "https://www.trusterlabsacademy.com",
-    "https://academytrustl.trusterlabsacademy.com"
-]
+    "https://trusterlabselearning-production.up.railway.app"]
+
 extra_cors = os.getenv('CORS_ALLOWED_ORIGINS')
 if extra_cors:
     for origin in extra_cors.split(','):
         if origin.strip() and origin.strip() not in CORS_ALLOWED_ORIGINS:
             CORS_ALLOWED_ORIGINS.append(origin.strip())
 
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://trusterlabsacademy.com')
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://frontend-omega-five-21.vercel.app')
 
 # Media files (Uploads)
 MEDIA_URL = '/media/'
