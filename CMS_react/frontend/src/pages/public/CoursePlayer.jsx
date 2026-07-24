@@ -162,7 +162,8 @@ const CoursePlayer = () => {
         return;
       }
       const data = await apiClient.get('/api/enrollments/');
-      const enrollments = data.results || data || [];
+      const results = data.results || data;
+      const enrollments = Array.isArray(results) ? results : [];
       
       // Admin/Instructor bypass logic
       if (isAdmin) {

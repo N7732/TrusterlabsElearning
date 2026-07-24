@@ -48,10 +48,17 @@ const LearnerDashboard = () => {
         })
       ]);
       
-      setEnrollments(enrollData.results || enrollData || []);
-      setTrainings(trainingData.results || trainingData || []);
-      setGrades(gradesData.results || gradesData || []);
-      setCertificates(certData.results || certData || []);
+      const eRes = enrollData.results || enrollData;
+      setEnrollments(Array.isArray(eRes) ? eRes : []);
+      
+      const tRes = trainingData.results || trainingData;
+      setTrainings(Array.isArray(tRes) ? tRes : []);
+      
+      const gRes = gradesData.results || gradesData;
+      setGrades(Array.isArray(gRes) ? gRes : []);
+      
+      const cRes = certData.results || certData;
+      setCertificates(Array.isArray(cRes) ? cRes : []);
     } catch (err) {
       setError('Failed to load your learning dashboard.');
       console.error(err);
