@@ -274,12 +274,21 @@ const CoursePlayer = () => {
       setQuizResult(response);
       if (response.passed) {
         markLessonComplete(activeLesson.id);
+        // Immediately refresh progress from server to get latest completion state
+        await fetchProgress();
       }
       if (response.course_completed) {
+        setCourseCompletedState(true);
         setShowCompletionModal(true);
       }
     } catch (err) {
-      alert("Failed to submit quiz: " + (err.message || 'Unknown error'));
+      console.error('Quiz submit error:', err);
+      const msg = err.message || '';
+      if (msg.toLowerCase().includes('fetch') || msg.toLowerCase().includes('network')) {
+        alert("Cannot connect to the server. Please check your internet connection and try again.");
+      } else {
+        alert("Failed to submit quiz: " + msg);
+      }
     } finally {
       setSubmittingQuiz(false);
     }
