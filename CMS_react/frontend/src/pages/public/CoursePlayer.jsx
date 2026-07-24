@@ -12,11 +12,7 @@ import InquiryDrawer from '../../components/courses/InquiryDrawer';
 
 import Prism from 'prismjs';
 import 'prismjs/themes/prism-tomorrow.css';
-import 'prismjs/plugins/line-numbers/prism-line-numbers.js';
 import 'prismjs/plugins/line-numbers/prism-line-numbers.css';
-import 'prismjs/components/prism-python';
-import 'prismjs/components/prism-javascript';
-import 'prismjs/components/prism-css';
 
 const CoursePlayer = () => {
   const { courseId } = useParams();
@@ -100,17 +96,28 @@ const CoursePlayer = () => {
 
   useEffect(() => {
     if (activeLesson && activeLesson.content) {
-      setTimeout(() => {
-        const preTags = document.querySelectorAll('.prose-container pre');
-        preTags.forEach(pre => {
-          pre.classList.add('line-numbers');
-          // If TinyMCE doesn't add language, add a default so it highlights
-          if (!pre.className.includes('language-')) {
-            pre.classList.add('language-python');
-          }
-        });
-        Prism.highlightAll();
-      }, 0);
+      if (typeof window !== 'undefined') {
+        window.Prism = window.Prism || Prism;
+      }
+      Promise.all([
+        import('prismjs/plugins/line-numbers/prism-line-numbers.js'),
+        import('prismjs/components/prism-python'),
+        import('prismjs/components/prism-javascript'),
+        import('prismjs/components/prism-css')
+      ]).then(() => {
+        setTimeout(() => {
+          const preTags = document.querySelectorAll('.prose-container pre');
+          preTags.forEach(pre => {
+            pre.classList.add('line-numbers');
+            if (!pre.className.includes('language-')) {
+              pre.classList.add('language-python');
+            }
+          });
+          Prism.highlightAll();
+        }, 0);
+      }).catch(err => {
+        console.error("Failed to load Prism plugins:", err);
+      });
     }
   }, [activeLesson]);
 
