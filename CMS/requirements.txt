@@ -3,6 +3,8 @@ certifi
 cffi
 charset-normalizer
 cryptography
+cloudinary>=1.36.0
+django-cloudinary-storage>=0.3.0
 Django==5.0.6
 django-cors-headers>=4.3.0
 django-filter>=23.5,<25.0
