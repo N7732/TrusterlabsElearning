@@ -33,10 +33,19 @@ class TrainingClassworkAdmin(admin.ModelAdmin):
     list_display = ('title', 'training', 'due_date')
     list_filter = ('training',)
 
+from django.utils.html import format_html
+
 @admin.register(TrainingClassworkSubmission)
 class TrainingClassworkSubmissionAdmin(admin.ModelAdmin):
-    list_display = ('participant', 'classwork', 'submission_date')
+    list_display = ('participant', 'classwork', 'score', 'submission_date', 'view_submission_file')
     list_filter = ('classwork__training', 'classwork')
+    list_editable = ('score',)
+    
+    def view_submission_file(self, obj):
+        if obj.submission_file:
+            return format_html('<a href="{}" target="_blank">View Document</a>', obj.submission_file.url)
+        return "No File"
+    view_submission_file.short_description = 'Submission File'
 
 @admin.register(TrainingFinalExam)
 class TrainingFinalExamAdmin(admin.ModelAdmin):
@@ -45,8 +54,15 @@ class TrainingFinalExamAdmin(admin.ModelAdmin):
 
 @admin.register(TrainingFinalExamSubmission)
 class TrainingFinalExamSubmissionAdmin(admin.ModelAdmin):
-    list_display = ('participant', 'exam', 'score', 'submission_date')
+    list_display = ('participant', 'exam', 'score', 'submission_date', 'view_submission_file')
     list_filter = ('exam__training', 'exam')
+    list_editable = ('score',)
+    
+    def view_submission_file(self, obj):
+        if obj.submission_file:
+            return format_html('<a href="{}" target="_blank">View Document</a>', obj.submission_file.url)
+        return "No File"
+    view_submission_file.short_description = 'Submission File'
 
 @admin.register(CustomTrainingRequest)
 class CustomTrainingRequestAdmin(admin.ModelAdmin):

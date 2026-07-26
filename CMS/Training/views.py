@@ -160,10 +160,39 @@ class TrainingViewSet(viewsets.ModelViewSet):
             participants.update(admission_status='COMPLETED')
             if training.has_certificate:
                 from certification.models import Certificate
+                from Course.models import QuizSubmission
+                
+                classworks = training.classworks.all()
+                exams = training.final_exams.all()
+                
                 for p in participants:
-                    # Ensure participant is a learner
-                    learner = getattr(p.participant, 'learner_profile', None)
-                    if learner:
+                    user = p.participant
+                    learner = getattr(user, 'learner_profile', None)
+                    if not learner:
+                        continue
+                        
+                    all_scores = []
+                    for cw in classworks:
+                        sub = cw.submissions.filter(participant=user).first()
+                        if sub and sub.score is not None:
+                            all_scores.append(float(sub.score))
+                        elif cw.linked_quiz:
+                            quiz_sub = QuizSubmission.objects.filter(learner=learner, quiz=cw.linked_quiz).first()
+                            if quiz_sub:
+                                all_scores.append(float(quiz_sub.score))
+                                
+                    for ex in exams:
+                        sub = ex.submissions.filter(participant=user).first()
+                        if sub and sub.score is not None:
+                            all_scores.append(float(sub.score))
+                        elif ex.linked_exam:
+                            quiz_sub = QuizSubmission.objects.filter(learner=learner, quiz=ex.linked_exam).first()
+                            if quiz_sub:
+                                all_scores.append(float(quiz_sub.score))
+                                
+                    avg_score = sum(all_scores) / len(all_scores) if all_scores else 0.0
+                    
+                    if avg_score >= float(training.passing_score_percentage):
                         Certificate.objects.get_or_create(
                             learner=learner,
                             training=training,
@@ -280,9 +309,13 @@ class TrainingClassworkViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'You have already submitted this classwork.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Ensure file is provided
-        submission_file = request.FILES.get('submission_file')
+        submission_file = request.FILES.get('submission_file') or request.FILES.get('file')
         if not submission_file:
-            return Response({'detail': 'Submission file is required.'}, status=status.HTTP_400_BAD_REQUEST)
+            # Fallback to taking the first uploaded file regardless of key
+            if request.FILES:
+                submission_file = list(request.FILES.values())[0]
+            else:
+                return Response({'detail': 'Submission file is required.'}, status=status.HTTP_400_BAD_REQUEST)
         
         submission = TrainingClassworkSubmission.objects.create(
             classwork=classwork,
@@ -344,9 +377,12 @@ class TrainingFinalExamViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'You have already submitted this exam.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Ensure file is provided
-        submission_file = request.FILES.get('submission_file')
+        submission_file = request.FILES.get('submission_file') or request.FILES.get('file')
         if not submission_file:
-            return Response({'detail': 'Submission file is required.'}, status=status.HTTP_400_BAD_REQUEST)
+            if request.FILES:
+                submission_file = list(request.FILES.values())[0]
+            else:
+                return Response({'detail': 'Submission file is required.'}, status=status.HTTP_400_BAD_REQUEST)
         
         submission = TrainingFinalExamSubmission.objects.create(
             exam=exam,
@@ -356,6 +392,35 @@ class TrainingFinalExamViewSet(viewsets.ModelViewSet):
         
         serializer = TrainingFinalExamSubmissionSerializer(submission)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+    @action(detail=True, methods=['get', 'post'], url_path='submissions')
+    @transaction.atomic
+    def manage_submissions(self, request, pk=None):
+        exam = self.get_object()
+        
+        if request.method == 'GET':
+            submissions = TrainingFinalExamSubmission.objects.filter(exam=exam)
+            serializer = TrainingFinalExamSubmissionSerializer(submissions, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+            
+        elif request.method == 'POST':
+            # This is for grading
+            submission_id = request.data.get('submission_id')
+            score = request.data.get('score')
+            
+            if not submission_id or score is None:
+                return Response({'detail': 'submission_id and score are required.'}, status=status.HTTP_400_BAD_REQUEST)
+                
+            try:
+                submission = TrainingFinalExamSubmission.objects.get(id=submission_id, exam=exam)
+                submission.score = score
+                submission.save()
+                
+                serializer = TrainingFinalExamSubmissionSerializer(submission)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except TrainingFinalExamSubmission.DoesNotExist:
+                return Response({'detail': 'Submission not found.'}, status=status.HTTP_404_NOT_FOUND)
 
 class CustomTrainingRequestViewSet(viewsets.ModelViewSet):
     queryset = CustomTrainingRequest.objects.all().order_by('-created_at')

@@ -20,7 +20,8 @@ from .views import (
     CustomTokenObtainPairView,
     PasswordResetRequestAPIView,
     PasswordResetConfirmAPIView,
-    LearnerGradesAPIView
+    LearnerGradesAPIView,
+    GoogleLoginAPIView
 )
 from rest_framework_simplejwt.views import (
     TokenRefreshView,
@@ -41,6 +42,7 @@ urlpatterns = [
     path('api/auth/admin/instructors/create/', AdminInstructorCreationAPIView.as_view(), name='api_admin_create_instructor'),
     path('api/auth/profile/', UserProfileAPIView.as_view(), name='api_profile'),
     path('api/auth/login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/auth/google/', GoogleLoginAPIView.as_view(), name='api_google_login'),
     path('api/auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/auth/password/reset/', PasswordResetRequestAPIView.as_view(), name='api_password_reset'),
     path('api/auth/password/reset/confirm/', PasswordResetConfirmAPIView.as_view(), name='api_password_reset_confirm'),
