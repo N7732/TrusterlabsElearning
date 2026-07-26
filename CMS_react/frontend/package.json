@@ -10,8 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-oauth/google": "^0.13.5",
     "@tinymce/tinymce-react": "^6.3.0",
     "html2pdf.js": "^0.14.0",
+    "jwt-decode": "^4.0.0",
     "lucide-react": "^1.23.0",
     "prismjs": "^1.30.0",
     "react": "^19.2.7",

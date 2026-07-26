@@ -1,116 +1,219 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
-import { apiClient } from '../../api/apiClient';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
-const Profile = () => {
-  const { user } = useAuth();
-  const [profileData, setProfileData] = useState(null);
-  const [membershipData, setMembershipData] = useState(null);
-  const [loading, setLoading] = useState(true);
+export default function Profile({ user }) {
+  // `user` prop should contain the user details fetched from your backend API
+  // e.g. { first_name, username, email, user_type, profile_picture, is_learner, is_instructor, extended_profile: { bio, city, country }, phone_number }
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
+  const [showSettings, setShowSettings] = useState(false);
 
-  const fetchProfile = async () => {
-    try {
-      setLoading(true);
-      const data = await apiClient.get('/auth/api/auth/profile/');
-      setProfileData(data);
-      
-      // Also try to fetch membership using user email
-      if (user?.email) {
-        const memRes = await apiClient.get(`/api/membership/memberships/?email=${user.email}`);
-        if (memRes && Array.isArray(memRes) && memRes.length > 0) {
-          setMembershipData(memRes[0]);
-        } else if (memRes && memRes.results && memRes.results.length > 0) {
-          setMembershipData(memRes.results[0]);
-        }
-      }
-    } catch (err) {
-      console.error('Failed to load profile or membership', err);
-    } finally {
-      setLoading(false);
-    }
+  // In a real application, you would manage form state here
+  const [formData, setFormData] = useState({
+    first_name: user?.first_name || '',
+    last_name: user?.last_name || '',
+    bio: user?.extended_profile?.bio || '',
+    phone_number: user?.phone_number || '',
+    city: user?.extended_profile?.city || '',
+    country: user?.extended_profile?.country || ''
+  });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSaveSettings = async (e) => {
+    e.preventDefault();
+    // TODO: Connect to backend API
+    console.log("Save profile changes", formData);
+  };
+
+  if (!user) {
+    return <div className="p-5 text-center">Loading...</div>;
+  }
+
+  const getInitials = () => {
+    if (user.first_name) return user.first_name.charAt(0).toUpperCase();
+    if (user.username) return user.username.charAt(0).toUpperCase();
+    return 'U';
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F5F7] py-12">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="bg-[#273B76] h-32 relative">
-            <div className="absolute -bottom-12 left-8 w-24 h-24 bg-white rounded-full p-1 shadow-md">
-              <div className="w-full h-full bg-slate-100 rounded-full flex items-center justify-center text-3xl font-bold text-[#273B76]">
-                {user?.first_name?.charAt(0) || user?.username?.charAt(0) || 'U'}
+    <>
+      <style>{`
+        #accountSettings input, #accountSettings select, #accountSettings textarea {
+          display: block;
+          width: 100%;
+          padding: 0.875rem 1rem;
+          font-size: 1rem;
+          font-weight: 400;
+          line-height: 1.5;
+          color: var(--text-primary, #212529);
+          background-color: var(--background, #fff);
+          background-clip: padding-box;
+          border: 1px solid var(--border-color, #dee2e6);
+          border-radius: 0.5rem;
+          transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+        }
+        #accountSettings input:focus, #accountSettings select:focus, #accountSettings textarea:focus {
+          border-color: var(--primary, #0d6efd);
+          outline: 0;
+          box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+      `}</style>
+
+      {/* Profile Header Banner */}
+      <div className="bg-primary text-white pt-5 pb-4 mb-5" style={{ backgroundColor: 'var(--primary, #0d6efd)' }}>
+        <div className="container">
+          <h1 className="fw-bold mb-1">My Profile</h1>
+          <p className="mb-0 text-white-50">Manage your personal information and preferences.</p>
+        </div>
+      </div>
+
+      <div className="container pb-5">
+        <div className="row">
+          {/* Sidebar */}
+          <div className="col-lg-4 mb-4 mb-lg-0">
+            <div className="card border-0 shadow-sm rounded-4 bg-white text-center p-4">
+              <div className="mb-4">
+                {user.profile_picture ? (
+                  <img 
+                    src={user.profile_picture} 
+                    alt="Profile"
+                    className="img-fluid rounded-circle border border-4 border-white shadow-sm"
+                    style={{ width: '150px', height: '150px', objectFit: 'cover' }}
+                  />
+                ) : (
+                  <div 
+                    className="bg-light rounded-circle mx-auto d-flex align-items-center justify-content-center shadow-sm border border-4 border-white"
+                    style={{ width: '150px', height: '150px' }}
+                  >
+                    <span className="fs-1 fw-bold text-primary">{getInitials()}</span>
+                  </div>
+                )}
+              </div>
+              
+              <h4 className="fw-bold text-dark mb-1">
+                {user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : (user.username || 'User')}
+              </h4>
+              <div className="badge bg-primary bg-opacity-10 text-primary mb-3 px-3 py-2 rounded-pill text-capitalize">
+                {user.user_type || 'Student'}
+              </div>
+              <p className="text-muted mb-0"><i className="fas fa-envelope me-2"></i>{user.email}</p>
+              
+              <hr className="my-4" />
+              
+              <div className="d-grid gap-2">
+                {user.is_learner && (
+                  <Link to="/edit-profile" className="btn btn-primary rounded-pill fw-bold shadow-sm">
+                    <i className="fas fa-user-edit me-2"></i> Edit Profile
+                  </Link>
+                )}
+                {user.is_instructor && (
+                  <Link to="/edit-profile/instructor" className="btn btn-primary rounded-pill fw-bold shadow-sm">
+                    <i className="fas fa-user-edit me-2"></i> Edit Profile
+                  </Link>
+                )}
+                
+                <button 
+                  className="btn btn-outline-secondary rounded-pill fw-bold" 
+                  type="button" 
+                  onClick={() => setShowSettings(!showSettings)}
+                >
+                  <i className="fas fa-cog me-2"></i> Account Settings
+                </button>
               </div>
             </div>
           </div>
           
-          <div className="pt-16 pb-8 px-8">
-            <h1 className="text-2xl font-bold text-slate-900">
-              {user?.first_name} {user?.last_name}
-            </h1>
-            <p className="text-slate-500 mb-6">{user?.email}</p>
-            
-            {loading ? (
-              <div className="animate-pulse flex space-x-4">
-                <div className="flex-1 space-y-4 py-1">
-                  <div className="h-2 bg-slate-200 rounded"></div>
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="h-2 bg-slate-200 rounded col-span-2"></div>
-                      <div className="h-2 bg-slate-200 rounded col-span-1"></div>
+          {/* Main Content */}
+          <div className="col-lg-8">
+            <div className="card border-0 shadow-sm rounded-4 bg-white p-4 p-md-5 mb-4">
+              <h5 className="fw-bold mb-4 text-dark border-bottom pb-3">About Me</h5>
+              <p className="text-muted" style={{ lineHeight: 1.8 }}>
+                {user.extended_profile?.bio || "No bio information added yet. Add a bio to tell others about yourself!"}
+              </p>
+
+              <h5 className="fw-bold mb-4 text-dark border-bottom pb-3 mt-5">Contact Information</h5>
+              <div className="row g-4">
+                <div className="col-md-6">
+                  <div className="d-flex align-items-center">
+                    <div className="bg-light rounded-circle d-flex align-items-center justify-content-center text-primary me-3" style={{ width: '45px', height: '45px' }}>
+                      <i className="fas fa-phone"></i>
                     </div>
-                    <div className="h-2 bg-slate-200 rounded"></div>
+                    <div>
+                      <small className="text-muted d-block fw-bold text-uppercase" style={{ fontSize: '0.7rem' }}>Phone</small>
+                      <span className="text-dark fw-medium">
+                        {user.phone_number || "Not provided"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-md-6">
+                  <div className="d-flex align-items-center">
+                    <div className="bg-light rounded-circle d-flex align-items-center justify-content-center text-primary me-3" style={{ width: '45px', height: '45px' }}>
+                      <i className="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div>
+                      <small className="text-muted d-block fw-bold text-uppercase" style={{ fontSize: '0.7rem' }}>Location</small>
+                      <span className="text-dark fw-medium">
+                        {user.extended_profile?.city || "City not set"}, {user.extended_profile?.country || "Country not set"}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
-            ) : (
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-2">Account Type</h3>
-                  <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 capitalize">
-                    {profileData?.user_type || user?.user_type || 'User'}
-                  </div>
-                </div>
-                
-                {profileData?.instructor_profile && (
-                  <div>
-                    <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-2">Instructor Details</h3>
-                    <p className="text-slate-700"><span className="font-medium">Specialization:</span> {profileData.instructor_profile.specialization || 'Not specified'}</p>
-                    <p className="text-slate-700 mt-1"><span className="font-medium">Bio:</span> {profileData.instructor_profile.bio || 'Not specified'}</p>
-                  </div>
-                )}
+            </div>
 
-                {profileData?.learner_profile && (
-                  <div>
-                    <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-2">Learner Details</h3>
-                    <p className="text-slate-700">Student account active.</p>
-                  </div>
-                )}
-                
-                <div>
-                  <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-2">Membership Status</h3>
-                  {membershipData ? (
-                    <div className="bg-[#273B76]/5 border border-[#273B76]/10 p-4 rounded-lg">
-                      <p className="text-slate-700 font-medium">Active Member</p>
-                      <p className="text-slate-600 text-sm mt-1">Membership ID: <span className="font-bold text-[#273B76]">{membershipData.MembershipID}</span></p>
-                      <p className="text-slate-500 text-xs mt-1">Duration: {membershipData.duration_days} days</p>
+            {showSettings && (
+              <div id="accountSettings">
+                <div className="card border-0 shadow-sm rounded-4 bg-white p-4 p-md-5">
+                  <h5 className="fw-bold mb-4 text-dark border-bottom pb-3">Account Settings</h5>
+                  <form onSubmit={handleSaveSettings}>
+                    
+                    <div className="mb-4">
+                      <label className="form-label fw-bold text-dark">First Name</label>
+                      <input type="text" name="first_name" value={formData.first_name} onChange={handleChange} />
                     </div>
-                  ) : (
-                    <div className="bg-slate-50 border border-slate-200 p-4 rounded-lg">
-                      <p className="text-slate-600">You do not have an active membership.</p>
-                      <a href="/membership" className="text-blue-600 hover:underline text-sm mt-2 inline-block">Learn about Memberships &rarr;</a>
+
+                    <div className="mb-4">
+                      <label className="form-label fw-bold text-dark">Last Name</label>
+                      <input type="text" name="last_name" value={formData.last_name} onChange={handleChange} />
                     </div>
-                  )}
+
+                    <div className="mb-4">
+                      <label className="form-label fw-bold text-dark">Phone Number</label>
+                      <input type="tel" name="phone_number" value={formData.phone_number} onChange={handleChange} />
+                    </div>
+
+                    <div className="mb-4">
+                      <label className="form-label fw-bold text-dark">Bio</label>
+                      <textarea name="bio" rows="4" value={formData.bio} onChange={handleChange}></textarea>
+                    </div>
+
+                    <div className="row">
+                      <div className="col-md-6 mb-4">
+                        <label className="form-label fw-bold text-dark">City</label>
+                        <input type="text" name="city" value={formData.city} onChange={handleChange} />
+                      </div>
+                      <div className="col-md-6 mb-4">
+                        <label className="form-label fw-bold text-dark">Country</label>
+                        <input type="text" name="country" value={formData.country} onChange={handleChange} />
+                      </div>
+                    </div>
+
+                    <div className="text-end mt-4">
+                      <button className="btn btn-primary rounded-pill fw-bold shadow-sm px-5 py-2" type="submit">
+                        Save Changes
+                      </button>
+                    </div>
+                  </form>
                 </div>
               </div>
             )}
+            
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
-};
-
-export default Profile;
+}

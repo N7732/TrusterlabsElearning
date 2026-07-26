@@ -3,12 +3,13 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
+import { GoogleLogin } from '@react-oauth/google';
 import Card, { CardContent } from '../../components/common/Card';
 
 const AuthPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { login, registerLearner } = useAuth();
+  const { login, registerLearner, googleLogin } = useAuth();
   
   // Determine initial tab from path
   const initialTab = location.pathname === '/register' ? 'register' : 'login';
@@ -67,6 +68,23 @@ const AuthPage = () => {
       navigate(redirectPath, { replace: true });
     } catch (err) {
       setError(err.message || 'Invalid email or password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setLoading(true);
+    setError('');
+    try {
+      await googleLogin(credentialResponse.credential);
+      let redirectPath = from;
+      if (from === '/' || from === '/login') {
+        redirectPath = '/';
+      }
+      navigate(redirectPath, { replace: true });
+    } catch (err) {
+      setError('Google sign in failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -197,6 +215,23 @@ const AuthPage = () => {
                 <Button type="submit" fullWidth disabled={loading} className="!bg-[#FFD700] hover:!bg-[#F0C800] !text-black font-bold">
                   {loading ? 'Signing in...' : 'Sign In'}
                 </Button>
+
+                <div className="relative mt-6 mb-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-200"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white text-slate-500">Or continue with</span>
+                  </div>
+                </div>
+                
+                <div className="flex justify-center">
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={() => setError('Google sign in was unsuccessful. Try again later.')}
+                    useOneTap
+                  />
+                </div>
               </form>
             ) : (
               /* REGISTER FORM */
@@ -251,6 +286,22 @@ const AuthPage = () => {
                 <Button type="submit" fullWidth disabled={loading} className="!bg-[#FFD700] hover:!bg-[#F0C800] !text-black font-bold">
                   {loading ? 'Creating account...' : 'Register'}
                 </Button>
+
+                <div className="relative mt-6 mb-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-200"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white text-slate-500">Or continue with</span>
+                  </div>
+                </div>
+                
+                <div className="flex justify-center">
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={() => setError('Google sign in was unsuccessful. Try again later.')}
+                  />
+                </div>
               </form>
             )}
           </CardContent>

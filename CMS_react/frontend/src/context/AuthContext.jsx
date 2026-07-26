@@ -54,6 +54,13 @@ export const AuthProvider = ({ children }) => {
   const isInstructor = user?.user_type === 'instructor' || user?.user_type === 'admin';
   const isAdmin = user?.user_type === 'admin' || user?.is_superuser;
 
+  const googleLogin = async (credential) => {
+    const data = await apiClient.post('/auth/api/google/', { token: credential });
+    localStorage.setItem('truster_lab_token', data.access);
+    localStorage.setItem('truster_lab_refresh', data.refresh);
+    return await fetchProfile();
+  };
+
   return (
     <AuthContext.Provider value={{ 
       user, 
@@ -62,6 +69,7 @@ export const AuthProvider = ({ children }) => {
       isInstructor,
       isAdmin,
       login, 
+      googleLogin,
       registerLearner,
       logout 
     }}>

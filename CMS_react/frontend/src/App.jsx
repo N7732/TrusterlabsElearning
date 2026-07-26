@@ -14,11 +14,16 @@ import CertificateOverview from './pages/admin/CertificateOverview';
 import OfferCertificates from './pages/admin/OfferCertificates';
 import ErrorBoundary from './components/ErrorBoundary';
 
+import { GoogleOAuthProvider } from '@react-oauth/google';
+
+const GOOGLE_CLIENT_ID = "415417120310-3414hcps3a9h5kbm4ja682rai9lr2a7h.apps.googleusercontent.com";
+
 function App() {
   return (
-    <ErrorBoundary>
-      <BrowserRouter>
-        <AuthProvider>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <ErrorBoundary>
+        <BrowserRouter>
+          <AuthProvider>
           <Routes>
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminLayout />}>
@@ -37,8 +42,9 @@ function App() {
             <Route path="/*" element={<AppRoutes />} />
           </Routes>
         </AuthProvider>
-      </BrowserRouter>
-    </ErrorBoundary>
+        </BrowserRouter>
+      </ErrorBoundary>
+    </GoogleOAuthProvider>
   );
 }
 
