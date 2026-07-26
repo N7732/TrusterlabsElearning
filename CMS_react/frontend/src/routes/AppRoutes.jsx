@@ -35,10 +35,12 @@ const SuperAdminEntityForm = lazy(() => import('../pages/superadmin/SuperAdminEn
 const CertificateOverview = lazy(() => import('../pages/admin/CertificateOverview'));
 const OfferCertificates = lazy(() => import('../pages/admin/OfferCertificates'));
 const TrainingDashboard = lazy(() => import('../pages/admin/TrainingDashboard'));
+const TrainingGrading = lazy(() => import('../pages/admin/TrainingGrading'));
 
 // Instructor Pages
 const InstructorLayout = lazy(() => import('../layouts/InstructorLayout'));
 const InstructorDashboard = lazy(() => import('../pages/instructor/InstructorDashboard'));
+const CourseForm = lazy(() => import('../pages/instructor/CourseForm'));
 
 const AppRoutes = () => {
   const location = useLocation();
@@ -78,6 +80,7 @@ const AppRoutes = () => {
                 <Route path="entity/certificates/overview" element={<CertificateOverview />} />
                 <Route path="entity/certificates/offer" element={<OfferCertificates />} />
                 <Route path="entity/trainings/:id/dashboard" element={<TrainingDashboard />} />
+                <Route path="entity/trainings/:id/grading" element={<TrainingGrading />} />
                 <Route path="entity/:entityId" element={<SuperAdminEntityList />} />
                 <Route path="entity/:entityId/:id" element={<SuperAdminEntityForm />} />
               </Route>
@@ -99,6 +102,7 @@ const AppRoutes = () => {
               <Route path="/instructor" element={<InstructorLayout />}>
                 <Route index element={<InstructorDashboard />} />
                 <Route path="dashboard" element={<InstructorDashboard />} />
+                <Route path="courses/new" element={<CourseForm />} />
                 <Route path="entity/trainings/:id/dashboard" element={<TrainingDashboard />} />
                 <Route path="entity/:entityId" element={<SuperAdminEntityList />} />
                 <Route path="entity/:entityId/:id" element={<SuperAdminEntityForm />} />
