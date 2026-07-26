@@ -877,3 +877,79 @@ class LearnerGradesAPIView(APIView):
         # Sort by date descending
         grades.sort(key=lambda x: x['date'], reverse=True)
         return Response(grades, status=status.HTTP_200_OK)
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
+from django.conf import settings
+from .models import Learner, Instructor
+
+class GoogleLoginAPIView(APIView):
+    """
+    API endpoint for Google Authentication.
+    Accepts `credential` (Google ID token) and `user_type` ('learner' or 'instructor').
+    """
+    permission_classes = []
+
+    def post(self, request):
+        token = request.data.get('credential')
+        user_type = request.data.get('user_type', 'learner')  # Default to learner
+
+        if not token:
+            return Response({'error': 'No credential provided.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Verify the token
+            idinfo = id_token.verify_oauth2_token(
+                token, 
+                google_requests.Request(), 
+                settings.GOOGLE_CLIENT_ID
+            )
+
+            # Get user info from token
+            email = idinfo.get('email')
+            first_name = idinfo.get('given_name', '')
+            last_name = idinfo.get('family_name', '')
+
+            # Check if user exists
+            user, created = User.objects.get_or_create(email=email, defaults={
+                'username': email,
+                'first_name': first_name,
+                'last_name': last_name,
+                'user_type': user_type
+            })
+
+            # If user was created via Google, we must create their respective profile
+            if created:
+                user.set_unusable_password()  # Users created via Google don't have a password
+                user.save()
+
+                if user_type == 'learner':
+                    Learner.objects.create(user=user, email=email, email_verified=True)
+                elif user_type == 'instructor':
+                    Instructor.objects.create(user=user, profile_picture_url=idinfo.get('picture', ''))
+                
+                # Create extended profile
+                from .models import AccountProfile
+                AccountProfile.objects.create(
+                    user=user, 
+                    profile_picture=idinfo.get('picture', '')  # Fallback if you change ImageField to URLField or just leave blank for ImageField
+                )
+
+            # Generate tokens
+            refresh = RefreshToken.for_user(user)
+
+            return Response({
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+                'user': {
+                    'id': user.id,
+                    'email': user.email,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'user_type': user.user_type
+                },
+                'is_new_user': created
+            }, status=status.HTTP_200_OK)
+
+        except ValueError as e:
+            # Invalid token
+            return Response({'error': 'Invalid Google token.', 'details': str(e)}, status=status.HTTP_401_UNAUTHORIZED)

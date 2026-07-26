@@ -27,3 +27,4 @@ sqlparse
 tzdata
 urllib3
 whitenoise>=6.6.0
+google-auth

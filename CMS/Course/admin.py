@@ -11,13 +11,23 @@ class CoursePrerequisiteInline(admin.TabularInline):
     fk_name = 'course'
     extra = 1
 
+from django.utils.html import format_html
+
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ('title', 'instructor', 'difficulty', 'course_status', 'is_locked', 'is_free', 'created_at')
+    list_display = ('title', 'instructor', 'difficulty', 'course_status', 'is_locked', 'is_free', 'created_at', 'thumbnail_preview')
     list_filter = ('course_status', 'is_locked', 'is_free', 'difficulty', 'created_at')
     search_fields = ('title', 'description')
     prepopulated_fields = {'slug': ('title',)}
     inlines = [CoursePrerequisiteInline, ModuleInline]
+
+    def thumbnail_preview(self, obj):
+        if obj.thumbnail:
+            return format_html('<img src="{}" style="height: 50px; border-radius: 4px;" />', obj.thumbnail.url)
+        if obj.thumbnail_url:
+            return format_html('<img src="{}" style="height: 50px; border-radius: 4px;" />', obj.thumbnail_url)
+        return "No Thumbnail"
+    thumbnail_preview.short_description = 'Thumbnail'
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
