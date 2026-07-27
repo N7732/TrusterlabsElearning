@@ -228,6 +228,13 @@ if extra_cors:
         if origin.strip() and origin.strip() not in CORS_ALLOWED_ORIGINS:
             CORS_ALLOWED_ORIGINS.append(origin.strip())
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://frontend-omega-five-21.vercel.app",
+    "https://trusterlabselearning-production.up.railway.app",
+    "https://www.trusterlabsacademy.com",
+    "https://trusterlabsacademy.com"
+]
+
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://frontend-omega-five-21.vercel.app')
 
 # Media files (Uploads)
