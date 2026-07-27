@@ -386,10 +386,13 @@ def render_email_template(template_name, context_dict, request=None):
         return render_to_string(template_name, context_dict, request=request), None
 
 def send_email_async(email_message):
-    try:
-        email_message.send()
-    except Exception as e:
-        logger.error(f"Failed to send email: {e}")
+    import threading
+    def send():
+        try:
+            email_message.send()
+        except Exception as e:
+            logger.error(f"Failed to send email: {e}")
+    threading.Thread(target=send).start()
 
 class CustomPasswordResetView(PasswordResetView):
 
