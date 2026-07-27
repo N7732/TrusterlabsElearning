@@ -385,15 +385,11 @@ def render_email_template(template_name, context_dict, request=None):
     except EmailTemplate.DoesNotExist:
         return render_to_string(template_name, context_dict, request=request), None
 
-import threading
-
 def send_email_async(email_message):
-    def send_it():
-        try:
-            email_message.send()
-        except Exception as e:
-            logger.error(f"Failed to send email: {e}")
-    threading.Thread(target=send_it).start()
+    try:
+        email_message.send()
+    except Exception as e:
+        logger.error(f"Failed to send email: {e}")
 
 class CustomPasswordResetView(PasswordResetView):
 
@@ -933,6 +929,12 @@ class GoogleLoginAPIView(APIView):
                     user=user, 
                     profile_picture=idinfo.get('picture', '')  # Fallback if you change ImageField to URLField or just leave blank for ImageField
                 )
+                
+                # Send Welcome Email for new users created via Google
+                try:
+                    send_welcome_email(user)
+                except Exception as e:
+                    logger.error(f"Failed to send welcome email to {user.email}: {e}")
 
             # Generate tokens
             refresh = RefreshToken.for_user(user)
