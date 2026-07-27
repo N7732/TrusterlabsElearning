@@ -84,7 +84,8 @@ const AuthPage = () => {
       }
       navigate(redirectPath, { replace: true });
     } catch (err) {
-      setError('Google sign in failed. Please try again.');
+      console.error("Google Login Error:", err);
+      setError(`Google sign in failed: ${err.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
