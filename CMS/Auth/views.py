@@ -890,7 +890,7 @@ class GoogleLoginAPIView(APIView):
     permission_classes = []
 
     def post(self, request):
-        token = request.data.get('credential')
+        token = request.data.get('credential') or request.data.get('token')
         user_type = request.data.get('user_type', 'learner')  # Default to learner
 
         if not token:
