@@ -1,31 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, ChevronRight, Search, Filter } from 'lucide-react';
 import { apiClient, getImageUrl } from '../../api/apiClient';
+import { usePublications } from '../../hooks/queries/usePublicQueries';
 import image1 from '../../assets/image1.jpg';
 
 const ResearchArticles = () => {
-  const [articles, setArticles] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchArticles();
-  }, []);
-
-  const fetchArticles = async () => {
-    try {
-      setLoading(true);
-      const res = await apiClient.get('/api/research/publications/');
-      if (res && res.results) {
-        setArticles(res.results.filter(a => a.is_published));
-      } else if (Array.isArray(res)) {
-        setArticles(res.filter(a => a.is_published));
-      }
-    } catch (error) {
-      console.error("Failed to fetch research articles:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: rawArticles, isLoading: loading } = usePublications();
+  
+  const articles = React.useMemo(() => {
+    if (!rawArticles) return [];
+    return rawArticles.filter(a => a.is_published);
+  }, [rawArticles]);
 
   return (
     <div className="bg-[#030712] min-h-[calc(100vh-64px)] font-['Work_Sans',sans-serif] pb-20">

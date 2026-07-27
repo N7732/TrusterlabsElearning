@@ -1,13 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Calendar, Clock, MapPin, Users, ArrowRight, Loader2 } from 'lucide-react';
-import { apiClient } from '../../api/apiClient';
 import { useAuth } from '../../context/AuthContext';
+import { useTrainings, useApplyForTraining, useRequestCustomTraining } from '../../hooks/queries/usePublicQueries';
 
 const CourseTraining = () => {
-  const [sessions, setSessions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [enrollLoading, setEnrollLoading] = useState(null);
   const [message, setMessage] = useState({ text: '', type: '' });
   
   const [applicationModalOpen, setApplicationModalOpen] = useState(false);
@@ -28,25 +25,16 @@ const CourseTraining = () => {
     learning_fields: '',
     additional_info: ''
   });
-  const [customLoading, setCustomLoading] = useState(false);
+  
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-    fetchSessions();
-  }, []);
-
-  const fetchSessions = async () => {
-    try {
-      const data = await apiClient.get('/training/trainings/');
-      setSessions(data);
-    } catch (error) {
-      console.error('Error fetching training sessions:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: sessions = [], isLoading: loading } = useTrainings();
+  const { mutateAsync: applyForTraining, isPending: enrollLoadingStatus } = useApplyForTraining();
+  const { mutateAsync: requestCustomTraining, isPending: customLoading } = useRequestCustomTraining();
+  
+  const enrollLoading = enrollLoadingStatus ? selectedTraining?.id : null;
 
   const handleOpenApplication = (session) => {
     if (!isAuthenticated) {
@@ -59,27 +47,23 @@ const CourseTraining = () => {
 
   const handleApply = async (e) => {
     e.preventDefault();
-    setEnrollLoading(selectedTraining.id);
     setMessage({ text: '', type: '' });
     try {
-      await apiClient.post(`/training/trainings/${selectedTraining.id}/apply/`, formData);
+      await applyForTraining({ id: selectedTraining.id, formData });
       setMessage({ text: 'Application submitted successfully! Your admission status is now pending.', type: 'success' });
       setApplicationModalOpen(false);
       setFormData({ application_full_name: '', application_phone_number: '', application_email: '' });
     } catch (error) {
       setMessage({ text: error.message || 'Failed to apply for training. It might be closed or you already applied.', type: 'error' });
       setApplicationModalOpen(false);
-    } finally {
-      setEnrollLoading(null);
     }
   };
 
   const handleCustomApply = async (e) => {
     e.preventDefault();
-    setCustomLoading(true);
     setMessage({ text: '', type: '' });
     try {
-      await apiClient.post(`/training/custom-requests/`, customFormData);
+      await requestCustomTraining(customFormData);
       setMessage({ text: 'Custom training request submitted successfully! We will contact you soon.', type: 'success' });
       setCustomTrainingModalOpen(false);
       setCustomFormData({
@@ -93,8 +77,6 @@ const CourseTraining = () => {
       });
     } catch (error) {
       setMessage({ text: error.message || 'Failed to submit request.', type: 'error' });
-    } finally {
-      setCustomLoading(false);
     }
   };
 

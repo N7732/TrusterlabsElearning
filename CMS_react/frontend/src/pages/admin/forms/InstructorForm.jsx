@@ -199,11 +199,11 @@ const InstructorForm = ({ isEditing, instructorId }) => {
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-slate-700 mb-2">Staff Photo / Profile Picture URL</label>
                 <input
-                  type="url" name="profile_picture_url" placeholder="e.g. https://drive.google.com/uc?id=..."
+                  type="url" name="profile_picture_url" placeholder="e.g. https://res.cloudinary.com/..."
                   value={formData.profile_picture_url} onChange={handleChange}
                   className="w-full p-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A66C2]"
                 />
-                <p className="text-xs text-slate-500 mt-1">Provide a public link to the instructor's photo (e.g., from Google Drive).</p>
+                <p className="text-xs text-slate-500 mt-1">Provide a public link to the instructor's photo (e.g., from Cloudinary).</p>
               </div>
             </div>
           </CardContent>

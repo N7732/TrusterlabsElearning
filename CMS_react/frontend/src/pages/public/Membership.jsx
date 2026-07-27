@@ -2,16 +2,17 @@ import React, { useState } from 'react';
 import { CheckCircle, Shield, Award, Users, ArrowRight, X, Loader } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/common/Button';
-import { apiClient } from '../../api/apiClient';
+import { useCreateMembership } from '../../hooks/queries/usePublicQueries';
 
 const Membership = () => {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   
+  const { mutateAsync: createMembership, isPending: loading } = useCreateMembership();
+
   const [formData, setFormData] = useState({
     Fullname: '',
     email: '',
@@ -32,7 +33,6 @@ const Membership = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setErrorMsg('');
 
     try {
@@ -42,7 +42,7 @@ const Membership = () => {
         duration_days: 365, // Default 1 year
       };
       
-      const res = await apiClient.post('/api/membership/memberships/', payload);
+      await createMembership(payload);
       setSuccess(true);
     } catch (err) {
       console.error("Membership registration error", err);
@@ -57,8 +57,6 @@ const Membership = () => {
         // Not JSON, use as is
       }
       setErrorMsg(errorText);
-    } finally {
-      setLoading(false);
     }
   };
   const plans = [

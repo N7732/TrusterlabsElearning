@@ -334,7 +334,7 @@ export const adminConfig = {
       { field: 'name', label: 'Name', type: 'text' },
       { field: 'position', label: 'Position', type: 'text' },
       { field: 'photo', label: 'Upload Photo', type: 'image' },
-      { field: 'photo_url', label: 'Or Photo URL (Drive link)', type: 'url' },
+      { field: 'photo_url', label: 'Or Photo URL (Cloudinary link)', type: 'url' },
       { field: 'bio', label: 'Bio', type: 'textarea' },
       { field: 'is_active', label: 'Is Active', type: 'boolean' },
     ],

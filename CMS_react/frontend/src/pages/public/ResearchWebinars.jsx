@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, PlayCircle, X, Loader2 } from 'lucide-react';
-import { apiClient } from '../../api/apiClient';
+import { useWebinars, useRegisterForWebinar } from '../../hooks/queries/usePublicQueries';
 import image2 from '../../assets/image2.jpeg';
 
 const ResearchWebinars = () => {
-  const [webinars, setWebinars] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data: rawWebinars, isLoading: loading } = useWebinars();
+  const { mutateAsync: registerForWebinar } = useRegisterForWebinar();
+  
+  const webinars = React.useMemo(() => {
+    if (!rawWebinars) return [];
+    return rawWebinars.filter(w => w.status === 'UPCOMING');
+  }, [rawWebinars]);
   
   // Registration Modal State
   const [selectedWebinar, setSelectedWebinar] = useState(null);
@@ -18,26 +23,6 @@ const ResearchWebinars = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [regSuccess, setRegSuccess] = useState(false);
   const [regError, setRegError] = useState('');
-
-  useEffect(() => {
-    fetchWebinars();
-  }, []);
-
-  const fetchWebinars = async () => {
-    try {
-      setLoading(true);
-      const res = await apiClient.get('/api/research/webinars/');
-      if (res && res.results) {
-        setWebinars(res.results.filter(w => w.status === 'UPCOMING'));
-      } else if (Array.isArray(res)) {
-        setWebinars(res.filter(w => w.status === 'UPCOMING'));
-      }
-    } catch (error) {
-      console.error("Failed to fetch webinars:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const openRegistration = (webinar) => {
     setSelectedWebinar(webinar);
@@ -57,7 +42,7 @@ const ResearchWebinars = () => {
     setRegError('');
     
     try {
-      await apiClient.post('/api/research/webinar_registrations/', {
+      await registerForWebinar({
         webinar: selectedWebinar.id,
         ...regForm
       });

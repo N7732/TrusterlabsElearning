@@ -85,7 +85,7 @@ class StaffMember(models.Model):
     name = models.CharField(max_length=255)
     position = models.CharField(max_length=255)
     photo = models.ImageField(upload_to='staff_photos/', null=True, blank=True)
-    photo_url = models.URLField(max_length=1000, null=True, blank=True, help_text="Direct link to photo (e.g., Google Drive)")
+    photo_url = models.URLField(max_length=1000, null=True, blank=True, help_text="Direct link to photo (e.g., Cloudinary)")
     bio = models.TextField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

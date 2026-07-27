@@ -1,46 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card, { CardContent } from '../../components/common/Card';
 import { 
   GraduationCap, Users, BookOpen, Activity, 
   AlertCircle, Book, Calendar, ArrowLeft
 } from 'lucide-react';
-import { apiClient } from '../../api/apiClient';
 import { useAuth } from '../../context/AuthContext';
+import { useInstructorStats } from '../../hooks/queries/useInstructorQueries';
 
 const InstructorDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [stats, setStats] = useState({
-    courses: 0,
-    modules: 0,
-    trainings: 0,
-    enquiries: 0,
-  });
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const [cRes, mRes, tRes, eRes] = await Promise.all([
-          apiClient.get('/api/courses/?my_courses=true').catch(() => null),
-          apiClient.get('/api/modules/?my_modules=true').catch(() => null),
-          apiClient.get('/api/training/trainings/?my_trainings=true').catch(() => null),
-          apiClient.get('/api/enquiry/requirement/?my_enquiries=true').catch(() => null),
-        ]);
-
-        setStats({
-          courses: cRes?.results?.length || cRes?.length || 0,
-          modules: mRes?.results?.length || mRes?.length || 0,
-          trainings: tRes?.results?.length || tRes?.length || 0,
-          enquiries: eRes?.results?.length || eRes?.length || 0,
-        });
-      } catch (err) {
-        console.error("Error fetching stats:", err);
-      }
-    };
-
-    fetchStats();
-  }, []);
+  
+  const { data: stats = { courses: 0, modules: 0, trainings: 0, enquiries: 0 }, isLoading } = useInstructorStats();
 
   const statCards = [
     { title: 'My Courses', value: stats.courses, icon: <BookOpen size={24} className="text-blue-500" />, trend: '+2 this month', link: '/instructor/entity/courses' },

@@ -1,32 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { apiClient, getImageUrl } from '../../api/apiClient';
+import { usePublicCourses } from '../../hooks/queries/usePublicQueries';
 import { Search, Filter, Building2, BookOpen, Clock, MoreVertical } from 'lucide-react';
 import image3 from '../../assets/image3.png';
 
 const CourseCatalog = () => {
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    fetchCourses();
-  }, []);
-
-  const fetchCourses = async () => {
-    try {
-      setLoading(true);
-      const data = await apiClient.get('/api/courses/');
-      const results = data.results || data;
-      setCourses(Array.isArray(results) ? results : []);
-    } catch (err) {
-      setError('Failed to load courses. Make sure the backend server is running.');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  
+  const { data: rawCourses, isLoading: loading, error: queryError } = usePublicCourses();
+  
+  const courses = React.useMemo(() => {
+    if (!rawCourses) return [];
+    return Array.isArray(rawCourses.results) ? rawCourses.results : (Array.isArray(rawCourses) ? rawCourses : []);
+  }, [rawCourses]);
+  
+  const error = queryError ? 'Failed to load courses. Make sure the backend server is running.' : null;
   
   const filteredCourses = courses.filter(course => {
     const safeSearchTerm = (searchTerm || '').toLowerCase();

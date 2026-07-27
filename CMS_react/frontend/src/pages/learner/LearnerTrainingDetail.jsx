@@ -1,37 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { apiClient, getImageUrl } from '../../api/apiClient';
+import { getImageUrl } from '../../api/apiClient';
 import { useAuth } from '../../context/AuthContext';
 import { BookOpen, Calendar, Clock, FileText, Upload, CheckCircle, Lock } from 'lucide-react';
+import { useTrainingDetails, useSubmitClasswork } from '../../hooks/queries/useLearnerQueries';
 
 const LearnerTrainingDetail = () => {
   const { user } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
-  const [training, setTraining] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  
+  const { data: training, isLoading: loading, error } = useTrainingDetails(id);
+  const { mutateAsync: submitClasswork } = useSubmitClasswork();
   
   // File upload state per classwork ID
   const [uploadingMap, setUploadingMap] = useState({});
   const [fileMap, setFileMap] = useState({});
-
-  useEffect(() => {
-    fetchTraining();
-  }, [id]);
-
-  const fetchTraining = async () => {
-    try {
-      setLoading(true);
-      const data = await apiClient.get(`/training/trainings/${id}/`);
-      setTraining(data);
-    } catch (err) {
-      console.error(err);
-      setError('Failed to load training details.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleFileChange = (classworkId, e) => {
     const file = e.target.files[0];
@@ -49,18 +33,15 @@ const LearnerTrainingDetail = () => {
       const formData = new FormData();
       formData.append('submission_file', file);
 
-      await apiClient.post(`/training/classwork/${classworkId}/submit/`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      await submitClasswork({ classworkId, formData });
       
       alert('Classwork submitted successfully!');
-      // Refresh to see submission status/score
+      // Clear file after submission
       setFileMap(prev => {
         const newMap = { ...prev };
         delete newMap[classworkId];
         return newMap;
       });
-      fetchTraining();
     } catch (err) {
       alert(err.message || 'Failed to submit classwork');
     } finally {
