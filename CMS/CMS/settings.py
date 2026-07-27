@@ -36,6 +36,8 @@ ALLOWED_HOSTS = [
     "*",
     "frontend-omega-five-21.vercel.app",
     "trusterlabselearning-production.up.railway.app",
+    "www.trusterlabsacademy.com",
+    "trusterlabsacademy.com",
     "localhost",
     "127.0.0.1"
 ]
@@ -215,7 +217,10 @@ CORS_ALLOW_ALL_ORIGINS = os.getenv('CORS_ALLOW_ALL_ORIGINS', 'False') == 'True'
 CORS_ALLOWED_ORIGINS = [
     "https://frontend-omega-five-21.vercel.app",
     "https://frontend-6od8rks2q-n7732s-projects.vercel.app",
-    "https://trusterlabselearning-production.up.railway.app"]
+    "https://trusterlabselearning-production.up.railway.app",
+    "https://www.trusterlabsacademy.com",
+    "https://trusterlabsacademy.com"
+]
 
 extra_cors = os.getenv('CORS_ALLOWED_ORIGINS')
 if extra_cors:
