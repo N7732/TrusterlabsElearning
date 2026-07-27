@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }) => {
   const isAdmin = user?.user_type === 'admin' || user?.is_superuser;
 
   const googleLogin = async (credential) => {
-    const data = await apiClient.post('/auth/api/google/', { token: credential });
+    const data = await apiClient.post('/auth/api/auth/google/', { token: credential });
     localStorage.setItem('truster_lab_token', data.access);
     localStorage.setItem('truster_lab_refresh', data.refresh);
     return await fetchProfile();
