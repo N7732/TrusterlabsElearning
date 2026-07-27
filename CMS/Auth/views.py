@@ -378,7 +378,7 @@ from SuperSetting.models import EmailTemplate
 
 def render_email_template(template_name, context_dict, request=None):
     from django.template.loader import render_to_string
-    basename = template_name.replace('emails/', '').replace('Resent_emali/', '').replace('.html', '')
+    basename = template_name.replace('emails/', '').replace('emails/', '').replace('.html', '')
     try:
         email_template = EmailTemplate.objects.get(template_name=basename)
         return Template(email_template.html_content).render(Context(context_dict)), email_template.subject
@@ -394,7 +394,7 @@ def send_email_async(email_message):
 class CustomPasswordResetView(PasswordResetView):
 
     subject = "Password Reset Requested"
-    template_name = 'Resent_emali/password_reset_form.html'
+    template_name = 'emails/password_reset_form.html'
     email_template_name = 'emails/password_reset_email.html'
     success_url = reverse_lazy('Auth:password_reset_done')
 
@@ -434,10 +434,10 @@ class CustomPasswordResetView(PasswordResetView):
         return super().form_valid(form)
     
 class CustomPasswordResetDoneView(PasswordResetDoneView):
-    template_name = 'Resent_emali/password_reset_done.html'
+    template_name = 'emails/password_reset_done.html'
 
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
-    template_name = 'Resent_emali/password_reset_confirm.html'
+    template_name = 'emails/password_reset_confirm.html'
     success_url = reverse_lazy('Auth:password_reset_complete')
 
     def form_valid(self, form):
@@ -449,11 +449,11 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
         return response
     
 class CustomPasswordResetCompleteView(PasswordResetCompleteView):
-    template_name = 'Resent_emali/password_reset_complete.html'
+    template_name = 'emails/password_reset_complete.html'
 
 
 class CustomPasswordChangeView(PasswordChangeView):
-    template_name = 'Resent_emali/password_change_form.html'
+    template_name = 'emails/password_change_form.html'
     success_url = reverse_lazy('Auth:password_change_done')
 
     def form_valid(self, form):
@@ -464,7 +464,7 @@ class CustomPasswordChangeView(PasswordChangeView):
     
 class CustomPasswordChangeDoneView(PasswordChangeDoneView):
 
-    template_name = 'Resent_emali/password_change_done.html'
+    template_name = 'emails/password_change_done.html'
 
 
 
@@ -512,7 +512,7 @@ def instructor_invitation_email(instructor, invitation):
         'invitation': invitation,
         'settings': settings,
     }
-    html_message, dynamic_subject = render_email_template('Resent_emali/instructor_invitation_email.html', context)
+    html_message, dynamic_subject = render_email_template('emails/instructor_invitation_email.html', context)
     text_content = strip_tags(html_message)
     email_message = EmailMultiAlternatives(
         subject=dynamic_subject or subject,
@@ -591,7 +591,7 @@ def certificate_email(learner, course, certificate):
         'settings': settings,
         'frontend_url': frontend_url,
     }
-    html_message, dynamic_subject = render_email_template('Resent_emali/certificate_email.html', context)
+    html_message, dynamic_subject = render_email_template('emails/certificate_email.html', context)
     text_content = strip_tags(html_message)
     email_message = EmailMultiAlternatives(
         subject=dynamic_subject or subject,

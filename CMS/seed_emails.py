@@ -22,8 +22,8 @@ else:
             template.save()
             print(f"{'Created' if created else 'Updated'} {template_name}")
 
-# Also check Resent_emali
-resent_dir = os.path.join(settings.BASE_DIR, 'templates', 'Resent_emali')
+# Also check emails
+resent_dir = os.path.join(settings.BASE_DIR, 'templates', 'emails')
 if os.path.exists(resent_dir):
     for filename in os.listdir(resent_dir):
         if filename.endswith('.html'):
