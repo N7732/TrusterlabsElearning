@@ -1,15 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { apiClient, getImageUrl } from '../../api/apiClient';
+import { getImageUrl } from '../../api/apiClient';
 import { Play, Building2, BookOpen, Clock, CheckCircle } from 'lucide-react';
+import { useMyEnrollments, useMyTrainings, useMyGrades, useMyCertificates } from '../../hooks/queries/useLearnerQueries';
 
 const LearnerDashboard = () => {
-  const [enrollments, setEnrollments] = useState([]);
-  const [trainings, setTrainings] = useState([]);
-  const [grades, setGrades] = useState([]);
-  const [certificates, setCertificates] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('courses');
   const location = useLocation();
 
@@ -19,53 +14,16 @@ const LearnerDashboard = () => {
     }
   }, [location]);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const { data: enrollments = [], isLoading: loadingEnrollments, error: errorEnrollments } = useMyEnrollments();
+  const { data: trainings = [], isLoading: loadingTrainings, error: errorTrainings } = useMyTrainings();
+  const { data: grades = [], isLoading: loadingGrades, error: errorGrades } = useMyGrades();
+  const { data: certificates = [], isLoading: loadingCertificates, error: errorCertificates } = useMyCertificates();
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const timestamp = new Date().getTime();
-      const [enrollData, trainingData, gradesData, certData] = await Promise.all([
-        apiClient.get(`/api/enrollments/?t=${timestamp}`).catch(err => {
-          console.error("Error fetching enrollments:", err);
-          return { results: [] };
-        }),
-        apiClient.get(`/training/trainings/my-trainings/?t=${timestamp}`).catch(err => {
-          console.error("Error fetching trainings:", err);
-          return { results: [] };
-        }),
-        apiClient.get(`/auth/api/my-grades/?t=${timestamp}`).catch(err => {
-          console.error("Error fetching grades:", err);
-          return { results: [] };
-        }),
-        apiClient.get(`/certification/api/certificates/my_certificates/?t=${timestamp}`).catch(err => {
-          console.error("Error fetching certificates:", err);
-          return [];
-        })
-      ]);
-      
-      const eRes = enrollData.results || enrollData;
-      setEnrollments(Array.isArray(eRes) ? eRes : []);
-      
-      const tRes = trainingData.results || trainingData;
-      setTrainings(Array.isArray(tRes) ? tRes : []);
-      
-      const gRes = gradesData.results || gradesData;
-      setGrades(Array.isArray(gRes) ? gRes : []);
-      
-      const cRes = certData.results || certData;
-      setCertificates(Array.isArray(cRes) ? cRes : []);
-    } catch (err) {
-      setError('Failed to load your learning dashboard.');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const loading = loadingEnrollments || loadingTrainings || loadingGrades || loadingCertificates;
+  
+  // Create a combined error message if any exist
+  const fetchError = errorEnrollments || errorTrainings || errorGrades || errorCertificates;
+  const error = fetchError ? 'Failed to load some dashboard data.' : null;
 
   return (
     <div className="min-h-screen bg-[#F4F5F7] py-8">

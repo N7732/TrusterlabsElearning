@@ -25,3 +25,24 @@ export const fetchLessons = async () => {
 export const enrollInCourse = async (courseId, paymentData = null) => {
   return await apiClient.post(`/enroll/${courseId}/`, paymentData || {});
 };
+
+export const fetchCourseProgress = async (courseId) => {
+  return await apiClient.get(`/api/courses//progress/`);
+};
+
+export const enrollInCoursePlayer = async (courseId) => {
+  return await apiClient.post(`/api/courses//enroll/`);
+};
+
+export const submitQuiz = async ({ quizId, answers }) => {
+  return await apiClient.post(`/api/quizes//submit_quiz/`, { answers });
+};
+
+export const fetchQuizSubmission = async (quizId) => {
+  return await apiClient.get(`/api/quizes//my_submission/`);
+};
+
+export const markLessonComplete = async (lessonId) => {
+  return await apiClient.post(`/api/lessons//mark_complete/`);
+};
+

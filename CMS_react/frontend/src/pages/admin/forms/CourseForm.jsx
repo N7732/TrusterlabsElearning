@@ -295,12 +295,12 @@ const CourseForm = ({ isEditing, courseId }) => {
                       </div>
                     </div>
                     <div className="mt-3">
-                      <label className="block text-xs font-bold text-slate-700 mb-1">Or provide a Drive Image Link (Thumbnail URL)</label>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Or provide a Cloudinary Image Link (Thumbnail URL)</label>
                       <input 
                         type="url" name="thumbnail_url" 
                         value={formData.thumbnail_url} onChange={handleInputChange}
                         className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#3E8E41] outline-none text-sm"
-                        placeholder="https://drive.google.com/uc?id=..."
+                        placeholder="https://res.cloudinary.com/..."
                       />
                     </div>
                   </div>

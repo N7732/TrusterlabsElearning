@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiClient, getImageUrl } from '../../api/apiClient';
+import { usePublicCourses, useStudentStats, usePartners } from '../../hooks/queries/usePublicQueries';
 import { Link } from 'react-router-dom';
 import Button from '../../components/common/Button';
 import Card, { CardContent, CardTitle, CardFooter } from '../../components/common/Card';
@@ -161,36 +162,32 @@ const HeroStats = () => {
   const [courseCount, setCourseCount] = useState(5);
   const [studentCount, setStudentCount] = useState(100);
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const res = await apiClient.get('/api/courses/');
-        if (res && res.count !== undefined) {
-          setCourseCount(Math.max(res.count, 5));
-        } else if (res && res.results) {
-          setCourseCount(Math.max(res.results.length, 5));
-        } else if (Array.isArray(res)) {
-          setCourseCount(Math.max(res.length, 5));
-        }
-      } catch (err) {
-        console.error("Failed to fetch courses stat", err);
-      }
+  const { data: coursesData } = usePublicCourses();
+  const { data: studentsData } = useStudentStats();
 
-      try {
-        const res = await apiClient.get('/auth/api/learners/');
-        if (res && res.count !== undefined) {
-          setStudentCount(Math.max(res.count, 100));
-        } else if (res && res.results) {
-          setStudentCount(Math.max(res.results.length, 100));
-        } else if (Array.isArray(res)) {
-          setStudentCount(Math.max(res.length, 100));
-        }
-      } catch (err) {
-        // Silently ignore if permission denied
+  useEffect(() => {
+    if (coursesData) {
+      if (coursesData.count !== undefined) {
+        setCourseCount(Math.max(coursesData.count, 5));
+      } else if (coursesData.results) {
+        setCourseCount(Math.max(coursesData.results.length, 5));
+      } else if (Array.isArray(coursesData)) {
+        setCourseCount(Math.max(coursesData.length, 5));
       }
-    };
-    fetchStats();
-  }, []);
+    }
+  }, [coursesData]);
+
+  useEffect(() => {
+    if (studentsData) {
+      if (studentsData.count !== undefined) {
+        setStudentCount(Math.max(studentsData.count, 100));
+      } else if (studentsData.results) {
+        setStudentCount(Math.max(studentsData.results.length, 100));
+      } else if (Array.isArray(studentsData)) {
+        setStudentCount(Math.max(studentsData.length, 100));
+      }
+    }
+  }, [studentsData]);
 
   return (
     <div className="bg-[#0c2045]/90 backdrop-blur-md border-b-4 border-b-[#D4AF37] border-x border-t border-[#D4AF37]/30 rounded-xl p-5 shadow-2xl flex flex-col sm:flex-row items-center gap-6 animate-fade-in-up mt-6 lg:mt-0">
@@ -224,26 +221,12 @@ const HeroStats = () => {
 };
 
 const PartnersSection = () => {
-  const [partners, setPartners] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchPartners();
-  }, []);
-
-  const fetchPartners = async () => {
-    try {
-      setLoading(true);
-      const res = await apiClient.get('/settings/partners/');
-      // Extract array based on DRF pagination
-      let data = res.results ? res.results : (Array.isArray(res) ? res : []);
-      setPartners(data.filter(p => p.is_active));
-    } catch (err) {
-      console.error("Failed to load partners:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: rawPartners, isLoading: loading } = usePartners();
+  
+  const partners = React.useMemo(() => {
+    if (!rawPartners) return [];
+    return rawPartners.filter(p => p.is_active);
+  }, [rawPartners]);
 
   // Use actual partners if available, otherwise use placeholders so the section is visible
   const activePartners = partners.length > 0 ? partners : [

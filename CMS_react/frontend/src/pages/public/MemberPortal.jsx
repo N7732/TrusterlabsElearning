@@ -1,53 +1,41 @@
 import React, { useState, useEffect } from 'react';
-import { apiClient } from '../../api/apiClient';
 import { User, Shield, Briefcase, Calendar, ChevronRight, Award, Video, Loader, ArrowRight } from 'lucide-react';
 import Button from '../../components/common/Button';
+import { useTrainings, useWebinars, useCheckMembership } from '../../hooks/queries/usePublicQueries';
 
 const MemberPortal = () => {
   const [membershipId, setMembershipId] = useState('');
   const [membership, setMembership] = useState(null);
-  
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Data states
-  const [trainings, setTrainings] = useState([]);
-  const [webinars, setWebinars] = useState([]);
-  const [loadingData, setLoadingData] = useState(false);
+  const { data: rawTrainings, isLoading: loadingTrainings } = useTrainings();
+  const { data: rawWebinars, isLoading: loadingWebinars } = useWebinars();
+  const { mutateAsync: checkMembership, isPending: loading } = useCheckMembership();
+
+  const trainings = React.useMemo(() => {
+    if (!rawTrainings) return [];
+    const arr = Array.isArray(rawTrainings) ? rawTrainings : (rawTrainings.results || []);
+    return arr.slice(0, 4);
+  }, [rawTrainings]);
+
+  const webinars = React.useMemo(() => {
+    if (!rawWebinars) return [];
+    const arr = Array.isArray(rawWebinars) ? rawWebinars : (rawWebinars.results || []);
+    return arr.slice(0, 4);
+  }, [rawWebinars]);
+
+  const loadingData = loadingTrainings || loadingWebinars;
 
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!membershipId.trim()) return;
     
-    setLoading(true);
     setError('');
-    
     try {
-      const res = await apiClient.get(`/api/membership/memberships/check/?membership_id=${membershipId.trim()}`);
+      const res = await checkMembership(membershipId);
       setMembership(res);
-      fetchOpportunities();
     } catch (err) {
       setError('Invalid Membership ID. Please check your email and try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchOpportunities = async () => {
-    setLoadingData(true);
-    try {
-      const [trainingsRes, webinarsRes] = await Promise.all([
-        apiClient.get('/training/trainings/'),
-        apiClient.get('/api/research/webinars/')
-      ]);
-      const trainingsArr = Array.isArray(trainingsRes) ? trainingsRes : (trainingsRes?.results || []);
-      const webinarsArr = Array.isArray(webinarsRes) ? webinarsRes : (webinarsRes?.results || []);
-      setTrainings(trainingsArr.slice(0, 4));
-      setWebinars(webinarsArr.slice(0, 4));
-    } catch (err) {
-      console.error('Failed to fetch opportunities', err);
-    } finally {
-      setLoadingData(false);
     }
   };
 

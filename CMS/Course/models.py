@@ -22,7 +22,7 @@ class Course(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     thumbnail = models.ImageField(upload_to='course_thumbnails/', blank=True, null=True)
-    thumbnail_url = models.URLField(max_length=1000, blank=True, null=True, help_text="Direct link to course thumbnail (e.g., Google Drive)")
+    thumbnail_url = models.URLField(max_length=1000, blank=True, null=True, help_text="Direct link to course thumbnail (e.g., Cloudinary)")
 
     #Difficult level of Course
     difficulty = models.CharField(max_length=20, choices=Difficulty_Choices, default='Beginner')

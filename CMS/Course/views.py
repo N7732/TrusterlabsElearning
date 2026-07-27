@@ -436,6 +436,9 @@ class QuizesViewSet(viewsets.ModelViewSet):
         if not learner:
             return Response({"error": "Only registered learners can submit quizzes."}, status=status.HTTP_403_FORBIDDEN)
             
+        if quiz.is_locked:
+            return Response({"error": "This quiz is locked and cannot be submitted."}, status=status.HTTP_403_FORBIDDEN)
+            
         course = self.get_course_for_quiz(quiz=quiz)
         if course:
             enrollment = Enrollment.objects.filter(learner=learner, course=course).first()
