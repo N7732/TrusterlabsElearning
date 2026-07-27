@@ -251,7 +251,7 @@ CLOUDINARY_STORAGE = {
 
 # Email Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'rs1.obambu.com')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', 465))
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'False') == 'True'
 EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'True') == 'True'
