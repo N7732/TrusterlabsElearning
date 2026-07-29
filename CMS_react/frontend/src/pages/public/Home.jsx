@@ -4,7 +4,7 @@ import { usePublicCourses, useStudentStats, usePartners } from '../../hooks/quer
 import { Link } from 'react-router-dom';
 import Button from '../../components/common/Button';
 import Card, { CardContent, CardTitle, CardFooter } from '../../components/common/Card';
-import { PlayCircle, Code, ShieldCheck, Zap, Globe, Cpu, Database, Cloud, Lock, Shield, Users, Briefcase, BookOpen } from 'lucide-react';
+import { PlayCircle, Code, ShieldCheck, Zap, Globe, Cpu, Database, Cloud, Lock, Shield, Users, Briefcase, BookOpen, Laptop, Mic, Award, ArrowRight } from 'lucide-react';
 import homeBg from '../../assets/image1.jpg';
 import whyBg from '../../assets/image6.jpg';
 
@@ -13,7 +13,7 @@ const Home = () => {
     <div className="flex flex-col min-h-[calc(100vh-64px)]">
       {/* Hero Section */}
       <section 
-        className="relative pt-4 pb-8"
+        className="relative min-h-[85vh] flex flex-col justify-center py-16 lg:py-20"
         style={{
           backgroundImage: `url(${homeBg})`,
           backgroundSize: 'cover',
@@ -23,14 +23,14 @@ const Home = () => {
       >
         {/* Dark blue overlay to improve text readability */}
         <div className="absolute inset-0 bg-[#0b162c]/70"></div>
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-end justify-between gap-8 pb-4 pt-4">
+        <div className="relative z-10 w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center lg:items-end justify-between gap-12 mt-8">
           <div className="w-full lg:w-2/3 text-left">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-3 animate-fade-in-up leading-tight">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl 2xl:text-7xl font-extrabold text-white tracking-tight mb-3 animate-fade-in-up leading-tight">
               Cybersecurity <br className="hidden sm:block" />
               Excellence | <br />
               <span className="text-[#D4AF37]">Built for Africa</span>
             </h1>
-            <p className="mt-4 max-w-2xl text-base md:text-lg text-white mb-8 leading-relaxed">
+            <p className="mt-4 max-w-2xl 2xl:max-w-4xl text-base md:text-lg 2xl:text-xl text-white mb-8 leading-relaxed">
               Empowering governments, enterprises and communities with research, innovation, world-class training, cyber defense and strategic consultancy.
             </p>
             <div className="flex flex-col sm:flex-row justify-start gap-4">
@@ -63,14 +63,14 @@ const Home = () => {
         }}
       >
         <div className="absolute inset-0 bg-[#0b162c]/85"></div>
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative z-10 w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-extrabold text-white">Why Choose Truster Lab?</h2>
+            <h2 className="text-4xl 2xl:text-5xl font-extrabold text-white">Why Choose Truster Lab?</h2>
             <div className="h-[2px] w-24 bg-[#D4AF37] mx-auto mt-4 mb-4"></div>
             <p className="text-lg text-[#D4AF37] font-medium tracking-wide uppercase text-sm">We focus on what matters: building real things.</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 2xl:gap-12 gap-8">
             <FeatureCard 
               delay={100}
               icon={<Code className="text-[#D4AF37] w-8 h-8" />}
@@ -102,6 +102,9 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Our Services */}
+      <OurServicesSection />
 
       {/* Partners Slider Section */}
       <PartnersSection />
@@ -248,8 +251,8 @@ const PartnersSection = () => {
 
   return (
     <section className="py-16 bg-[#0b162c] overflow-hidden border-t border-[#D4AF37]/20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-8">
-        <p className="text-sm font-semibold text-[#D4AF37] uppercase tracking-widest">Trusted by Industry Leaders</p>
+      <div className="w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 text-center mb-8">
+        <p className="text-sm 2xl:text-base font-semibold text-[#D4AF37] uppercase tracking-widest">Trusted by Industry Leaders</p>
       </div>
       
       <div className={`relative w-full flex py-4 ${isAnimating ? 'overflow-hidden mask-image-linear-right' : 'justify-center'}`}>
@@ -274,6 +277,100 @@ const PartnersSection = () => {
 
 
 
+const OurServicesSection = () => {
+  return (
+    <section className="py-20 bg-[#070d19] relative border-t border-[#D4AF37]/20">
+      <div className="absolute inset-0 bg-[#0b162c] opacity-90"></div>
+      <div className="relative z-10 w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Header */}
+        <div className="text-center mb-16">
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <div className="h-[1px] w-12 bg-blue-500/50 relative">
+               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-blue-400 shadow-[0_0_8px_#3b82f6]"></div>
+            </div>
+            <p className="text-[#D4AF37] text-sm font-bold tracking-widest uppercase">Our Services</p>
+            <div className="h-[1px] w-12 bg-blue-500/50 relative">
+               <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-blue-400 shadow-[0_0_8px_#3b82f6]"></div>
+            </div>
+          </div>
+          <h2 className="text-4xl 2xl:text-5xl font-extrabold text-white mb-6">
+            Empowering You <span className="text-[#D4AF37]">at Every Step</span>
+          </h2>
+          <p className="text-gray-400 max-w-2xl mx-auto text-sm 2xl:text-base">
+            Explore our range of cybersecurity education and professional development services.
+          </p>
+        </div>
 
+        {/* Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+          <ServiceCard 
+            icon={<Shield className="w-8 h-8 text-[#D4AF37]" />}
+            title="Cybersecurity Training"
+            description="Practical training for students, professionals, and organisations."
+            link="/training"
+          />
+          <ServiceCard 
+            icon={<Laptop className="w-8 h-8 text-[#D4AF37]" />}
+            title="Online Courses"
+            description="Learn cybersecurity anytime with flexible, self-paced online courses."
+            link="/courses"
+          />
+          <ServiceCard 
+            icon={<Mic className="w-8 h-8 text-[#D4AF37]" />}
+            title="Webinars"
+            description="Join live webinars led by cybersecurity experts and industry leaders."
+            link="/research/webinars"
+          />
+        </div>
+
+        {/* CTA Banner */}
+        <div className="bg-[#0b1b3d] border border-blue-900/50 rounded-2xl p-8 2xl:p-12 flex flex-col md:flex-row items-center justify-between gap-8 shadow-[0_0_30px_rgba(0,0,0,0.3)] relative overflow-hidden group">
+          <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-blue-600/10 rounded-full blur-3xl"></div>
+          
+          <div className="flex items-center gap-6 z-10">
+            <div className="w-16 h-16 2xl:w-20 2xl:h-20 shrink-0 rounded-full bg-[#0b162c] border border-blue-500/30 flex items-center justify-center relative">
+              <div className="absolute inset-0 rounded-full border border-blue-400/20 animate-ping" style={{ animationDuration: '3s' }}></div>
+              <Shield className="w-8 h-8 2xl:w-10 2xl:h-10 text-blue-400 absolute" />
+              <Lock className="w-4 h-4 2xl:w-5 2xl:h-5 text-white z-10 relative mt-1" />
+            </div>
+            <div>
+              <h3 className="text-2xl 2xl:text-3xl font-bold text-white mb-2">
+                Ready to <span className="text-[#D4AF37]">Secure Your Future?</span>
+              </h3>
+              <p className="text-gray-400 text-sm 2xl:text-base max-w-xl">
+                Join thousands of learners across Africa who are building careers and strengthening organisations through cybersecurity.
+              </p>
+            </div>
+          </div>
+
+          <div className="z-10 shrink-0 w-full md:w-auto">
+            <Link to="/academics" target="_blank" rel="noopener noreferrer">
+              <Button size="lg" className="w-full sm:w-auto bg-[#D4AF37] hover:bg-[#c29e2f] text-black border-none font-bold flex items-center justify-center gap-2 px-8 py-4 h-auto text-base">
+                Get Started Today <ArrowRight className="w-5 h-5" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  );
+};
+
+const ServiceCard = ({ icon, title, description, link }) => (
+  <div className="bg-[#0b162c]/80 backdrop-blur-sm border border-blue-900/40 hover:border-blue-500/50 rounded-xl p-8 transition-all duration-300 hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] group flex flex-col h-full relative overflow-hidden">
+    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 rounded-full blur-3xl group-hover:bg-blue-500/10 transition-colors"></div>
+    <div className="w-16 h-16 rounded-full border border-blue-800 flex items-center justify-center mb-6 bg-[#0a1122] relative group-hover:border-blue-500/50 transition-colors">
+      <div className="absolute -inset-2 rounded-full border border-blue-900/30 border-dashed group-hover:animate-spin-slow group-hover:border-blue-500/30" style={{ animationDuration: '8s' }}></div>
+      {icon}
+    </div>
+    <h3 className="text-xl font-bold text-white mb-3 relative z-10">{title}</h3>
+    <p className="text-gray-400 text-sm leading-relaxed mb-8 flex-grow relative z-10">{description}</p>
+    <Link to={link} className="text-[#D4AF37] text-sm font-bold flex items-center gap-2 hover:text-[#f3cd4c] transition-colors mt-auto w-max relative z-10">
+      Learn More <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+    </Link>
+  </div>
+);
 
 export default Home;

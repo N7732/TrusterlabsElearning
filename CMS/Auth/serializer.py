@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Learner, Instructor, User
+from .models import Learner, Instructor, User, AccountProfile
 from django.contrib.auth.hashers import make_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .validators import ComplexPasswordValidator
@@ -138,10 +138,16 @@ class AdminInstructorCreationSerializer(serializers.ModelSerializer):
         )
         return user
 
+class AccountProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AccountProfile
+        fields = '__all__'
+
 class UserProfileSerializer(serializers.ModelSerializer):
     learner_profile = LearnerSerializer(read_only=True)
     instructor_profile = InstructorSerializer(read_only=True)
+    extended_profile = AccountProfileSerializer(read_only=True)
     
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'user_type', 'is_superuser', 'learner_profile', 'instructor_profile']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'user_type', 'is_superuser', 'learner_profile', 'instructor_profile', 'extended_profile']

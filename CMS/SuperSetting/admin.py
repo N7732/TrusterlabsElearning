@@ -1,4 +1,6 @@
 from django.contrib import admin
+
+# pyrefly: ignore [missing-import]
 from .models import Partner, ContactMessage, SystemLog, SiteSetting
 
 @admin.register(Partner)

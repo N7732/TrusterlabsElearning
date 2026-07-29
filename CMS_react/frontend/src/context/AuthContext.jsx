@@ -38,6 +38,39 @@ export const AuthProvider = ({ children }) => {
     return await fetchProfile();
   };
 
+  const updateProfile = async (formData) => {
+    // Determine if we need to send as FormData (for file uploads) or JSON
+    const isFormData = formData instanceof FormData;
+    
+    // apiClient might be configured to send JSON by default. 
+    // We can use standard fetch with the token if apiClient doesn't support FormData out of the box, 
+    // or configure headers specifically.
+    const token = localStorage.getItem('truster_lab_token');
+    
+    const headers = {
+      'Authorization': `Bearer ${token}`
+    };
+    
+    if (!isFormData) {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    const response = await fetch(`${apiClient.baseURL || 'http://localhost:8000'}/auth/api/auth/profile/`, {
+      method: 'PATCH',
+      headers,
+      body: isFormData ? formData : JSON.stringify(formData)
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to update profile');
+    }
+    
+    const data = await response.json();
+    setUser(data);
+    localStorage.setItem('truster_lab_user', JSON.stringify(data));
+    return data;
+  };
+
   const registerLearner = async (userData) => {
     const payload = { ...userData, username: userData.email };
     await apiClient.post('/auth/api/auth/register/learner/', payload);
@@ -71,6 +104,7 @@ export const AuthProvider = ({ children }) => {
       login, 
       googleLogin,
       registerLearner,
+      updateProfile,
       logout 
     }}>
       {children}

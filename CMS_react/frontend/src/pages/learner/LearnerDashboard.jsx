@@ -27,7 +27,7 @@ const LearnerDashboard = () => {
 
   return (
     <div className="min-h-screen bg-[#F4F5F7] py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 2xl:px-10">
         
         <div className="mb-6">
           <h1 className="text-3xl font-black text-slate-900">My Learning</h1>

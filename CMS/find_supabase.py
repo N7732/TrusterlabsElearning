@@ -21,6 +21,7 @@ for region in REGIONS:
         socket.gethostbyname(host)
         
         # Try to connect
+        
         conn = psycopg2.connect(
             host=host,
             port=5432,

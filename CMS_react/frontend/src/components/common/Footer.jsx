@@ -91,7 +91,15 @@ const Footer = () => {
                   Facebook
                 </a></li>
               )}
-              {!settings?.twitter_url && !settings?.linkedin_url && !settings?.facebook_url && (
+              {settings?.instagram_url && (
+                <li><a href={settings.instagram_url} target="_blank" rel="noopener noreferrer" className="hover:text-[#D4AF37] transition-colors flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500 flex items-center justify-center border border-white/10 hover:shadow-lg">
+                    <span className="font-bold text-white">Ig</span>
+                  </div>
+                  Instagram
+                </a></li>
+              )}
+              {!settings?.twitter_url && !settings?.linkedin_url && !settings?.facebook_url && !settings?.instagram_url && (
                 <li><span className="text-gray-500">Social links coming soon</span></li>
               )}
             </ul>

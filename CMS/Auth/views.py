@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 
-from .models import Learner, Instructor, User
+from .models import Learner, Instructor, User, AccountProfile
 from .form import LearnerForm, InstructorForm, AccountProfileForm, LearnerRegistrationForm, LoginForm, InstructorRegistrationForm
 from .serializer import LearnerSerializer, InstructorSerializer, AdminInstructorCreationSerializer
 from rest_framework import viewsets, permissions, status
@@ -746,6 +746,54 @@ class UserProfileAPIView(APIView):
 
     def get(self, request):
         serializer = UserProfileSerializer(request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request):
+        user = request.user
+        data = request.data
+
+        # Update User fields
+        if 'first_name' in data:
+            user.first_name = data['first_name']
+        if 'last_name' in data:
+            user.last_name = data['last_name']
+        user.save()
+
+        # Update Learner / Instructor specific fields
+        if user.is_learner and hasattr(user, 'learner_profile'):
+            learner = user.learner_profile
+            if 'phone_number' in data:
+                learner.phone_number = data['phone_number']
+            learner.save()
+            
+        if user.is_instructor and hasattr(user, 'instructor_profile'):
+            instructor = user.instructor_profile
+            if 'phone_number' in data:
+                instructor.phone_number = data['phone_number']
+            if 'bio' in data:
+                instructor.bio = data['bio']
+            instructor.save()
+
+        # Update AccountProfile
+        profile, created = AccountProfile.objects.get_or_create(user=user)
+        if 'bio' in data and not user.is_instructor:
+            profile.bio = data['bio']
+        elif 'bio' in data and user.is_instructor:
+            # Sync bio to extended profile as well for consistency
+            profile.bio = data['bio']
+            
+        if 'city' in data:
+            profile.city = data['city']
+        if 'country' in data:
+            profile.country = data['country']
+            
+        # Handle file upload for profile_picture
+        if 'profile_picture' in request.FILES:
+            profile.profile_picture = request.FILES['profile_picture']
+            
+        profile.save()
+
+        serializer = UserProfileSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 from django.contrib.auth.tokens import default_token_generator

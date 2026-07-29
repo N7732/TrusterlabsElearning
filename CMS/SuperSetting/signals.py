@@ -1,5 +1,6 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+# pyrefly: ignore [missing-import]
 from .models import Notification, ContactMessage
 from Enquiry.models import Requrement
 from Course.models import Course
