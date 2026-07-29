@@ -22,7 +22,7 @@ const InstructorDashboard = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full max-w-full xl:max-w-[1400px] 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 2xl:px-10 pb-12 pt-4">
       {/* Header with Back Button */}
       <div className="flex items-center justify-between">
         <button 

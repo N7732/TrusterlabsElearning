@@ -1,30 +1,74 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
-export default function Profile({ user }) {
-  // `user` prop should contain the user details fetched from your backend API
-  // e.g. { first_name, username, email, user_type, profile_picture, is_learner, is_instructor, extended_profile: { bio, city, country }, phone_number }
-
+export default function Profile() {
+  const { user, updateProfile } = useAuth();
   const [showSettings, setShowSettings] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState({ text: '', type: '' });
 
-  // In a real application, you would manage form state here
+  // Determine user specific data
+  const isLearner = user?.user_type === 'learner';
+  const isInstructor = user?.user_type === 'instructor';
+  const profileSpecificData = isLearner ? user?.learner_profile : user?.instructor_profile;
+
   const [formData, setFormData] = useState({
     first_name: user?.first_name || '',
     last_name: user?.last_name || '',
-    bio: user?.extended_profile?.bio || '',
-    phone_number: user?.phone_number || '',
+    bio: user?.extended_profile?.bio || profileSpecificData?.bio || '',
+    phone_number: profileSpecificData?.phone_number || '',
     city: user?.extended_profile?.city || '',
-    country: user?.extended_profile?.country || ''
+    country: user?.extended_profile?.country || '',
+    profile_picture: null
   });
 
+  useEffect(() => {
+    if (user) {
+      const pSpecific = user.user_type === 'learner' ? user.learner_profile : user.instructor_profile;
+      setFormData(prev => ({
+        ...prev,
+        first_name: user.first_name || '',
+        last_name: user.last_name || '',
+        bio: user.extended_profile?.bio || pSpecific?.bio || '',
+        phone_number: pSpecific?.phone_number || '',
+        city: user.extended_profile?.city || '',
+        country: user.extended_profile?.country || '',
+        profile_picture: null
+      }));
+    }
+  }, [user]);
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value, files } = e.target;
+    if (name === 'profile_picture') {
+      setFormData({ ...formData, [name]: files[0] });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   const handleSaveSettings = async (e) => {
     e.preventDefault();
-    // TODO: Connect to backend API
-    console.log("Save profile changes", formData);
+    setLoading(true);
+    setMessage({ text: '', type: '' });
+    
+    try {
+      const submitData = new FormData();
+      Object.keys(formData).forEach(key => {
+        if (formData[key] !== null && formData[key] !== undefined) {
+          submitData.append(key, formData[key]);
+        }
+      });
+      
+      await updateProfile(submitData);
+      setMessage({ text: 'Profile updated successfully!', type: 'success' });
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+      setMessage({ text: 'Failed to update profile. Please try again.', type: 'danger' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!user) {
@@ -75,9 +119,9 @@ export default function Profile({ user }) {
           <div className="col-lg-4 mb-4 mb-lg-0">
             <div className="card border-0 shadow-sm rounded-4 bg-white text-center p-4">
               <div className="mb-4">
-                {user.profile_picture ? (
+                {user.extended_profile?.profile_picture || (isInstructor && profileSpecificData?.profile_picture_url) ? (
                   <img 
-                    src={user.profile_picture} 
+                    src={user.extended_profile?.profile_picture || profileSpecificData?.profile_picture_url} 
                     alt="Profile"
                     className="img-fluid rounded-circle border border-4 border-white shadow-sm"
                     style={{ width: '150px', height: '150px', objectFit: 'cover' }}
@@ -143,7 +187,7 @@ export default function Profile({ user }) {
                     <div>
                       <small className="text-muted d-block fw-bold text-uppercase" style={{ fontSize: '0.7rem' }}>Phone</small>
                       <span className="text-dark fw-medium">
-                        {user.phone_number || "Not provided"}
+                        {profileSpecificData?.phone_number || "Not provided"}
                       </span>
                     </div>
                   </div>
@@ -169,7 +213,17 @@ export default function Profile({ user }) {
                 <div className="card border-0 shadow-sm rounded-4 bg-white p-4 p-md-5">
                   <h5 className="fw-bold mb-4 text-dark border-bottom pb-3">Account Settings</h5>
                   <form onSubmit={handleSaveSettings}>
+                    {message.text && (
+                      <div className={`alert alert-${message.type} mb-4`} role="alert">
+                        {message.text}
+                      </div>
+                    )}
                     
+                    <div className="mb-4">
+                      <label className="form-label fw-bold text-dark">Profile Picture / Logo</label>
+                      <input type="file" name="profile_picture" onChange={handleChange} className="form-control" accept="image/*" />
+                    </div>
+
                     <div className="mb-4">
                       <label className="form-label fw-bold text-dark">First Name</label>
                       <input type="text" name="first_name" value={formData.first_name} onChange={handleChange} />
@@ -202,8 +256,8 @@ export default function Profile({ user }) {
                     </div>
 
                     <div className="text-end mt-4">
-                      <button className="btn btn-primary rounded-pill fw-bold shadow-sm px-5 py-2" type="submit">
-                        Save Changes
+                      <button className="btn btn-primary rounded-pill fw-bold shadow-sm px-5 py-2" type="submit" disabled={loading}>
+                        {loading ? 'Saving...' : 'Save Changes'}
                       </button>
                     </div>
                   </form>

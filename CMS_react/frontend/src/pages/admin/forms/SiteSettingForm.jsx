@@ -13,6 +13,7 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
     facebook_url: '',
     twitter_url: '',
     linkedin_url: '',
+    instagram_url: '',
     navbar_logo: null,
     top_announcements: ''
   });
@@ -44,6 +45,7 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
         facebook_url: res.facebook_url || '',
         twitter_url: res.twitter_url || '',
         linkedin_url: res.linkedin_url || '',
+        instagram_url: res.instagram_url || '',
         navbar_logo: res.navbar_logo || null,
         top_announcements: res.top_announcements || ''
       });
@@ -85,6 +87,7 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
       data.append('facebook_url', formData.facebook_url);
       data.append('twitter_url', formData.twitter_url);
       data.append('linkedin_url', formData.linkedin_url);
+      data.append('instagram_url', formData.instagram_url);
       data.append('top_announcements', formData.top_announcements);
       
       if (logoFile) {
@@ -295,6 +298,23 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
                   onChange={handleChange}
                   className={inputClass}
                   placeholder="https://linkedin.com/company/trusterlabs"
+                />
+              </div>
+            </div>
+
+            <div className={rowClass}>
+              <label className="flex items-center gap-2 text-sm text-slate-600 min-w-[140px] shrink-0">
+                <div className="w-5 h-5 rounded bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500 text-white flex items-center justify-center font-bold text-[10px]">Ig</div>
+                Instagram URL
+              </label>
+              <div className="flex-1">
+                <input
+                  type="url"
+                  name="instagram_url"
+                  value={formData.instagram_url}
+                  onChange={handleChange}
+                  className={inputClass}
+                  placeholder="https://instagram.com/trusterlabs"
                 />
               </div>
             </div>
