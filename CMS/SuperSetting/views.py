@@ -387,6 +387,12 @@ class SystemAlertsViewSet(viewsets.ViewSet):
             import sys
             import io
             
+            import os
+            from django.conf import settings
+            backup_dir = os.path.join(settings.BASE_DIR, 'backups')
+            if not os.path.exists(backup_dir):
+                os.makedirs(backup_dir)
+            
             out = io.StringIO()
             sys.stdout = out
             call_command('dbbackup')
