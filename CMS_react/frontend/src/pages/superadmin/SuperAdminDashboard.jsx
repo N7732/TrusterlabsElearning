@@ -60,7 +60,8 @@ const SuperAdminDashboard = () => {
       }
     } catch (error) {
       console.error("Failed to trigger backup", error);
-      alert("Failed to trigger backup due to server error.");
+      const serverError = error.response?.data?.error || "Unknown server error";
+      alert(`Backup failed: ${serverError}`);
     } finally {
       setIsBackingUp(false);
     }
