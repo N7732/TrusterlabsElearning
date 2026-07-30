@@ -1,0 +1,22 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+    <h1>Webinar Registration Confirmed!</h1>
+    
+    <p>Hi {{ user.first_name }},</p>
+    
+    <p>You have successfully registered for our upcoming webinar: <strong>{{ webinar.title }}</strong>.</p>
+    
+    <div class="highlight-box">
+        <p><strong>Webinar Details</strong></p>
+        <p><strong>Date & Time:</strong> {{ webinar.scheduled_time|date:"F j, Y, P" }}</p>
+        <p><strong>Topic:</strong> {{ webinar.description|truncatewords:15 }}</p>
+    </div>
+    
+    <p>Please mark your calendar. You will receive a reminder email with the direct link to join shortly before the webinar begins.</p>
+    
+    <p>We look forward to seeing you there!</p>
+    
+    <p>Best regards,<br>
+    <strong>The Trusterlabs Academy Team</strong></p>
+{% endblock %}

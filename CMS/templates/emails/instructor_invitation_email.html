@@ -1,0 +1,23 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+    <h1>You're Invited to Teach!</h1>
+    
+    <p>Hello!</p>
+    
+    <p>Trusterlabs Academy has officially invited you to join our platform as an Instructor.</p>
+    
+    <div class="highlight-box">
+        <p><strong>Share Your Expertise</strong></p>
+        <p>We believe your knowledge would be a massive asset to our community. By joining as an instructor, you can create courses, earn revenue, and build the future of tech.</p>
+    </div>
+    
+    <p>Click the link below to register your instructor account and accept the invitation:</p>
+    
+    <a href="{{ invite_url }}" class="btn">Accept Invitation</a>
+    
+    <p>If you have any questions before joining, simply reply to this email and we'd be happy to chat.</p>
+    
+    <p>We look forward to working with you,<br>
+    <strong>The Trusterlabs Academy Team</strong></p>
+{% endblock %}

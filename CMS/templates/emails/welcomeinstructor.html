@@ -1,0 +1,21 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+    <h1>Welcome, Instructor {{ user.first_name }}!</h1>
+    
+    <p>We are honored to have you join Trusterlabs Academy as an Instructor.</p>
+    
+    <div class="highlight-box">
+        <p><strong>Your Instructor Portal is Ready</strong></p>
+        <p>You can now start creating courses, uploading materials, and managing your students. We're excited to see what you'll teach!</p>
+    </div>
+    
+    <p>Get started by logging into your dedicated instructor dashboard:</p>
+    
+    <a href="{{ login_url }}" class="btn">Go to Instructor Dashboard</a>
+    
+    <p>If you need any help navigating the platform or setting up your first course, please contact our support team.</p>
+    
+    <p>Best regards,<br>
+    <strong>The Trusterlabs Academy Team</strong></p>
+{% endblock %}

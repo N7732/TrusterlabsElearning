@@ -1,0 +1,19 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+    <h1>Thank You for Your Enquiry!</h1>
+    
+    <p>Hi {{ enquiry.name }},</p>
+    
+    <p>We have successfully received your enquiry regarding <strong>{{ enquiry.course.title|default:"our programs" }}</strong>.</p>
+    
+    <div class="highlight-box">
+        <p><strong>What Happens Next?</strong></p>
+        <p>Our admissions team will review your message and get back to you within 24 hours with the information you requested.</p>
+    </div>
+    
+    <p>If you need immediate assistance, feel free to explore our <a href="https://www.trusterlabsacademy.com" style="color:#d4af37; text-decoration:none;">course catalog</a> or reply directly to this email.</p>
+    
+    <p>Best regards,<br>
+    <strong>The Trusterlabs Academy Team</strong></p>
+{% endblock %}

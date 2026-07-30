@@ -425,7 +425,7 @@ class CustomPasswordResetView(PasswordResetView):
             email_message = EmailMultiAlternatives(
                 subject=dynamic_subject or self.subject,
                 body=text_content,
-                from_email=settings.EMAIL_HOST_USER,
+                from_email=settings.DEFAULT_FROM_EMAIL,
                 to = [user.email],
                 )
             email_message.attach_alternative(html_message, "text/html")
@@ -483,7 +483,7 @@ def send_welcome_email(user):
     email_message = EmailMultiAlternatives(
         subject=dynamic_subject or subject,
         body=text_content,
-        from_email=settings.EMAIL_HOST_USER,
+        from_email=settings.DEFAULT_FROM_EMAIL,
         to=[user.email],
     )
     email_message.attach_alternative(html_message, "text/html")
@@ -502,7 +502,7 @@ def send_course_enrollment_email(learner, course):
     email_message = EmailMultiAlternatives(
         subject=dynamic_subject or subject,
         body=text_content,
-        from_email=settings.EMAIL_HOST_USER,
+        from_email=settings.DEFAULT_FROM_EMAIL,
         to=[learner.user.email],
     )
     email_message.attach_alternative(html_message, "text/html")
@@ -520,7 +520,7 @@ def instructor_invitation_email(instructor, invitation):
     email_message = EmailMultiAlternatives(
         subject=dynamic_subject or subject,
         body=text_content,
-        from_email=settings.EMAIL_HOST_USER,
+        from_email=settings.DEFAULT_FROM_EMAIL,
         to=[instructor.email],
     )
     email_message.attach_alternative(html_message, "text/html")
@@ -539,7 +539,7 @@ def instructor_welcome_email(user, temporary_password="Set by admin"):
     email_message = EmailMultiAlternatives(
         subject=dynamic_subject or subject,
         body=text_content,
-        from_email=settings.EMAIL_HOST_USER,
+        from_email=settings.DEFAULT_FROM_EMAIL,
         to=[user.email],
     )
     email_message.attach_alternative(html_message, "text/html")
@@ -558,7 +558,7 @@ def send_membership_approved_email(membership):
     email_message = EmailMultiAlternatives(
         subject=dynamic_subject or subject,
         body=text_content,
-        from_email=settings.EMAIL_HOST_USER,
+        from_email=settings.DEFAULT_FROM_EMAIL,
         to=[membership.email],
     )
     email_message.attach_alternative(html_message, "text/html")
@@ -577,7 +577,7 @@ def send_webinar_registration_email(registration):
     email_message = EmailMultiAlternatives(
         subject=dynamic_subject or subject,
         body=text_content,
-        from_email=settings.EMAIL_HOST_USER,
+        from_email=settings.DEFAULT_FROM_EMAIL,
         to=[registration.email],
     )
     email_message.attach_alternative(html_message, "text/html")
@@ -599,7 +599,7 @@ def certificate_email(learner, course, certificate):
     email_message = EmailMultiAlternatives(
         subject=dynamic_subject or subject,
         body=text_content,
-        from_email=settings.EMAIL_HOST_USER,
+        from_email=settings.DEFAULT_FROM_EMAIL,
         to=[learner.user.email],
     )
     email_message.attach_alternative(html_message, "text/html")
@@ -635,7 +635,7 @@ def update_email_to_student(course, request=None):
     email_message = EmailMultiAlternatives(
         subject=dynamic_subject or subject,
         body=text_content,
-        from_email=settings.EMAIL_HOST_USER,
+        from_email=settings.DEFAULT_FROM_EMAIL,
         to=[settings.EMAIL_HOST_USER],
         bcc=all_emails,
         headers={
@@ -663,7 +663,7 @@ def update_email_to_student(course, request=None):
     email_message = EmailMultiAlternatives(
         subject=dynamic_subject or subject,
         body=text_content,
-        from_email=settings.EMAIL_HOST_USER,
+        from_email=settings.DEFAULT_FROM_EMAIL,
         to=[instructor.email],
     )
     email_message.attach_alternative(html_message, "text/html")

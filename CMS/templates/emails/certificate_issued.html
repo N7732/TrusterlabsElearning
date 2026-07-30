@@ -1,0 +1,21 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+    <h1>Congratulations, {{ user.first_name }}!</h1>
+    
+    <p>Your hard work and dedication have paid off. We are incredibly proud to inform you that your certificate for <strong>{{ course.title }}</strong> has been issued.</p>
+    
+    <div class="highlight-box">
+        <p><strong>Your Certificate is Ready</strong></p>
+        <p>You can now view, download, and share your official Trusterlabs Academy certificate with your professional network.</p>
+    </div>
+    
+    <p>Click the link below to access your certificate verification page:</p>
+    
+    <a href="{{ verify_url }}" class="btn">View My Certificate</a>
+    
+    <p>Add it to your LinkedIn profile and let the world know about your new skills!</p>
+    
+    <p>Keep up the amazing work,<br>
+    <strong>The Trusterlabs Academy Team</strong></p>
+{% endblock %}
