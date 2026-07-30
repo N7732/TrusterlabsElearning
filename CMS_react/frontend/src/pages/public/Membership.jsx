@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { CheckCircle, Shield, Award, Users, ArrowRight, X, Loader } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Button from '../../components/common/Button';
 import { useCreateMembership } from '../../hooks/queries/usePublicQueries';
+import { useAuth } from '../../context/AuthContext';
 
 const Membership = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { isAuthenticated, user } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [success, setSuccess] = useState(false);
@@ -25,6 +28,17 @@ const Membership = () => {
   };
 
   const handleJoinClick = (plan) => {
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: location.pathname } });
+      return;
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      Fullname: user?.first_name ? `${user.first_name} ${user.last_name}` : user?.username || '',
+      email: user?.email || '',
+    }));
+    
     setSelectedPlan(plan);
     setSuccess(false);
     setErrorMsg('');
@@ -223,9 +237,10 @@ const Membership = () => {
                       type="text" 
                       name="Fullname"
                       required
+                      readOnly
                       value={formData.Fullname}
                       onChange={handleInputChange}
-                      className="w-full bg-black/30 border border-white/10 rounded-lg p-3 text-white focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] outline-none"
+                      className="w-full bg-black/50 border border-white/5 rounded-lg p-3 text-gray-400 cursor-not-allowed outline-none"
                       placeholder="John Doe"
                     />
                   </div>
@@ -236,9 +251,10 @@ const Membership = () => {
                       type="email" 
                       name="email"
                       required
+                      readOnly
                       value={formData.email}
                       onChange={handleInputChange}
-                      className="w-full bg-black/30 border border-white/10 rounded-lg p-3 text-white focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] outline-none"
+                      className="w-full bg-black/50 border border-white/5 rounded-lg p-3 text-gray-400 cursor-not-allowed outline-none"
                       placeholder="john@example.com"
                     />
                   </div>

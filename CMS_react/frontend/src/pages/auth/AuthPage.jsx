@@ -85,7 +85,14 @@ const AuthPage = () => {
       navigate(redirectPath, { replace: true });
     } catch (err) {
       console.error("Google Login Error:", err);
-      setError(`Google sign in failed: ${err.message || 'Unknown error'}`);
+      const errMsg = err.message || '';
+      
+      // If the error suggests the user doesn't exist, provide a clear registration prompt
+      if (errMsg.toLowerCase().includes('exist') || errMsg.toLowerCase().includes('found') || errMsg.toLowerCase().includes('register') || errMsg.toLowerCase().includes('invalid')) {
+        setError("Account not found. Please click on 'Register' to create an account first.");
+      } else {
+        setError(`Sign in failed. If you don't have an account yet, please register first. (${errMsg || 'Unknown error'})`);
+      }
     } finally {
       setLoading(false);
     }
