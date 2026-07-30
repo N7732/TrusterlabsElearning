@@ -71,10 +71,10 @@ INSTALLED_APPS = [
     'Enquiry',
     'Training',
     'SuperSetting',
-    'Research',
     'Membership',
     'certification',
     'rest_framework',
+    'anymail',
 ]
 
 REST_FRAMEWORK = {
@@ -250,15 +250,26 @@ CLOUDINARY_STORAGE = {
 }
 
 # Email Configuration
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = os.getenv('EMAIL_HOST', 'rs1.obambu.com')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', 465))
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'False') == 'True'
-EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'True') == 'True'
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-EMAIL_TIMEOUT = 30
-DEFAULT_FROM_EMAIL = f"Trusterlabs Academy (No Reply) <{EMAIL_HOST_USER}>"
+RESEND_API_KEY = os.getenv('RESEND_API_KEY')
+
+if RESEND_API_KEY:
+    # Use Resend HTTP API (Bypasses Port 465 blocks on Railway)
+    EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
+    ANYMAIL = {
+        "RESEND_API_KEY": RESEND_API_KEY,
+    }
+    DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'academic@trusterlabsacademy.com')
+else:
+    # Fallback to standard SMTP if no Resend key is provided (e.g. for local dev)
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = os.getenv('EMAIL_HOST', 'rs1.obambu.com')
+    EMAIL_PORT = int(os.getenv('EMAIL_PORT', 465))
+    EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'False') == 'True'
+    EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'True') == 'True'
+    EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+    EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+    EMAIL_TIMEOUT = 30
+    DEFAULT_FROM_EMAIL = f"Trusterlabs Academy (No Reply) <{EMAIL_HOST_USER}>"
 
 
 # Google OAuth
