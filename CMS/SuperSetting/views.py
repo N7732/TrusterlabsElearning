@@ -399,7 +399,7 @@ class SystemAlertsViewSet(viewsets.ViewSet):
             filepath = os.path.join(backup_dir, filename)
 
             with open(filepath, 'w', encoding='utf-8') as f:
-                call_command('dumpdata', stdout=f)
+                call_command('dumpdata', exclude=['sessions', 'admin', 'contenttypes', 'auth.Permission', 'axes'], stdout=f)
             
             return Response({'message': 'Backup generated successfully', 'output': f"Database backed up to {filename}"})
         except Exception as e:
