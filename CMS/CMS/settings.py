@@ -258,7 +258,7 @@ if RESEND_API_KEY:
     ANYMAIL = {
         "RESEND_API_KEY": RESEND_API_KEY,
     }
-    DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'academic@trusterlabsacademy.com')
+    DEFAULT_FROM_EMAIL = "Trusterlabsacademy.com <academic@trusterlabsacademy.com>"
 else:
     # Fallback to standard SMTP if no Resend key is provided (e.g. for local dev)
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
