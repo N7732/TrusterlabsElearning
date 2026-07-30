@@ -393,11 +393,15 @@ class SystemAlertsViewSet(viewsets.ViewSet):
             if not os.path.exists(backup_dir):
                 os.makedirs(backup_dir)
             
-            out = io.StringIO()
-            with contextlib.redirect_stdout(out):
-                call_command('dbbackup')
+            from django.utils import timezone
+            timestamp = timezone.now().strftime('%Y-%m-%d-%H%M%S')
+            filename = f"backup_{timestamp}.json"
+            filepath = os.path.join(backup_dir, filename)
+
+            with open(filepath, 'w', encoding='utf-8') as f:
+                call_command('dumpdata', stdout=f)
             
-            return Response({'message': 'Backup generated successfully', 'output': out.getvalue()})
+            return Response({'message': 'Backup generated successfully', 'output': f"Database backed up to {filename}"})
         except Exception as e:
             return Response({'error': str(e)}, status=500)
 
