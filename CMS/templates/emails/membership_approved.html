@@ -1,0 +1,23 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+    <h1>Membership Approved!</h1>
+    
+    <p>Hi {{ user.first_name }},</p>
+    
+    <p>We are delighted to inform you that your Trusterlabs Academy Membership application has been officially <strong>approved</strong>!</p>
+    
+    <div class="highlight-box">
+        <p><strong>Welcome to the Elite Circle</strong></p>
+        <p>As a certified member, you now have exclusive access to advanced resources, priority support, and special community networking events.</p>
+    </div>
+    
+    <p>Log in to your dashboard to view your new membership status and access your benefits:</p>
+    
+    <a href="{{ login_url }}" class="btn">View Membership Dashboard</a>
+    
+    <p>Thank you for being a valued part of our community.</p>
+    
+    <p>Best regards,<br>
+    <strong>The Trusterlabs Academy Team</strong></p>
+{% endblock %}

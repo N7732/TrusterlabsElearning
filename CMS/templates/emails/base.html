@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            background-color: #0d1117;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: #c9d1d9;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .email-wrapper {
+            width: 100%;
+            background-color: #0d1117;
+            padding: 40px 0;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+        }
+        .email-header {
+            background-color: #090c10;
+            padding: 35px 30px;
+            text-align: center;
+            border-bottom: 2px solid #d4af37;
+        }
+        .email-header img {
+            max-height: 55px;
+            display: block;
+            margin: 0 auto;
+        }
+        .email-body {
+            padding: 40px 35px;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #c9d1d9;
+        }
+        .email-body h1 {
+            color: #d4af37;
+            font-size: 26px;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 25px;
+            letter-spacing: -0.5px;
+        }
+        .email-body p {
+            margin: 0 0 15px 0;
+        }
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #d4af37 0%, #b2922a 100%);
+            color: #000000 !important;
+            text-decoration: none;
+            padding: 14px 28px;
+            border-radius: 4px;
+            font-weight: 600;
+            margin: 25px 0;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
+        }
+        .email-footer {
+            background-color: #090c10;
+            padding: 25px 35px;
+            text-align: center;
+            font-size: 13px;
+            color: #8b949e;
+            border-top: 1px solid #30363d;
+        }
+        .email-footer a {
+            color: #d4af37;
+            text-decoration: none;
+        }
+        .highlight-box {
+            background-color: rgba(212, 175, 55, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-left: 4px solid #d4af37;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 4px;
+        }
+        strong {
+            color: #ffffff;
+            font-weight: 600;
+        }
+        hr {
+            border: 0;
+            border-top: 1px solid #30363d;
+            margin: 30px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-wrapper">
+        <div class="email-container">
+            <div class="email-header">
+                <!-- Fallback to plain text if logo fails to load -->
+                <img src="https://www.trusterlabsacademy.com/assets/logo-CndXm0V8.png" alt="Trusterlabs Academy" style="color: #d4af37; font-size: 24px; font-weight: bold;">
+            </div>
+            
+            <div class="email-body">
+                {% block content %}{% endblock %}
+            </div>
+            
+            <div class="email-footer">
+                <p>&copy; {% now "Y" %} Trusterlabs Academy. All rights reserved.</p>
+                <p>Building the future of tech, one line at a time.</p>
+                <p style="margin-top: 15px; font-size: 12px;">You received this email because you are registered with <a href="https://www.trusterlabsacademy.com">Trusterlabs Academy</a>.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

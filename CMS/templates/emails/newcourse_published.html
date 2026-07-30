@@ -1,0 +1,21 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+    <h1>New Course Alert!</h1>
+    
+    <p>Hi {{ user.first_name|default:"Learner" }},</p>
+    
+    <p>We are excited to announce that a brand new course has just been published on Trusterlabs Academy!</p>
+    
+    <div class="highlight-box">
+        <p><strong>{{ course.title }}</strong></p>
+        <p>{{ course.description|truncatewords:20 }}</p>
+    </div>
+    
+    <p>Stay ahead of the curve and be one of the first to master these new skills. Check out the course details and enroll today.</p>
+    
+    <a href="{{ course_url }}" class="btn">View Course Details</a>
+    
+    <p>Happy Learning,<br>
+    <strong>The Trusterlabs Academy Team</strong></p>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+    <h1>Enrollment Confirmed!</h1>
+    
+    <p>Hi {{ user.first_name }},</p>
+    
+    <p>Congratulations! You have successfully enrolled in <strong>{{ course.title }}</strong>.</p>
+    
+    <div class="highlight-box">
+        <p><strong>Course Overview</strong></p>
+        <p>{{ course.description|truncatewords:20 }}</p>
+    </div>
+    
+    <p>Your journey to mastering new skills begins right now. You can access all your course materials, lectures, and resources immediately.</p>
+    
+    <a href="{{ course_url }}" class="btn">Start Learning Now</a>
+    
+    <p>If you need any assistance along the way, feel free to reach out to our support team.</p>
+    
+    <p>Good luck and happy coding,<br>
+    <strong>The Trusterlabs Academy Team</strong></p>
+{% endblock %}

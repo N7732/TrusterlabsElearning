@@ -1,0 +1,21 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+    <h1>Welcome to Trusterlabs Academy, {{ user.first_name }}!</h1>
+    
+    <p>We are thrilled to have you join our community of learners and tech enthusiasts.</p>
+    
+    <div class="highlight-box">
+        <p><strong>Your Account is Ready</strong></p>
+        <p>You can now explore our extensive library of courses, access premium resources, and start building your future.</p>
+    </div>
+    
+    <p>To get started, log in to your dashboard and discover your next learning adventure:</p>
+    
+    <a href="{{ login_url }}" class="btn">Go to Dashboard</a>
+    
+    <p>If you have any questions or need assistance, our support team is always here to help.</p>
+    
+    <p>Happy Learning,<br>
+    <strong>The Trusterlabs Academy Team</strong></p>
+{% endblock %}
