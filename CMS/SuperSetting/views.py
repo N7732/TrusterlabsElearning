@@ -379,6 +379,25 @@ class SystemAlertsViewSet(viewsets.ViewSet):
         
         return Response(alerts)
 
+    from rest_framework.decorators import action
+    @action(detail=False, methods=['post'])
+    def trigger_backup(self, request):
+        try:
+            from django.core.management import call_command
+            import sys
+            import io
+            
+            out = io.StringIO()
+            sys.stdout = out
+            call_command('dbbackup')
+            sys.stdout = sys.__stdout__
+            
+            return Response({'message': 'Backup generated successfully', 'output': out.getvalue()})
+        except Exception as e:
+            import sys
+            sys.stdout = sys.__stdout__
+            return Response({'error': str(e)}, status=500)
+
 class EmailTemplateViewSet(viewsets.ModelViewSet):
     queryset = EmailTemplate.objects.all().order_by('-updated_at')
     serializer_class = EmailTemplateSerializer

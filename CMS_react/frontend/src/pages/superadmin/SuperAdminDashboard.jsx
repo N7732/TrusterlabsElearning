@@ -46,6 +46,25 @@ const SuperAdminDashboard = () => {
   const [recentActivities, setRecentActivities] = useState([]);
   const [systemAlerts, setSystemAlerts] = useState([]);
   const [recentVisitors, setRecentVisitors] = useState([]);
+  const [isBackingUp, setIsBackingUp] = useState(false);
+
+  const handleTriggerBackup = async () => {
+    setIsBackingUp(true);
+    try {
+      await apiClient.post('/settings/system-alerts/trigger_backup/');
+      // Refetch the stats to update the alert card to green
+      const dashboardStatsRes = await apiClient.get(`/settings/dashboard-stats/?filter=${timeFilter}`).catch(() => null);
+      if (dashboardStatsRes) {
+        const dData = dashboardStatsRes.data || dashboardStatsRes;
+        setSystemAlerts(dData.system_alerts || []);
+      }
+    } catch (error) {
+      console.error("Failed to trigger backup", error);
+      alert("Failed to trigger backup due to server error.");
+    } finally {
+      setIsBackingUp(false);
+    }
+  };
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -434,10 +453,21 @@ const SuperAdminDashboard = () => {
                 if (alert.type === 'success') { IconComp = CheckCircle; iconClass = "text-green-600"; bgClass = "bg-green-50"; }
                 if (alert.type === 'warning') { IconComp = AlertCircle; iconClass = "text-orange-600"; bgClass = "bg-orange-50"; }
                 
+                const isBackupAlert = alert.id === 3;
+                const showCursor = isBackupAlert && alert.type === 'warning';
+                
                 return (
-                  <div key={alert.id} className={`flex gap-4 p-4 rounded-xl ${bgClass}`}>
+                  <div 
+                    key={alert.id} 
+                    onClick={showCursor && !isBackingUp ? handleTriggerBackup : undefined}
+                    className={`flex gap-4 p-4 rounded-xl ${bgClass} ${showCursor ? 'cursor-pointer hover:shadow-md transition-all' : ''} ${isBackingUp && isBackupAlert ? 'opacity-70 cursor-wait' : ''}`}
+                  >
                     <div className="shrink-0 mt-0.5">
-                      <IconComp size={20} className={iconClass} />
+                      {isBackingUp && isBackupAlert ? (
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                      ) : (
+                        <IconComp size={20} className={iconClass} />
+                      )}
                     </div>
                     <div className="flex-1">
                       <div className="flex justify-between items-start gap-2 mb-1">
