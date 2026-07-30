@@ -60,8 +60,20 @@ const SuperAdminDashboard = () => {
       }
     } catch (error) {
       console.error("Failed to trigger backup", error);
-      const serverError = error.response?.data?.error || "Unknown server error";
-      alert(`Backup failed: ${serverError}`);
+      
+      let errorMessage = "Unknown server error";
+      if (error.response) {
+          if (error.response.data && error.response.data.error) {
+              errorMessage = error.response.data.error;
+          } else {
+              // Extract HTML text or status if it's a 502/504 gateway timeout
+              errorMessage = `Status: ${error.response.status}. Data: ${JSON.stringify(error.response.data).substring(0, 100)}`;
+          }
+      } else {
+          errorMessage = error.message;
+      }
+      
+      alert(`Backup failed: ${errorMessage}`);
     } finally {
       setIsBackingUp(false);
     }
