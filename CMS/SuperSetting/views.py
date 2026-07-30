@@ -249,26 +249,38 @@ class DashboardStatsViewSet(viewsets.ViewSet):
         try:
             import os
             from django.conf import settings
-            db_path = settings.DATABASES['default'].get('NAME')
-            db_size_str = 'Unknown size'
-            if db_path and os.path.exists(str(db_path)):
-                size_mb = os.path.getsize(str(db_path)) / (1024 * 1024)
+            import glob
+            
+            backup_dir = os.path.join(settings.BASE_DIR, 'backups')
+            backup_files = glob.glob(os.path.join(backup_dir, '*'))
+            
+            if backup_files:
+                latest_backup = max(backup_files, key=os.path.getctime)
+                size_mb = os.path.getsize(latest_backup) / (1024 * 1024)
                 db_size_str = f"{size_mb:.2f} MB"
-    
-            alerts.append({
-                'id': 3,
-                'title': 'Database backup ready',
-                'desc': f'Current DB size: {db_size_str}',
-                'type': 'info',
-                'time': 'Today'
-            })
+                
+                alerts.append({
+                    'id': 3,
+                    'title': 'Database backup ready',
+                    'desc': f'Latest backup size: {db_size_str}',
+                    'type': 'success',
+                    'time': 'Live'
+                })
+            else:
+                alerts.append({
+                    'id': 3,
+                    'title': 'No database backups found',
+                    'desc': 'Run dbbackup to secure data',
+                    'type': 'warning',
+                    'time': 'Live'
+                })
         except Exception:
             alerts.append({
                 'id': 3,
                 'title': 'Database Status',
                 'desc': 'Database running normally',
                 'type': 'info',
-                'time': 'Today'
+                'time': 'Live'
             })
 
         # Fetch recent visitors
@@ -331,26 +343,38 @@ class SystemAlertsViewSet(viewsets.ViewSet):
         try:
             import os
             from django.conf import settings
-            db_path = settings.DATABASES['default'].get('NAME')
-            db_size_str = 'Unknown size'
-            if db_path and os.path.exists(str(db_path)):
-                size_mb = os.path.getsize(str(db_path)) / (1024 * 1024)
+            import glob
+            
+            backup_dir = os.path.join(settings.BASE_DIR, 'backups')
+            backup_files = glob.glob(os.path.join(backup_dir, '*'))
+            
+            if backup_files:
+                latest_backup = max(backup_files, key=os.path.getctime)
+                size_mb = os.path.getsize(latest_backup) / (1024 * 1024)
                 db_size_str = f"{size_mb:.2f} MB"
-    
-            alerts.append({
-                'id': 3,
-                'title': 'Database backup ready',
-                'desc': f'Current DB size: {db_size_str}',
-                'type': 'info',
-                'time': 'Today'
-            })
+                
+                alerts.append({
+                    'id': 3,
+                    'title': 'Database backup ready',
+                    'desc': f'Latest backup size: {db_size_str}',
+                    'type': 'success',
+                    'time': 'Live'
+                })
+            else:
+                alerts.append({
+                    'id': 3,
+                    'title': 'No database backups found',
+                    'desc': 'Run dbbackup to secure data',
+                    'type': 'warning',
+                    'time': 'Live'
+                })
         except Exception:
             alerts.append({
                 'id': 3,
                 'title': 'Database Status',
                 'desc': 'Database running normally',
                 'type': 'info',
-                'time': 'Today'
+                'time': 'Live'
             })
         
         return Response(alerts)

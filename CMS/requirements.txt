@@ -29,3 +29,5 @@ urllib3
 whitenoise>=6.6.0
 google-auth
 django-anymail[resend]>=10.2
+django-dbbackup>=4.0.2
+django-axes>=6.1.1

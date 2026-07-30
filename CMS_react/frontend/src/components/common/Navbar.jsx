@@ -7,7 +7,7 @@ import logo from '../../assets/image2.jpeg';
 import TopUtilityBar from './TopUtilityBar';
 
 const Navbar = () => {
-  const { isAuthenticated, user, logout, isInstructor, isAdmin } = useAuth();
+  const { isAuthenticated, user, logout, isInstructor, isAdmin, toggleProfile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -237,14 +237,16 @@ const Navbar = () => {
                         </Link>
                       )}
 
-                      <Link 
-                        to="/profile" 
-                        className="flex items-center px-4 py-2 text-sm text-slate-700 font-bold hover:bg-slate-100 hover:text-[#FFD700]"
-                        onClick={() => setDropdownOpen(false)}
+                      <button 
+                        onClick={() => {
+                          setDropdownOpen(false);
+                          toggleProfile();
+                        }}
+                        className="flex w-full items-center px-4 py-2 text-sm text-slate-700 font-bold hover:bg-slate-100 hover:text-[#FFD700] text-left"
                       >
                         <User className="mr-3 h-4 w-4" />
                         My Profile
-                      </Link>
+                      </button>
                       
                       <div className="border-t border-slate-100 mt-1 pt-1">
                         <button 

@@ -17,7 +17,7 @@ const Admission = lazy(() => import('../pages/public/Admission'));
 const MemberPortal = lazy(() => import('../pages/public/MemberPortal'));
 const LearnerDashboard = lazy(() => import('../pages/learner/LearnerDashboard'));
 const LearnerTrainingDetail = lazy(() => import('../pages/learner/LearnerTrainingDetail'));
-const Profile = lazy(() => import('../pages/public/Profile'));
+const ProfileDrawer = lazy(() => import('../components/profile/ProfileDrawer'));
 const AboutUs = lazy(() => import('../pages/public/AboutUs'));
 const Membership = lazy(() => import('../pages/public/Membership'));
 const ResearchArticles = lazy(() => import('../pages/public/ResearchArticles'));
@@ -49,6 +49,9 @@ const AppRoutes = () => {
   return (
     <>
       {!isAdminLayout && <Navbar />}
+      <Suspense fallback={null}>
+        <ProfileDrawer />
+      </Suspense>
       <main className={!isAdminLayout ? "flex-grow" : ""}>
         <Suspense fallback={<GlobalLoader />}>
           <Routes>
@@ -92,10 +95,6 @@ const AppRoutes = () => {
               <Route path="/learner/trainings/:id" element={<LearnerTrainingDetail />} />
             </Route>
 
-            {/* User Profile */}
-            <Route element={<ProtectedRoute allowedRoles={['learner', 'instructor', 'admin']} />}>
-              <Route path="/profile" element={<Profile />} />
-            </Route>
 
             {/* Instructor Protected Routes */}
             <Route element={<ProtectedRoute allowedRoles={['instructor', 'admin']} />}>
