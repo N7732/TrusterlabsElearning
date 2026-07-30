@@ -25,6 +25,7 @@ function CheckCircle(props) {
 
 const SuperAdminDashboard = () => {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState({
     courses: 0,
     modules: 0,
@@ -47,79 +48,65 @@ const SuperAdminDashboard = () => {
   const [recentVisitors, setRecentVisitors] = useState([]);
 
   useEffect(() => {
-    // Quick fetches to get counts
     const fetchStats = async () => {
+      setIsLoading(true);
       try {
-        const [cRes, mRes, lRes, eRes, dashboardStats, notificationsRes, alertsRes, lRes2, iRes, visitorsRes] = await Promise.all([
-          apiClient.get('/api/courses/').catch(() => null),
-          apiClient.get('/api/modules/').catch(() => null),
-          apiClient.get('/api/lessons/').catch(() => null),
-          apiClient.get('/enquiry/').catch(() => null),
-          apiClient.get(`/settings/dashboard-stats/?filter=${timeFilter}`).catch(() => null),
-          apiClient.get('/settings/notifications/').catch(() => null),
-          apiClient.get('/settings/system-alerts/').catch(() => null),
-          apiClient.get('/auth/api/learners/').catch(() => null),
-          apiClient.get('/auth/api/instructors/').catch(() => null),
-          apiClient.get('/settings/site-visitors/').catch(() => null),
-        ]);
+        // We now fetch EVERYTHING in one optimized call!
+        const dashboardStatsRes = await apiClient.get(`/settings/dashboard-stats/?filter=${timeFilter}`).catch(() => null);
         
-        setStats({
-          courses: cRes?.length || cRes?.results?.length || cRes?.count || 0,
-          modules: mRes?.length || mRes?.results?.length || mRes?.count || 0,
-          lessons: lRes?.length || lRes?.results?.length || lRes?.count || 0,
-          enquiries: eRes?.length || eRes?.results?.length || eRes?.count || 0,
-        });
+        if (dashboardStatsRes) {
+          const dData = dashboardStatsRes.data || dashboardStatsRes;
+          
+          setStats({
+            courses: dData.total_courses || 0,
+            modules: dData.total_modules || 0,
+            lessons: dData.total_lessons || 0,
+            enquiries: dData.total_enquiries || 0,
+          });
 
-        const lCount = lRes2?.length || lRes2?.results?.length || lRes2?.count || 0;
-        const iCount = iRes?.length || iRes?.results?.length || iRes?.count || 0;
-        const cCount = cRes?.length || cRes?.results?.length || cRes?.count || 0;
-
-        if (dashboardStats) {
-          const dData = dashboardStats.data || dashboardStats;
           setDashboardData({
             chartData: dData.chartData || [],
             topCourses: dData.topCourses || [],
             total_enrollments: dData.total_enrollments || 0,
             new_enrollments: dData.new_enrollments || 0,
-            total_learners: dData.total_learners || lCount,
-            total_instructors: dData.total_instructors || iCount,
-            total_courses: dData.total_courses || cCount,
+            total_learners: dData.total_learners || 0,
+            total_instructors: dData.total_instructors || 0,
+            total_courses: dData.total_courses || 0,
             total_revenue: dData.total_revenue || 0
           });
-        } else {
-          setDashboardData(prev => ({
-            ...prev,
-            total_learners: lCount,
-            total_instructors: iCount,
-            total_courses: cCount,
-          }));
-        }
-        
-        if (notificationsRes) {
-          const notifs = notificationsRes.results || notificationsRes.data?.results || (Array.isArray(notificationsRes.data) ? notificationsRes.data : (Array.isArray(notificationsRes) ? notificationsRes : []));
-          // Limit to 4 recent activities as requested (FIFO principle where old ones are removed)
-          setRecentActivities(notifs.slice(0, 4));
-        }
-        
-        if (alertsRes) {
-          const alerts = alertsRes.data || (Array.isArray(alertsRes) ? alertsRes : []);
-          setSystemAlerts(alerts);
-        }
-        
-        if (visitorsRes) {
-          const visitors = visitorsRes.results || visitorsRes.data?.results || (Array.isArray(visitorsRes.data) ? visitorsRes.data : (Array.isArray(visitorsRes) ? visitorsRes : []));
-          setRecentVisitors(visitors);
+          
+          setRecentActivities(dData.recent_notifications || []);
+          setSystemAlerts(dData.system_alerts || []);
+          setRecentVisitors(dData.recent_visitors || []);
         }
       } catch (error) {
         console.error("Failed to load stats", error);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchStats();
   }, [timeFilter]);
 
+  if (isLoading && Object.keys(dashboardData).length > 0 && dashboardData.total_learners === 0 && dashboardData.total_courses === 0) {
+    return (
+      <div className="w-full min-h-[calc(100vh-64px)] flex flex-col items-center justify-center bg-slate-50/50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+        <p className="text-slate-500 font-semibold tracking-wide">Synchronizing with Database...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6 w-full max-w-full xl:max-w-[1400px] 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 2xl:px-10 pb-12 pt-4">
+    <div className="space-y-6 w-full max-w-full xl:max-w-[1400px] 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 2xl:px-10 pb-12 pt-4 relative">
       
+      {/* Loading overlay for timeFilter changes */}
+      {isLoading && (
+        <div className="absolute inset-0 z-50 bg-white/50 backdrop-blur-sm flex items-center justify-center rounded-xl">
+           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      )}
+
       {/* Header with Back Button */}
       <div className="flex items-center justify-between">
         <button 

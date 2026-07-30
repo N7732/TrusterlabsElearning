@@ -41,6 +41,13 @@ const CourseTraining = () => {
       navigate('/login', { state: { from: location.pathname } });
       return;
     }
+    
+    setFormData({
+      application_full_name: user?.first_name ? `${user.first_name} ${user.last_name}` : user?.username || '',
+      application_phone_number: '',
+      application_email: user?.email || ''
+    });
+    
     setSelectedTraining(session);
     setApplicationModalOpen(true);
   };
@@ -240,7 +247,18 @@ const CourseTraining = () => {
           <h4 className="text-xl font-bold text-white mb-3">Looking for Corporate Training or Internships?</h4>
           <p className="text-gray-400 mb-6 text-sm">We provide customized training sessions and academic internships tailored to your specific requirements.</p>
           <button 
-            onClick={() => setCustomTrainingModalOpen(true)}
+            onClick={() => {
+              if (!isAuthenticated) {
+                navigate('/login', { state: { from: location.pathname } });
+                return;
+              }
+              setCustomFormData(prev => ({
+                ...prev,
+                full_name: user?.first_name ? `${user.first_name} ${user.last_name}` : user?.username || '',
+                email: user?.email || '',
+              }));
+              setCustomTrainingModalOpen(true);
+            }}
             className="border border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37]/10 font-bold py-2.5 px-6 rounded-lg transition-colors"
           >
             Request Custom Training
@@ -266,7 +284,8 @@ const CourseTraining = () => {
                 <input 
                   type="text" 
                   required
-                  className="w-full bg-[#030712] border border-white/10 rounded-md p-2.5 text-white focus:border-[#D4AF37] focus:outline-none"
+                  readOnly
+                  className="w-full bg-black/50 border border-white/5 rounded-md p-2.5 text-gray-400 cursor-not-allowed outline-none"
                   value={formData.application_full_name}
                   onChange={(e) => setFormData({...formData, application_full_name: e.target.value})}
                   placeholder="John Doe"
@@ -278,7 +297,8 @@ const CourseTraining = () => {
                 <input 
                   type="email" 
                   required
-                  className="w-full bg-[#030712] border border-white/10 rounded-md p-2.5 text-white focus:border-[#D4AF37] focus:outline-none"
+                  readOnly
+                  className="w-full bg-black/50 border border-white/5 rounded-md p-2.5 text-gray-400 cursor-not-allowed outline-none"
                   value={formData.application_email}
                   onChange={(e) => setFormData({...formData, application_email: e.target.value})}
                   placeholder="john@example.com"
@@ -330,7 +350,8 @@ const CourseTraining = () => {
                   <input 
                     type="text" 
                     required
-                    className="w-full bg-[#030712] border border-white/10 rounded-md p-2.5 text-white focus:border-[#D4AF37] focus:outline-none"
+                    readOnly
+                    className="w-full bg-black/50 border border-white/5 rounded-md p-2.5 text-gray-400 cursor-not-allowed outline-none"
                     value={customFormData.full_name}
                     onChange={(e) => setCustomFormData({...customFormData, full_name: e.target.value})}
                     placeholder="John Doe"
@@ -342,7 +363,8 @@ const CourseTraining = () => {
                   <input 
                     type="email" 
                     required
-                    className="w-full bg-[#030712] border border-white/10 rounded-md p-2.5 text-white focus:border-[#D4AF37] focus:outline-none"
+                    readOnly
+                    className="w-full bg-black/50 border border-white/5 rounded-md p-2.5 text-gray-400 cursor-not-allowed outline-none"
                     value={customFormData.email}
                     onChange={(e) => setCustomFormData({...customFormData, email: e.target.value})}
                     placeholder="john@example.com"

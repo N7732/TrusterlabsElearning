@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { User, Mail, Phone, MapPin, Settings, Save, Loader, Shield, Edit3, Image as ImageIcon } from 'lucide-react';
 
 export default function Profile() {
   const { user, updateProfile } = useAuth();
@@ -62,17 +63,24 @@ export default function Profile() {
       });
       
       await updateProfile(submitData);
-      setMessage({ text: 'Profile updated successfully!', type: 'success' });
+      setMessage({ text: 'Profile configurations successfully updated.', type: 'success' });
     } catch (error) {
       console.error("Failed to update profile:", error);
-      setMessage({ text: 'Failed to update profile. Please try again.', type: 'danger' });
+      setMessage({ text: 'Failed to update configurations. Please try again.', type: 'danger' });
     } finally {
       setLoading(false);
     }
   };
 
   if (!user) {
-    return <div className="p-5 text-center">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-[#030712] flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <Loader className="animate-spin text-[#D4AF37] mb-4" size={40} />
+          <p className="text-[#D4AF37] font-bold tracking-widest uppercase text-sm">Authenticating...</p>
+        </div>
+      </div>
+    );
   }
 
   const getInitials = () => {
@@ -82,192 +90,250 @@ export default function Profile() {
   };
 
   return (
-    <>
-      <style>{`
-        #accountSettings input, #accountSettings select, #accountSettings textarea {
-          display: block;
-          width: 100%;
-          padding: 0.875rem 1rem;
-          font-size: 1rem;
-          font-weight: 400;
-          line-height: 1.5;
-          color: var(--text-primary, #212529);
-          background-color: var(--background, #fff);
-          background-clip: padding-box;
-          border: 1px solid var(--border-color, #dee2e6);
-          border-radius: 0.5rem;
-          transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
-        }
-        #accountSettings input:focus, #accountSettings select:focus, #accountSettings textarea:focus {
-          border-color: var(--primary, #0d6efd);
-          outline: 0;
-          box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-        }
-      `}</style>
-
-      {/* Profile Header Banner */}
-      <div className="bg-primary text-white pt-5 pb-4 mb-5" style={{ backgroundColor: 'var(--primary, #0d6efd)' }}>
-        <div className="container">
-          <h1 className="fw-bold mb-1">My Profile</h1>
-          <p className="mb-0 text-white-50">Manage your personal information and preferences.</p>
-        </div>
-      </div>
-
-      <div className="container pb-5">
-        <div className="row">
-          {/* Sidebar */}
-          <div className="col-lg-4 mb-4 mb-lg-0">
-            <div className="card border-0 shadow-sm rounded-4 bg-white text-center p-4">
-              <div className="mb-4">
-                {user.extended_profile?.profile_picture || (isInstructor && profileSpecificData?.profile_picture_url) ? (
-                  <img 
-                    src={user.extended_profile?.profile_picture || profileSpecificData?.profile_picture_url} 
-                    alt="Profile"
-                    className="img-fluid rounded-circle border border-4 border-white shadow-sm"
-                    style={{ width: '150px', height: '150px', objectFit: 'cover' }}
-                  />
-                ) : (
-                  <div 
-                    className="bg-light rounded-circle mx-auto d-flex align-items-center justify-content-center shadow-sm border border-4 border-white"
-                    style={{ width: '150px', height: '150px' }}
-                  >
-                    <span className="fs-1 fw-bold text-primary">{getInitials()}</span>
-                  </div>
-                )}
-              </div>
-              
-              <h4 className="fw-bold text-dark mb-1">
-                {user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : (user.username || 'User')}
-              </h4>
-              <div className="badge bg-primary bg-opacity-10 text-primary mb-3 px-3 py-2 rounded-pill text-capitalize">
-                {user.user_type || 'Student'}
-              </div>
-              <p className="text-muted mb-0"><i className="fas fa-envelope me-2"></i>{user.email}</p>
-              
-              <hr className="my-4" />
-              
-              <div className="d-grid gap-2">
-                {user.is_learner && (
-                  <Link to="/edit-profile" className="btn btn-primary rounded-pill fw-bold shadow-sm">
-                    <i className="fas fa-user-edit me-2"></i> Edit Profile
-                  </Link>
-                )}
-                {user.is_instructor && (
-                  <Link to="/edit-profile/instructor" className="btn btn-primary rounded-pill fw-bold shadow-sm">
-                    <i className="fas fa-user-edit me-2"></i> Edit Profile
-                  </Link>
-                )}
-                
-                <button 
-                  className="btn btn-outline-secondary rounded-pill fw-bold" 
-                  type="button" 
-                  onClick={() => setShowSettings(!showSettings)}
-                >
-                  <i className="fas fa-cog me-2"></i> Account Settings
-                </button>
-              </div>
-            </div>
+    <div className="min-h-[calc(100vh-64px)] bg-[#030712] text-white font-['Work_Sans',sans-serif] pb-20">
+      
+      {/* Header Section */}
+      <section className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-b border-white/10 relative">
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-cyber opacity-30 pointer-events-none z-0"></div>
+        <div className="relative z-10 text-center max-w-3xl mx-auto">
+          <div className="flex items-center gap-4 justify-center mb-6">
+            <div className="h-[2px] w-8 bg-[#D4AF37]"></div>
+            <h2 className="text-[#D4AF37] font-bold tracking-widest uppercase text-sm">Command Center</h2>
+            <div className="h-[2px] w-8 bg-[#D4AF37]"></div>
           </div>
+          <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-6 leading-tight">
+            Operative Profile
+          </h1>
+          <p className="text-lg text-gray-400">
+            Manage your digital footprint, security clearances, and communication channels.
+          </p>
+        </div>
+      </section>
+
+      {/* Main Layout */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="flex flex-col lg:flex-row gap-8">
           
-          {/* Main Content */}
-          <div className="col-lg-8">
-            <div className="card border-0 shadow-sm rounded-4 bg-white p-4 p-md-5 mb-4">
-              <h5 className="fw-bold mb-4 text-dark border-bottom pb-3">About Me</h5>
-              <p className="text-muted" style={{ lineHeight: 1.8 }}>
-                {user.extended_profile?.bio || "No bio information added yet. Add a bio to tell others about yourself!"}
-              </p>
-
-              <h5 className="fw-bold mb-4 text-dark border-bottom pb-3 mt-5">Contact Information</h5>
-              <div className="row g-4">
-                <div className="col-md-6">
-                  <div className="d-flex align-items-center">
-                    <div className="bg-light rounded-circle d-flex align-items-center justify-content-center text-primary me-3" style={{ width: '45px', height: '45px' }}>
-                      <i className="fas fa-phone"></i>
-                    </div>
-                    <div>
-                      <small className="text-muted d-block fw-bold text-uppercase" style={{ fontSize: '0.7rem' }}>Phone</small>
-                      <span className="text-dark fw-medium">
-                        {profileSpecificData?.phone_number || "Not provided"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-md-6">
-                  <div className="d-flex align-items-center">
-                    <div className="bg-light rounded-circle d-flex align-items-center justify-content-center text-primary me-3" style={{ width: '45px', height: '45px' }}>
-                      <i className="fas fa-map-marker-alt"></i>
-                    </div>
-                    <div>
-                      <small className="text-muted d-block fw-bold text-uppercase" style={{ fontSize: '0.7rem' }}>Location</small>
-                      <span className="text-dark fw-medium">
-                        {user.extended_profile?.city || "City not set"}, {user.extended_profile?.country || "Country not set"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {showSettings && (
-              <div id="accountSettings">
-                <div className="card border-0 shadow-sm rounded-4 bg-white p-4 p-md-5">
-                  <h5 className="fw-bold mb-4 text-dark border-bottom pb-3">Account Settings</h5>
-                  <form onSubmit={handleSaveSettings}>
-                    {message.text && (
-                      <div className={`alert alert-${message.type} mb-4`} role="alert">
-                        {message.text}
+          {/* Sidebar */}
+          <div className="w-full lg:w-1/3">
+             <div className="bg-[#111827] border border-white/10 rounded-2xl p-8 relative overflow-hidden group">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent opacity-50"></div>
+                
+                <div className="flex flex-col items-center text-center">
+                  <div className="relative mb-6">
+                    {user.extended_profile?.profile_picture || (isInstructor && profileSpecificData?.profile_picture_url) ? (
+                      <img 
+                        src={user.extended_profile?.profile_picture || profileSpecificData?.profile_picture_url} 
+                        alt="Profile"
+                        className="w-32 h-32 rounded-full object-cover border-4 border-black ring-2 ring-[#D4AF37]/50 shadow-[0_0_30px_rgba(212,175,55,0.2)]"
+                      />
+                    ) : (
+                      <div className="w-32 h-32 rounded-full bg-black/50 border-4 border-black ring-2 ring-[#D4AF37]/50 flex items-center justify-center shadow-[0_0_30px_rgba(212,175,55,0.2)]">
+                        <span className="text-4xl font-bold text-[#D4AF37]">{getInitials()}</span>
                       </div>
                     )}
+                  </div>
+                  
+                  <h3 className="text-2xl font-bold text-white mb-2">
+                    {user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : (user.username || 'User')}
+                  </h3>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/20 text-[#D4AF37] text-xs font-bold uppercase tracking-wider mb-6">
+                    <Shield size={14} />
+                    {user.user_type || 'Student'}
+                  </div>
+                  
+                  <div className="flex items-center gap-2 text-gray-400 text-sm mb-8 bg-black/30 px-4 py-2 rounded-xl border border-white/5">
+                    <Mail size={16} className="text-[#D4AF37]" />
+                    <span>{user.email}</span>
+                  </div>
+                  
+                  <div className="w-full space-y-3">
+                    {user.is_learner && (
+                      <Link to="/edit-profile" className="flex items-center justify-center gap-2 w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-colors font-bold text-white">
+                        <Edit3 size={18} /> Edit Core Profile
+                      </Link>
+                    )}
+                    {user.is_instructor && (
+                      <Link to="/edit-profile/instructor" className="flex items-center justify-center gap-2 w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-colors font-bold text-white">
+                        <Edit3 size={18} /> Edit Core Profile
+                      </Link>
+                    )}
                     
-                    <div className="mb-4">
-                      <label className="form-label fw-bold text-dark">Profile Picture / Logo</label>
-                      <input type="file" name="profile_picture" onChange={handleChange} className="form-control" accept="image/*" />
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="form-label fw-bold text-dark">First Name</label>
-                      <input type="text" name="first_name" value={formData.first_name} onChange={handleChange} />
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="form-label fw-bold text-dark">Last Name</label>
-                      <input type="text" name="last_name" value={formData.last_name} onChange={handleChange} />
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="form-label fw-bold text-dark">Phone Number</label>
-                      <input type="tel" name="phone_number" value={formData.phone_number} onChange={handleChange} />
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="form-label fw-bold text-dark">Bio</label>
-                      <textarea name="bio" rows="4" value={formData.bio} onChange={handleChange}></textarea>
-                    </div>
-
-                    <div className="row">
-                      <div className="col-md-6 mb-4">
-                        <label className="form-label fw-bold text-dark">City</label>
-                        <input type="text" name="city" value={formData.city} onChange={handleChange} />
-                      </div>
-                      <div className="col-md-6 mb-4">
-                        <label className="form-label fw-bold text-dark">Country</label>
-                        <input type="text" name="country" value={formData.country} onChange={handleChange} />
-                      </div>
-                    </div>
-
-                    <div className="text-end mt-4">
-                      <button className="btn btn-primary rounded-pill fw-bold shadow-sm px-5 py-2" type="submit" disabled={loading}>
-                        {loading ? 'Saving...' : 'Save Changes'}
-                      </button>
-                    </div>
-                  </form>
+                    <button 
+                      onClick={() => setShowSettings(!showSettings)}
+                      className="flex items-center justify-center gap-2 w-full py-3 bg-[#D4AF37] hover:bg-[#c29e2f] text-black font-bold rounded-xl transition-colors shadow-[0_0_20px_rgba(212,175,55,0.2)]"
+                    >
+                      <Settings size={18} /> Profile Settings
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
-            
+             </div>
+          </div>
+
+          {/* Main Column */}
+          <div className="w-full lg:w-2/3 space-y-8">
+             
+             {/* Info Card */}
+             <div className="bg-[#111827] border border-white/10 rounded-2xl p-8">
+                <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2 border-b border-white/10 pb-4">
+                  <User size={24} className="text-[#D4AF37]" /> Operational Bio
+                </h3>
+                <p className="text-gray-400 leading-relaxed mb-10">
+                  {user.extended_profile?.bio || "No bio information found. Update your profile to add your operational background."}
+                </p>
+
+                <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2 border-b border-white/10 pb-4 mt-8">
+                  <Phone size={24} className="text-[#D4AF37]" /> Contact Intel
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="flex items-center gap-4 bg-black/30 p-4 rounded-xl border border-white/5">
+                    <div className="w-12 h-12 shrink-0 rounded-full bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37]">
+                      <Phone size={20} />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase tracking-wider font-bold mb-1">Comm Link</p>
+                      <p className="text-white font-medium">{profileSpecificData?.phone_number || "Classified"}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 bg-black/30 p-4 rounded-xl border border-white/5">
+                    <div className="w-12 h-12 shrink-0 rounded-full bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37]">
+                      <MapPin size={20} />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase tracking-wider font-bold mb-1">Base of Operations</p>
+                      <p className="text-white font-medium">
+                        {user.extended_profile?.city || "Unknown"}, {user.extended_profile?.country || "Location"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+             </div>
+
+             {/* Settings Form */}
+             {showSettings && (
+               <div className="bg-[#111827] border border-white/10 rounded-2xl p-8 border-t-4 border-t-[#D4AF37] animate-fade-in-up transition-all duration-300">
+                 <h3 className="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-4">System Configurations</h3>
+                 
+                 {message.text && (
+                   <div className={`p-4 rounded-xl mb-8 border ${message.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`}>
+                     {message.text}
+                   </div>
+                 )}
+
+                 <form onSubmit={handleSaveSettings} className="space-y-6">
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     
+                     <div className="md:col-span-2">
+                        <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Profile Avatar</label>
+                        <div className="flex items-center gap-4 bg-black/30 p-4 rounded-xl border border-white/10">
+                          <div className="w-12 h-12 rounded-full bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37]">
+                            <ImageIcon size={20} />
+                          </div>
+                          <input 
+                            type="file" 
+                            name="profile_picture" 
+                            onChange={handleChange} 
+                            accept="image/*"
+                            className="text-sm text-gray-400 file:mr-4 file:py-2.5 file:px-6 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-[#D4AF37]/10 file:text-[#D4AF37] hover:file:bg-[#D4AF37]/20 file:transition-colors file:cursor-pointer"
+                          />
+                        </div>
+                     </div>
+
+                     <div>
+                       <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">First Name</label>
+                       <input 
+                         type="text" 
+                         name="first_name" 
+                         value={formData.first_name} 
+                         readOnly 
+                         className="w-full bg-black/50 border border-white/5 rounded-xl p-3.5 text-gray-500 cursor-not-allowed outline-none" 
+                       />
+                     </div>
+
+                     <div>
+                       <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Last Name</label>
+                       <input 
+                         type="text" 
+                         name="last_name" 
+                         value={formData.last_name} 
+                         readOnly 
+                         className="w-full bg-black/50 border border-white/5 rounded-xl p-3.5 text-gray-500 cursor-not-allowed outline-none" 
+                       />
+                     </div>
+
+                     <div className="md:col-span-2">
+                       <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Email Designation</label>
+                       <input 
+                         type="email" 
+                         name="email" 
+                         value={user.email || ''} 
+                         readOnly 
+                         className="w-full bg-black/50 border border-white/5 rounded-xl p-3.5 text-gray-500 cursor-not-allowed outline-none" 
+                       />
+                     </div>
+
+                     <div className="md:col-span-2">
+                       <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Comm Link (Phone)</label>
+                       <input 
+                         type="tel" 
+                         name="phone_number" 
+                         value={formData.phone_number} 
+                         onChange={handleChange} 
+                         className="w-full bg-black/30 border border-white/10 rounded-xl p-3.5 text-white focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] outline-none transition-all" 
+                       />
+                     </div>
+
+                     <div className="md:col-span-2">
+                       <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Operational Bio</label>
+                       <textarea 
+                         name="bio" 
+                         rows="4" 
+                         value={formData.bio} 
+                         onChange={handleChange}
+                         className="w-full bg-black/30 border border-white/10 rounded-xl p-3.5 text-white focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] outline-none transition-all resize-y"
+                       ></textarea>
+                     </div>
+
+                     <div>
+                       <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">City</label>
+                       <input 
+                         type="text" 
+                         name="city" 
+                         value={formData.city} 
+                         onChange={handleChange} 
+                         className="w-full bg-black/30 border border-white/10 rounded-xl p-3.5 text-white focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] outline-none transition-all" 
+                       />
+                     </div>
+
+                     <div>
+                       <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Country</label>
+                       <input 
+                         type="text" 
+                         name="country" 
+                         value={formData.country} 
+                         onChange={handleChange} 
+                         className="w-full bg-black/30 border border-white/10 rounded-xl p-3.5 text-white focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] outline-none transition-all" 
+                       />
+                     </div>
+                   </div>
+
+                   <div className="mt-8 pt-6 border-t border-white/10 flex justify-end">
+                     <button 
+                       type="submit" 
+                       disabled={loading}
+                       className="flex items-center justify-center gap-2 w-full sm:w-auto bg-[#D4AF37] hover:bg-[#c29e2f] text-black font-bold py-3.5 px-8 rounded-xl transition-colors shadow-[0_0_20px_rgba(212,175,55,0.2)] disabled:opacity-70 disabled:cursor-not-allowed"
+                     >
+                       {loading ? <Loader className="animate-spin" size={18} /> : <Save size={18} />}
+                       {loading ? 'Saving Parameters...' : 'Save Configurations'}
+                     </button>
+                   </div>
+                 </form>
+               </div>
+             )}
+
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
