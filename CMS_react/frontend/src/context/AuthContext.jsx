@@ -94,6 +94,12 @@ export const AuthProvider = ({ children }) => {
     return await fetchProfile();
   };
 
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  const toggleProfile = () => {
+    setIsProfileOpen(prev => !prev);
+  };
+
   return (
     <AuthContext.Provider value={{ 
       user, 
@@ -105,7 +111,10 @@ export const AuthProvider = ({ children }) => {
       googleLogin,
       registerLearner,
       updateProfile,
-      logout 
+      logout,
+      isProfileOpen,
+      setIsProfileOpen,
+      toggleProfile
     }}>
       {children}
     </AuthContext.Provider>

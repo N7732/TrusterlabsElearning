@@ -76,6 +76,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'anymail',
     'Research',
+    'dbbackup',
+    'axes',
 ]
 
 REST_FRAMEWORK = {
@@ -107,6 +109,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'SuperSetting.middleware.AuditLogMiddleware',  # Automatically logs system actions
     'SuperSetting.middleware.VisitorTrackingMiddleware',  # Tracks website visitors
+    'axes.middleware.AxesMiddleware',  # Brute-force protection
 ]
 
 ROOT_URLCONF = 'CMS.urls'
@@ -129,7 +132,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'CMS.wsgi.application'
 
-
 # Database
 # Supports Render PostgreSQL environment variable DATABASE_URL directly as well as standard DB credentials
 DATABASE_URL = os.getenv('DATABASE_URL')
@@ -147,7 +149,7 @@ if DATABASE_URL:
             'CONN_MAX_AGE': int(os.getenv('CONN_MAX_AGE', 60)),
         }
     }
-else:
+elif os.getenv('DB_NAME'):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -159,7 +161,40 @@ else:
             'CONN_MAX_AGE': int(os.getenv('CONN_MAX_AGE', 60)),
         }
     }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
+# --- SECURITY & AUDIT SETTINGS ---
+
+# django-axes (Brute Force Protection)
+AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+AXES_FAILURE_LIMIT = 5  # Lock out after 5 failed login attempts
+AXES_COOLOFF_TIME = 1  # 1 hour lockout
+AXES_LOCK_OUT_AT_FAILURE = True
+
+# django-dbbackup
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.StaticFilesStorage",
+    },
+    "dbbackup": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "OPTIONS": {
+            "location": BASE_DIR / 'backups'
+        }
+    }
+}
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -198,8 +233,6 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # Disable Whitenoise compression to prevent crashing on cloudinary_cors.html
-STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
-
 static_dir = BASE_DIR / 'static'
 if static_dir.exists():
     STATICFILES_DIRS = [static_dir]
@@ -242,7 +275,6 @@ FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://frontend-omega-five-21.vercel.
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
