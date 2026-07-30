@@ -384,24 +384,21 @@ class SystemAlertsViewSet(viewsets.ViewSet):
     def trigger_backup(self, request):
         try:
             from django.core.management import call_command
-            import sys
             import io
-            
             import os
             from django.conf import settings
+            import contextlib
+            
             backup_dir = os.path.join(settings.BASE_DIR, 'backups')
             if not os.path.exists(backup_dir):
                 os.makedirs(backup_dir)
             
             out = io.StringIO()
-            sys.stdout = out
-            call_command('dbbackup')
-            sys.stdout = sys.__stdout__
+            with contextlib.redirect_stdout(out):
+                call_command('dbbackup')
             
             return Response({'message': 'Backup generated successfully', 'output': out.getvalue()})
         except Exception as e:
-            import sys
-            sys.stdout = sys.__stdout__
             return Response({'error': str(e)}, status=500)
 
 class EmailTemplateViewSet(viewsets.ModelViewSet):
