@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     'certification',
     'rest_framework',
     'anymail',
+    'Research',
 ]
 
 REST_FRAMEWORK = {
