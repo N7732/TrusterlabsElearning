@@ -921,23 +921,6 @@ const CoursePlayer = () => {
           )}
         </div>
 
-        {/* Need Help Widget */}
-        <div className="p-4 shrink-0 border-t border-slate-800 bg-slate-900/50 mt-auto">
-          <div className="bg-[#0f172a] rounded-xl p-4 border border-slate-800 shadow-md">
-            <div className="flex items-start gap-4 mb-3">
-              <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center shrink-0 border border-slate-700">
-                <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-              </div>
-              <div>
-                <h4 className="font-bold text-slate-200 text-sm">Need Help?</h4>
-                <p className="text-xs text-slate-400 leading-snug mt-1">Ask in our community or contact our support team.</p>
-              </div>
-            </div>
-            <button className="w-full py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-colors">
-              Get Help <ChevronRight className="w-3 h-3" />
-            </button>
-          </div>
-        </div>
       </div>
 
       {/* MAIN CONTENT */}
@@ -1283,7 +1266,7 @@ const CoursePlayer = () => {
               )}
               
               {/* Bottom Navigation */}
-              <div className="fixed bottom-4 left-4 right-4 lg:left-[336px] bg-[#0a0f1c]/90 backdrop-blur-xl border border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-2xl z-20 transition-all">
+              <div className="max-w-4xl mx-auto px-4 sm:px-8 mt-12 mb-16 bg-[#0a0f1c]/50 border border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-lg transition-all">
                 {/* Previous Button */}
                 {prevLesson ? (
                   <button 
