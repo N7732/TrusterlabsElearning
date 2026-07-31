@@ -493,31 +493,49 @@ class SystemHealthViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'])
     def trigger_backup(self, request):
         try:
+            import threading
+            import os
             from django.core.management import call_command
-            import contextlib
-            import io
             from django.utils import timezone
+            from django.conf import settings
             
-            backup_dir = os.path.join(settings.BASE_DIR, 'backups')
-            if not os.path.exists(backup_dir):
-                os.makedirs(backup_dir)
-            
-            timestamp = timezone.now().strftime('%Y-%m-%d-%H%M%S')
-            filename = f"backup_{timestamp}.json"
-            filepath = os.path.join(backup_dir, filename)
+            def run_backup(user, ip_address):
+                try:
+                    backup_dir = os.path.join(settings.BASE_DIR, 'backups')
+                    if not os.path.exists(backup_dir):
+                        os.makedirs(backup_dir)
+                    
+                    timestamp = timezone.now().strftime('%Y-%m-%d-%H%M%S')
+                    filename = f"backup_{timestamp}.json"
+                    filepath = os.path.join(backup_dir, filename)
 
-            with open(filepath, 'w', encoding='utf-8') as f:
-                call_command('dumpdata', exclude=['sessions', 'admin', 'contenttypes', 'auth.Permission', 'axes', 'SuperSetting.ErrorLog', 'SuperSetting.SystemHealthSnapshot'], stdout=f)
-            
-            # Audit log
-            from .models import SystemLog
-            SystemLog.objects.create(
-                user=request.user,
-                action="System Backup Created",
-                details=f"Backup file: {filename}",
-                ip_address=request.META.get('REMOTE_ADDR')
-            )
-            return Response({'message': 'Backup generated successfully', 'file': filename})
+                    with open(filepath, 'w', encoding='utf-8') as f:
+                        call_command('dumpdata', exclude=['sessions', 'admin', 'contenttypes', 'auth.Permission', 'axes', 'SuperSetting.ErrorLog', 'SuperSetting.SystemHealthSnapshot', 'SuperSetting.SystemLog'], stdout=f)
+                    
+                    # Audit log
+                    from .models import SystemLog
+                    SystemLog.objects.create(
+                        user=user,
+                        action="System Backup Created",
+                        details=f"Backup file: {filename}",
+                        ip_address=ip_address
+                    )
+                except Exception as e:
+                    from .models import ErrorLog
+                    ErrorLog.objects.create(
+                        path="trigger_backup_thread",
+                        method="POST",
+                        message=str(e),
+                        stack_trace="Failed during background backup",
+                        user=user
+                    )
+
+            # Start thread
+            thread = threading.Thread(target=run_backup, args=(request.user, request.META.get('REMOTE_ADDR')))
+            thread.daemon = True
+            thread.start()
+
+            return Response({'message': 'Backup started in the background. It may take a few moments to appear in the vault.'})
         except Exception as e:
             return Response({'error': str(e)}, status=500)
 
