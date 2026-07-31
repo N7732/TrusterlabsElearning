@@ -686,6 +686,33 @@ const CoursePlayer = () => {
     );
   }
 
+  const handleResourceDownload = async (e, url, filename) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      // Extract extension from url or fallback to title
+      let ext = '';
+      if(url.includes('.')) {
+        const parts = url.split('.');
+        ext = '.' + parts[parts.length - 1].split('?')[0];
+      }
+      const finalFilename = filename.includes('.') ? filename : `${filename}${ext}`;
+      
+      link.download = finalFilename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error('Download failed, opening in new tab instead', error);
+      window.open(url, '_blank');
+    }
+  };
+
   return (
     <div className={`flex h-screen w-full font-sans overflow-hidden relative ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>
       {/* Background Image */}
@@ -906,21 +933,21 @@ const CoursePlayer = () => {
               <h3 className={`font-bold mb-4 ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>Course Resources</h3>
               {courseData?.resources && courseData.resources.length > 0 ? (
                 <div className="flex flex-col gap-3">
-                  {courseData.resources.map(res => (
+                  {courseData.resources.map(res => {
+                    const fileUrl = res.file ? (res.file.startsWith('http') ? res.file : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}${res.file}`) : "#";
+                    return (
                     <a 
                       key={res.id} 
-                      href={res.file ? (res.file.startsWith('http') ? res.file : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}${res.file}`) : "#"} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      download
+                      href={fileUrl} 
+                      onClick={(e) => handleResourceDownload(e, fileUrl, res.title || 'resource')}
                       className={`flex items-center gap-3 p-3 border rounded transition-colors ${isDarkMode ? 'border-slate-700 hover:bg-slate-800' : 'border-slate-200 hover:bg-slate-50'}`}
                     >
-                      <div className="bg-[#eff6ff] text-[#2563eb] p-2 rounded">
+                      <div className="bg-[#eff6ff] text-[#2563eb] p-2 rounded shrink-0">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                       </div>
-                      <span className={`text-sm font-medium truncate ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>{res.title}</span>
+                      <span className={`text-sm font-medium truncate flex-1 ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>{res.title}</span>
                     </a>
-                  ))}
+                  )})}
                 </div>
               ) : (
                 <div className={`text-sm italic p-4 rounded border ${isDarkMode ? 'text-slate-400 bg-slate-800 border-slate-700' : 'text-slate-500 bg-slate-50 border-slate-100'}`}>
