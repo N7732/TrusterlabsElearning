@@ -473,6 +473,9 @@ class CustomPasswordChangeDoneView(PasswordChangeDoneView):
 
 
 def send_welcome_email(user):
+    """
+    Sends a welcome email to newly registered learners using a custom HTML template.
+    """
     subject = "Welcome to Our E-Learning Platform!"
     context = {
         'user': user,
@@ -491,6 +494,9 @@ def send_welcome_email(user):
 
 
 def send_course_enrollment_email(learner, course):
+    """
+    Sends a confirmation email to a learner after they successfully enroll in a course.
+    """
     subject = f"Enrollment Confirmation for {course.title}"
     context = {
         'learner': learner,
@@ -509,6 +515,9 @@ def send_course_enrollment_email(learner, course):
     send_email_async(email_message)
 
 def instructor_invitation_email(instructor, invitation):
+    """
+    Sends an email inviting a user to become an instructor on the platform.
+    """
     subject = "You're Invited to Join as an Instructor!"
     context = {
         'instructor': instructor,
@@ -527,6 +536,9 @@ def instructor_invitation_email(instructor, invitation):
     send_email_async(email_message)
 
 def instructor_welcome_email(user, temporary_password="Set by admin"):
+    """
+    Sends a welcome email to an instructor created by the admin, providing their login credentials.
+    """
     subject = "Welcome to the Faculty!"
     context = {
         'user': user,
@@ -546,6 +558,9 @@ def instructor_welcome_email(user, temporary_password="Set by admin"):
     send_email_async(email_message)
 
 def send_membership_approved_email(membership):
+    """
+    Notifies a user that their membership application has been approved by the admin.
+    """
     subject = "Your TrusterLab Membership is Approved!"
     context = {
         'user': {'first_name': membership.Fullname.split()[0] if membership.Fullname else 'Member'},
@@ -681,9 +696,15 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 class CustomTokenObtainPairView(TokenObtainPairView):
+    """
+    Custom JWT token view that returns additional user data along with the access/refresh tokens.
+    """
     serializer_class = CustomTokenObtainPairSerializer
 
 class LearnerRegisterAPIView(APIView):
+    """
+    API endpoint for registering a new Learner. Automatically sends a welcome email and returns JWT tokens upon success.
+    """
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
@@ -704,6 +725,9 @@ class LearnerRegisterAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class InstructorRegisterAPIView(APIView):
+    """
+    API endpoint for registering a new Instructor. Returns JWT tokens and instructor details upon success.
+    """
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
@@ -720,6 +744,9 @@ class InstructorRegisterAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class AdminInstructorCreationAPIView(APIView):
+    """
+    Admin-only API endpoint for creating instructors. Emails the instructor a temporary password upon creation.
+    """
     permission_classes = [permissions.IsAdminUser]
 
     def post(self, request):
@@ -742,6 +769,9 @@ class AdminInstructorCreationAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UserProfileAPIView(APIView):
+    """
+    API endpoint for fetching (GET) and updating (PATCH) the currently authenticated user's profile information.
+    """
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):

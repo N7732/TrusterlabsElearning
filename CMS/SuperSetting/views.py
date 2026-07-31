@@ -492,6 +492,11 @@ class SystemHealthViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['post'])
     def trigger_backup(self, request):
+        """
+        Runs a database dump in a background thread to prevent server timeouts.
+        It immediately returns a success message to the frontend, while the backup
+        continues saving to a JSON file in the 'backups' folder.
+        """
         try:
             import threading
             import os
@@ -541,6 +546,10 @@ class SystemHealthViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['post'])
     def restore_backup(self, request):
+        """
+        Takes a filename from the request, finds the JSON backup file in the 'backups' folder,
+        and uses Django's loaddata command to insert the data back into the database.
+        """
         filename = request.data.get('filename')
         if not filename:
             return Response({'error': 'Filename is required'}, status=400)
@@ -569,6 +578,10 @@ class SystemHealthViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'])
     def download_backup(self, request):
+        """
+        Reads the requested JSON backup file from the server's local storage and 
+        returns it as a downloadable attachment to the user's browser.
+        """
         filename = request.query_params.get('filename')
         if not filename:
             return Response({'error': 'Filename is required'}, status=400)
@@ -588,6 +601,10 @@ class SystemHealthViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['post'])
     def test_email(self, request):
+        """
+        Uses the active Django email configuration (e.g. Resend API) to send a test email
+        to the currently logged-in Super Admin to verify email functionality.
+        """
         email = request.data.get('email')
         if not email:
             return Response({'error': 'Email is required'}, status=400)
