@@ -774,7 +774,7 @@ const CoursePlayer = () => {
                   <div key={module.id} className="border-b border-slate-100">
                     {/* Module Header */}
                     <div 
-                      className={`p-4 cursor-pointer flex flex-col gap-3 transition-colors ${module.isOpen ? 'bg-slate-800' : 'hover:bg-slate-800/50'}`}
+                      className={`py-2 px-4 cursor-pointer flex flex-col gap-2 transition-colors ${module.isOpen ? 'bg-slate-800' : 'hover:bg-slate-800/50'}`}
                       onClick={() => toggleModule(module.id)}
                     >
                       <div className="flex justify-between items-start gap-2">
@@ -809,7 +809,7 @@ const CoursePlayer = () => {
                             <div 
                               key={lesson.id} 
                               onClick={() => selectLesson(lesson)}
-                              className={`px-4 py-3 flex items-start gap-3 border-l-2 cursor-pointer transition-all ${isActive ? 'border-blue-500 bg-slate-800/80 shadow-[inset_4px_0_0_0_rgba(59,130,246,1)]' : 'border-transparent hover:bg-slate-800/40'}`}
+                              className={`px-4 py-2 flex items-start gap-3 border-l-2 cursor-pointer transition-all ${isActive ? 'border-blue-500 bg-slate-800/80 shadow-[inset_4px_0_0_0_rgba(59,130,246,1)]' : 'border-transparent hover:bg-slate-800/40'}`}
                             >
                               <div className="mt-0.5 shrink-0">
                                 {completedLessons.includes(lesson.id) ? (
@@ -837,17 +837,17 @@ const CoursePlayer = () => {
                             <div 
                               key={`quiz-${quiz.id}`} 
                               onClick={() => selectLesson(quiz)}
-                              className={`px-4 py-3 flex items-start gap-3 border-l-4 cursor-pointer ${isActive ? 'border-orange-500 bg-orange-50' : 'border-transparent hover:bg-slate-50'}`}
+                              className={`px-4 py-2 flex items-start gap-3 border-l-2 cursor-pointer transition-all ${isActive ? 'border-orange-500 bg-slate-800/80 shadow-[inset_4px_0_0_0_rgba(249,115,22,1)]' : 'border-transparent hover:bg-slate-800/40'}`}
                             >
                               <div className="mt-0.5 shrink-0 text-orange-500">
                                 <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                               </div>
                               <div className="flex-1 flex justify-between gap-4">
-                                <p className="text-[13px] font-medium text-slate-800 leading-snug">
+                                <p className={`text-[13px] font-medium leading-snug ${isActive ? 'text-slate-100' : 'text-slate-400'}`}>
                                   {quiz.title}
                                 </p>
                                 {quiz.is_locked && !isAdmin && (
-                                  <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                  <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                                 )}
                               </div>
                             </div>
