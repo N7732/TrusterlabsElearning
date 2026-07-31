@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import PaymentDrawer from '../../components/courses/PaymentDrawer';
 import InquiryDrawer from '../../components/courses/InquiryDrawer';
+import bgImage from '../../assets/Bac.jpg';
 
 import Prism from 'prismjs';
 import 'prismjs/themes/prism-tomorrow.css';
@@ -686,7 +687,16 @@ const CoursePlayer = () => {
   }
 
   return (
-    <div className={`flex h-screen w-full font-sans overflow-hidden ${isDarkMode ? 'bg-slate-900 text-slate-200' : 'bg-white text-slate-800'}`}>
+    <div className={`flex h-screen w-full font-sans overflow-hidden relative ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>
+      {/* Background Image */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0" 
+        style={{ backgroundImage: `url(${bgImage})` }}
+      ></div>
+      {/* Dark/Light Mode Overlay */}
+      <div 
+        className={`absolute inset-0 z-0 transition-colors duration-500 ${isDarkMode ? 'bg-[#0f172a]/80' : 'bg-white/85'}`}
+      ></div>
       
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
@@ -697,10 +707,10 @@ const CoursePlayer = () => {
       )}
 
       {/* LEFT SIDEBAR */}
-      <div className={`absolute lg:relative w-[85%] max-w-[320px] lg:w-[320px] flex-shrink-0 border-r flex flex-col h-full z-40 transition-all duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} ${!isSidebarOpen && 'lg:hidden'} ${isDarkMode ? 'border-slate-800 bg-slate-900' : 'border-slate-200 bg-white'}`}>
+      <div className={`absolute lg:relative w-[85%] max-w-[320px] lg:w-[320px] flex-shrink-0 border-r flex flex-col h-full z-40 transition-all duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} ${!isSidebarOpen && 'lg:hidden'} ${isDarkMode ? 'border-slate-800 bg-slate-900/60 backdrop-blur-md' : 'border-slate-200 bg-white/60 backdrop-blur-md'}`}>
         
         {/* Back Button / Header */}
-        <div className="h-14 flex items-center px-4 border-b border-slate-800 bg-slate-900 text-white shrink-0">
+        <div className={`h-14 flex items-center px-4 border-b shrink-0 bg-transparent ${isDarkMode ? 'border-slate-800 text-white' : 'border-slate-200 text-slate-800'}`}>
           <button 
             onClick={() => navigate('/learner/dashboard')} 
             className="w-8 h-8 flex items-center justify-center bg-slate-800 rounded hover:bg-slate-700 transition-colors mr-3"
@@ -924,10 +934,10 @@ const CoursePlayer = () => {
       </div>
 
       {/* MAIN CONTENT */}
-      <div className={`flex-1 flex flex-col h-full relative z-10 overflow-hidden ${isDarkMode ? 'bg-slate-800' : 'bg-[#F9F9F9]'}`}>
+      <div className="flex-1 flex flex-col h-full relative z-10 overflow-hidden bg-transparent">
         
         {/* Top Header */}
-        <div className={`h-14 border-b flex items-center justify-between px-4 shrink-0 shadow-sm z-20 relative ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+        <div className={`h-14 border-b flex items-center justify-between px-4 shrink-0 shadow-sm z-20 relative bg-transparent backdrop-blur-sm ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}>
           <div className="flex items-center gap-3 max-w-[70%]">
             <button 
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
