@@ -107,6 +107,7 @@ const LearnerDashboard = () => {
           (() => {
             const activeEnrollments = enrollments.filter(e => e.status !== 'completed');
             if (activeEnrollments.length === 0) {
+              return (
                 <div className="text-center pt-24 pb-12 bg-transparent rounded-lg flex flex-col items-center">
                   <h2 className="text-[22px] font-bold text-white mb-2">You haven't enrolled in any active courses yet</h2>
                   <p className="text-[15px] text-slate-400 max-w-md mx-auto mb-8 leading-relaxed">
@@ -156,6 +157,7 @@ const LearnerDashboard = () => {
                     </div>
                   </div>
                 </div>
+              );
             }
             return (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
