@@ -35,6 +35,11 @@ from .form import CourseForm, ModuleForm, LessonForm, QuizesForm, QuizQuestionFo
 User = get_user_model()
 
 class CourseViewSet(viewsets.ModelViewSet):
+    """
+    API ViewSet for viewing, creating, updating, and deleting Course instances.
+    Provides custom querysets based on user type (instructor, admin, learner) and 
+    includes a bulk upload action for creating multiple courses at once.
+    """
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
     
@@ -220,6 +225,11 @@ class CourseViewSet(viewsets.ModelViewSet):
         }, status=status.HTTP_200_OK)
 
 def check_course_subentity_permission(user, course, action):
+    """
+    Validates whether a user has the appropriate permissions (e.g. instructor or admin)
+    to perform a specific action (create, update, delete) on a course's sub-entities 
+    (like modules, lessons, or quizzes).
+    """
     if user.user_type == 'admin' or user.is_superuser:
         return
     if user.user_type == 'instructor':
@@ -261,6 +271,11 @@ from django.db.models import Q
 
 @transaction.atomic
 def check_and_update_course_completion(learner, course):
+    """
+    Checks if a learner has completed all required lessons and passed all quizzes for a given course.
+    If conditions are met, it updates the enrollment status to 'completed', issues a certificate (if applicable),
+    and sends a completion email.
+    """
     total_lessons = Lesson.objects.filter(module__course=course, is_published=True).count()
     completed_lessons = LessonProgress.objects.filter(
         learner=learner,

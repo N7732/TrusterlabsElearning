@@ -8,6 +8,11 @@ from Course.models import Enrollment, Course
 from django.db import transaction
 
 class RequirementViewSet(viewsets.ModelViewSet):
+    """
+    API ViewSet for managing course enrollment inquiries (requirements).
+    Provides endpoints for creating inquiries, and for instructors/admins to
+    approve (enroll) or reject them.
+    """
     def get_permissions(self):
         if self.action == 'create':
             return [permissions.AllowAny()]
@@ -79,6 +84,11 @@ class RequirementViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     @transaction.atomic
     def enroll_student(self, request, pk=None):
+        """
+        Approves an inquiry and officially enrolls the student in the requested course.
+        If the student doesn't have an account, it creates one, generates a temporary password,
+        and emails the login details to them.
+        """
         inquiry = self.get_object()
         
         if inquiry.status == 'enrolled':
@@ -182,6 +192,10 @@ class RequirementViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     @transaction.atomic
     def reject_inquiry(self, request, pk=None):
+        """
+        Rejects an inquiry and updates the enrollment status to 'dropped' if the user
+        was previously enrolled.
+        """
         inquiry = self.get_object()
         if inquiry.status == 'rejected':
             return Response({'message': 'Already rejected.'}, status=status.HTTP_200_OK)

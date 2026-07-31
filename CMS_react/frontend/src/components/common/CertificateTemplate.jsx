@@ -102,7 +102,7 @@ const CertificateTemplate = ({
             </h2>
 
             <h3 className="certificate-type">
-                OF PARTICIPATION
+                OF COMPLETION
             </h3>
 
             <p className="award-text">
@@ -119,7 +119,7 @@ const CertificateTemplate = ({
             {/* Course */}
             <div className="course">
                 <p>
-                    For successful participation in a{" "}
+                    For successful completion of a{" "}
                     <span>{duration}</span>{" "}
                     Online{" "}
                     <span>{courseName}</span>
