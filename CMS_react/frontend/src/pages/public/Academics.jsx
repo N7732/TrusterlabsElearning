@@ -3,6 +3,31 @@ import { Link } from 'react-router-dom';
 import { BookOpen, GraduationCap, Microscope, ArrowRight, Play, Users, Shield, Globe } from 'lucide-react';
 import image3 from '../../assets/image3.png';
 
+const CountUp = ({ end, duration = 2000, suffix = "" }) => {
+  const [count, setCount] = React.useState(0);
+  
+  React.useEffect(() => {
+    let startTimestamp = null;
+    const endValue = parseInt(end, 10);
+    
+    const step = (timestamp) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      const easeProgress = 1 - Math.pow(1 - progress, 4);
+      setCount(Math.floor(easeProgress * endValue));
+      
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      } else {
+        setCount(endValue);
+      }
+    };
+    window.requestAnimationFrame(step);
+  }, [end, duration]);
+
+  return <span>{count.toLocaleString()}{suffix}</span>;
+};
+
 const Academics = () => {
   return (
     <div className="min-h-screen bg-[#020617] font-['Work_Sans',sans-serif] selection:bg-blue-500/30 overflow-hidden text-slate-200">
@@ -110,33 +135,27 @@ const Academics = () => {
         </div>
 
         {/* Stats Section */}
-        <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-3xl p-8 md:p-12 relative overflow-hidden">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-1 bg-gradient-to-r from-transparent via-blue-500/30 to-transparent"></div>
+        <div className="max-w-3xl mx-auto bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-6 md:p-8 relative overflow-hidden shadow-2xl mt-12">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-1 bg-gradient-to-r from-transparent via-blue-500/40 to-transparent"></div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center divide-x-0 md:divide-x divide-white/10">
+          <div className="grid grid-cols-3 gap-4 text-center divide-x divide-white/10">
             
-            <div className="flex flex-col items-center justify-center p-2">
-              <GraduationCap size={24} className="text-slate-400 mb-3" />
-              <div className="text-3xl md:text-4xl font-bold text-[#d4af37] mb-1">120+</div>
-              <div className="text-xs md:text-sm text-slate-400 uppercase tracking-wide">Courses & Programs</div>
+            <div className="flex flex-col items-center justify-center p-2 group">
+              <GraduationCap size={20} className="text-slate-400 mb-2 group-hover:text-blue-400 transition-colors" />
+              <div className="text-2xl md:text-3xl font-bold text-[#d4af37] mb-1"><CountUp end="120" suffix="+" /></div>
+              <div className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider font-semibold">Courses & Programs</div>
             </div>
 
-            <div className="flex flex-col items-center justify-center p-2">
-              <Users size={24} className="text-slate-400 mb-3" />
-              <div className="text-3xl md:text-4xl font-bold text-[#d4af37] mb-1">5,000+</div>
-              <div className="text-xs md:text-sm text-slate-400 uppercase tracking-wide">Students Enrolled</div>
+            <div className="flex flex-col items-center justify-center p-2 group">
+              <Users size={20} className="text-slate-400 mb-2 group-hover:text-blue-400 transition-colors" />
+              <div className="text-2xl md:text-3xl font-bold text-[#d4af37] mb-1"><CountUp end="5000" suffix="+" /></div>
+              <div className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider font-semibold">Students Enrolled</div>
             </div>
 
-            <div className="flex flex-col items-center justify-center p-2">
-              <Shield size={24} className="text-slate-400 mb-3" />
-              <div className="text-3xl md:text-4xl font-bold text-[#d4af37] mb-1">45+</div>
-              <div className="text-xs md:text-sm text-slate-400 uppercase tracking-wide">Expert Instructors</div>
-            </div>
-
-            <div className="flex flex-col items-center justify-center p-2">
-              <Globe size={24} className="text-slate-400 mb-3" />
-              <div className="text-3xl md:text-4xl font-bold text-[#d4af37] mb-1">30+</div>
-              <div className="text-xs md:text-sm text-slate-400 uppercase tracking-wide">Research Publications</div>
+            <div className="flex flex-col items-center justify-center p-2 group">
+              <Globe size={20} className="text-slate-400 mb-2 group-hover:text-blue-400 transition-colors" />
+              <div className="text-2xl md:text-3xl font-bold text-[#d4af37] mb-1"><CountUp end="30" suffix="+" /></div>
+              <div className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider font-semibold">Research Publications</div>
             </div>
 
           </div>
