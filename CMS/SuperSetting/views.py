@@ -448,3 +448,120 @@ class SiteVisitorViewSet(viewsets.ModelViewSet):
     queryset = SiteVisitor.objects.all().order_by('-created_at')
     serializer_class = SiteVisitorSerializer
     permission_classes = [IsSuperAdminOrAdmin]
+
+from .models import SystemHealthSnapshot, ErrorLog
+from .serializers import SystemHealthSnapshotSerializer, ErrorLogSerializer
+from rest_framework.decorators import action
+import glob
+
+class SystemHealthViewSet(viewsets.ViewSet):
+    permission_classes = [IsSuperAdmin]
+
+    def list(self, request):
+        latest_snapshot = SystemHealthSnapshot.objects.first()
+        snapshot_data = SystemHealthSnapshotSerializer(latest_snapshot).data if latest_snapshot else None
+        
+        recent_errors = ErrorLog.objects.all()[:10]
+        errors_data = ErrorLogSerializer(recent_errors, many=True).data
+        
+        backup_dir = os.path.join(settings.BASE_DIR, 'backups')
+        backup_files = glob.glob(os.path.join(backup_dir, '*')) if os.path.exists(backup_dir) else []
+        backups = []
+        for file in backup_files:
+            backups.append({
+                'name': os.path.basename(file),
+                'size': os.path.getsize(file) / (1024 * 1024), # MB
+                'created_at': os.path.getctime(file)
+            })
+        backups.sort(key=lambda x: x['created_at'], reverse=True)
+
+        import sys
+        import django
+        
+        return Response({
+            'snapshot': snapshot_data,
+            'recent_errors': errors_data,
+            'backups': backups,
+            'version': {
+                'django': django.get_version(),
+                'python': sys.version.split(' ')[0]
+            }
+        })
+
+    @action(detail=False, methods=['post'])
+    def trigger_backup(self, request):
+        try:
+            from django.core.management import call_command
+            import contextlib
+            import io
+            from django.utils import timezone
+            
+            backup_dir = os.path.join(settings.BASE_DIR, 'backups')
+            if not os.path.exists(backup_dir):
+                os.makedirs(backup_dir)
+            
+            timestamp = timezone.now().strftime('%Y-%m-%d-%H%M%S')
+            filename = f"backup_{timestamp}.json"
+            filepath = os.path.join(backup_dir, filename)
+
+            with open(filepath, 'w', encoding='utf-8') as f:
+                call_command('dumpdata', exclude=['sessions', 'admin', 'contenttypes', 'auth.Permission', 'axes', 'SuperSetting.ErrorLog', 'SuperSetting.SystemHealthSnapshot'], stdout=f)
+            
+            # Audit log
+            from .models import SystemLog
+            SystemLog.objects.create(
+                user=request.user,
+                action="System Backup Created",
+                details=f"Backup file: {filename}",
+                ip_address=request.META.get('REMOTE_ADDR')
+            )
+            return Response({'message': 'Backup generated successfully', 'file': filename})
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+
+    @action(detail=False, methods=['post'])
+    def restore_backup(self, request):
+        filename = request.data.get('filename')
+        if not filename:
+            return Response({'error': 'Filename is required'}, status=400)
+            
+        try:
+            from django.core.management import call_command
+            backup_dir = os.path.join(settings.BASE_DIR, 'backups')
+            filepath = os.path.join(backup_dir, filename)
+            
+            if not os.path.exists(filepath):
+                return Response({'error': 'Backup file not found'}, status=404)
+                
+            call_command('loaddata', filepath)
+            
+            # Audit log
+            from .models import SystemLog
+            SystemLog.objects.create(
+                user=request.user,
+                action="System Backup Restored",
+                details=f"Restored from file: {filename}",
+                ip_address=request.META.get('REMOTE_ADDR')
+            )
+            return Response({'message': 'Backup restored successfully'})
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+
+    @action(detail=False, methods=['post'])
+    def test_email(self, request):
+        email = request.data.get('email')
+        if not email:
+            return Response({'error': 'Email is required'}, status=400)
+            
+        try:
+            from django.core.mail import send_mail
+            send_mail(
+                'Test Email from TrusterLabs System Health Dashboard',
+                'This is a test email to verify that the SMTP configuration is working correctly.',
+                settings.DEFAULT_FROM_EMAIL,
+                [email],
+                fail_silently=False,
+            )
+            return Response({'message': 'Test email sent successfully.'})
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)

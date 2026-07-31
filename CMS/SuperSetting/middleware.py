@@ -81,3 +81,27 @@ class VisitorTrackingMiddleware:
                     pass
 
         return response
+
+import traceback
+
+class ExceptionLoggingMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        return self.get_response(request)
+
+    def process_exception(self, request, exception):
+        from .models import ErrorLog
+        tb = traceback.format_exc()
+        try:
+            ErrorLog.objects.create(
+                level='CRITICAL',
+                message=str(exception),
+                path=request.path,
+                traceback=tb,
+                user=request.user if hasattr(request, 'user') and request.user.is_authenticated else None
+            )
+        except Exception:
+            pass
+        return None
