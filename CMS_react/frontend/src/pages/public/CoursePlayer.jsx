@@ -39,7 +39,7 @@ const CoursePlayer = () => {
 
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [courseCompletedState, setCourseCompletedState] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
   const [isTranslatorOpen, setIsTranslatorOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024);
 
@@ -746,13 +746,13 @@ const CoursePlayer = () => {
                 
                 {/* Overall Progress */}
                 <div className="mt-6 flex items-center gap-3">
-                  <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-[#3b82f6] transition-all duration-500 ease-in-out" 
+                      className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 transition-all duration-500 ease-in-out shadow-[0_0_10px_rgba(56,189,248,0.5)]" 
                       style={{ width: `${modules.reduce((acc, mod) => acc + (mod.lessons?.length || 0), 0) === 0 ? 0 : Math.round((completedLessons.length / modules.reduce((acc, mod) => acc + (mod.lessons?.length || 0), 0)) * 100)}%` }}
                     ></div>
                   </div>
-                  <span className="text-xs font-bold text-slate-600">
+                  <span className="text-xs font-bold text-slate-300">
                     {modules.reduce((acc, mod) => acc + (mod.lessons?.length || 0), 0) === 0 ? 0 : Math.round((completedLessons.length / modules.reduce((acc, mod) => acc + (mod.lessons?.length || 0), 0)) * 100)}%
                   </span>
                 </div>
@@ -764,27 +764,27 @@ const CoursePlayer = () => {
                   <div key={module.id} className="border-b border-slate-100">
                     {/* Module Header */}
                     <div 
-                      className={`p-4 cursor-pointer flex flex-col gap-3 transition-colors ${module.isOpen ? 'bg-[#f0f9ff]' : 'hover:bg-slate-50'}`}
+                      className={`p-4 cursor-pointer flex flex-col gap-3 transition-colors ${module.isOpen ? 'bg-slate-800' : 'hover:bg-slate-800/50'}`}
                       onClick={() => toggleModule(module.id)}
                     >
                       <div className="flex justify-between items-start gap-2">
-                        <h3 className="font-bold text-[13px] leading-snug text-slate-800">
+                        <h3 className="font-bold text-[13px] leading-snug text-slate-200">
                           {module.title}
                         </h3>
-                        <div className={`w-6 h-6 rounded flex items-center justify-center shrink-0 ${module.isOpen ? 'bg-[#3b82f6] text-white' : 'bg-[#eff6ff] text-[#2563eb]'}`}>
+                        <div className={`w-6 h-6 rounded flex items-center justify-center shrink-0 ${module.isOpen ? 'bg-slate-700 text-white' : 'bg-slate-800 text-slate-400'}`}>
                           {module.isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                         </div>
                       </div>
                       
                       {/* Module Progress */}
                       <div className="flex items-center gap-3">
-                        <div className="flex-1 h-1 bg-slate-200 rounded-full overflow-hidden">
+                        <div className="flex-1 h-1 bg-slate-700 rounded-full overflow-hidden">
                           <div 
-                            className="h-full bg-[#3b82f6] transition-all duration-500 ease-in-out" 
+                            className="h-full bg-blue-500 transition-all duration-500 ease-in-out" 
                             style={{ width: `${(module.lessons?.length || 0) === 0 ? 0 : Math.round(((module.lessons?.filter(l => completedLessons.includes(l.id)).length || 0) / (module.lessons?.length || 0)) * 100)}%` }}
                           ></div>
                         </div>
-                        <span className="text-[11px] font-bold text-slate-500 w-6 text-right">
+                        <span className="text-[11px] font-bold text-slate-400 w-6 text-right">
                           {(module.lessons?.length || 0) === 0 ? 0 : Math.round(((module.lessons?.filter(l => completedLessons.includes(l.id)).length || 0) / (module.lessons?.length || 0)) * 100)}%
                         </span>
                       </div>
@@ -792,27 +792,29 @@ const CoursePlayer = () => {
 
                     {/* Module Lessons */}
                     {module.isOpen && module.lessons?.length > 0 && (
-                      <div className="bg-white">
+                      <div className="bg-slate-900 border-l-2 border-slate-800 ml-4">
                         {module.lessons.map((lesson, idx) => {
                           const isActive = activeLesson?.id === lesson.id;
                           return (
                             <div 
                               key={lesson.id} 
                               onClick={() => selectLesson(lesson)}
-                              className={`px-4 py-3 flex items-start gap-3 border-l-4 cursor-pointer ${isActive ? 'border-[#3b82f6] bg-[#eff6ff]' : 'border-transparent hover:bg-slate-50'}`}
+                              className={`px-4 py-3 flex items-start gap-3 border-l-2 cursor-pointer transition-all ${isActive ? 'border-blue-500 bg-slate-800/80 shadow-[inset_4px_0_0_0_rgba(59,130,246,1)]' : 'border-transparent hover:bg-slate-800/40'}`}
                             >
                               <div className="mt-0.5 shrink-0">
                                 {completedLessons.includes(lesson.id) ? (
-                                  <CheckCircle className="w-[18px] h-[18px] text-[#3b82f6]" />
+                                  <CheckCircle className="w-[18px] h-[18px] text-cyan-400" />
+                                ) : isActive ? (
+                                  <div className="w-[18px] h-[18px] rounded-full border-2 border-blue-500 flex items-center justify-center bg-blue-500/20 text-blue-400"><svg className="w-3 h-3 ml-0.5" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4l12 6-12 6z"/></svg></div>
                                 ) : (
-                                  <div className="w-[18px] h-[18px] rounded-full border-2 border-slate-300"></div>
+                                  <div className="w-[18px] h-[18px] rounded-full border-2 border-slate-600"></div>
                                 )}
                               </div>
                               <div className="flex-1 flex justify-between gap-4">
-                                <p className="text-[13px] font-medium text-slate-800 leading-snug">
+                                <p className={`text-[13px] font-medium leading-snug ${isActive ? 'text-slate-100' : 'text-slate-400'}`}>
                                   {lesson.title}
                                 </p>
-                                <span className="text-[11px] font-semibold text-slate-400 shrink-0 whitespace-nowrap mt-0.5">
+                                <span className="text-[11px] font-semibold text-slate-500 shrink-0 whitespace-nowrap mt-0.5">
                                   {idx + 1} / {module.lessons.length}
                                 </span>
                               </div>
@@ -917,6 +919,24 @@ const CoursePlayer = () => {
               )}
             </div>
           )}
+        </div>
+
+        {/* Need Help Widget */}
+        <div className="p-4 shrink-0 border-t border-slate-800 bg-slate-900/50 mt-auto">
+          <div className="bg-[#0f172a] rounded-xl p-4 border border-slate-800 shadow-md">
+            <div className="flex items-start gap-4 mb-3">
+              <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center shrink-0 border border-slate-700">
+                <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-200 text-sm">Need Help?</h4>
+                <p className="text-xs text-slate-400 leading-snug mt-1">Ask in our community or contact our support team.</p>
+              </div>
+            </div>
+            <button className="w-full py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-colors">
+              Get Help <ChevronRight className="w-3 h-3" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1263,27 +1283,48 @@ const CoursePlayer = () => {
               )}
               
               {/* Bottom Navigation */}
-              <div className="max-w-4xl mx-auto px-8 sm:px-12 py-8 flex items-center justify-between border-t border-slate-200 mt-8 mb-16">
+              <div className="fixed bottom-4 left-4 right-4 lg:left-[336px] bg-[#0a0f1c]/90 backdrop-blur-xl border border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-2xl z-20 transition-all">
+                {/* Previous Button */}
                 {prevLesson ? (
                   <button 
                     onClick={() => handleNavigate(prevLesson)}
-                    className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-300 rounded-lg text-slate-700 font-semibold hover:bg-slate-50 transition-colors shadow-sm"
+                    className="flex items-center gap-3 px-4 py-2 bg-slate-900/50 hover:bg-slate-800 border border-slate-700/50 rounded-xl text-slate-300 transition-colors text-left group"
                   >
-                    <ChevronLeft className="w-5 h-5" />
-                    Previous Lesson
+                    <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                    <div className="hidden sm:block">
+                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Previous</div>
+                      <div className="text-sm font-semibold truncate max-w-[150px] md:max-w-[200px]">{prevLesson.title}</div>
+                    </div>
                   </button>
-                ) : <div></div>}
+                ) : <div className="w-[150px] sm:w-[200px]"></div>}
 
+                {/* Progress Indicator (Middle) */}
+                <div className="hidden md:flex items-center gap-4 flex-1 max-w-sm mx-4">
+                   <div className="text-sm font-bold text-slate-400 shrink-0">
+                     {activeLesson && modules.flatMap(m => m.lessons || []).findIndex(l => l.id === activeLesson.id) + 1} / {modules.flatMap(m => m.lessons || []).length}
+                   </div>
+                   <div className="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden">
+                     <div 
+                       className="h-full bg-blue-500 rounded-full transition-all" 
+                       style={{ width: `${( (activeLesson && modules.flatMap(m => m.lessons || []).findIndex(l => l.id === activeLesson.id) + 1) / modules.flatMap(m => m.lessons || []).length ) * 100}%` }}
+                     ></div>
+                   </div>
+                </div>
+
+                {/* Next Button */}
                 {nextLesson && (
                   <button 
                     onClick={() => {
                       markLessonComplete(activeLesson.id);
                       handleNavigate(nextLesson);
                     }}
-                    className="flex items-center gap-2 px-6 py-3 bg-[#3b82f6] text-white rounded-lg font-semibold hover:bg-[#2563eb] transition-colors shadow-sm"
+                    className="flex items-center gap-3 px-6 py-3 bg-[#1d4ed8] hover:bg-[#2563eb] border border-blue-600 rounded-xl text-white transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)] text-right group"
                   >
-                    Complete & Continue
-                    <ChevronRight className="w-5 h-5" />
+                    <div className="hidden sm:block">
+                      <div className="text-xs font-bold text-blue-200 uppercase tracking-wider">Next</div>
+                      <div className="text-sm font-semibold truncate max-w-[150px] md:max-w-[200px]">{nextLesson.title}</div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </button>
                 )}
                 {!nextLesson && (
@@ -1291,7 +1332,7 @@ const CoursePlayer = () => {
                     {courseCompletedState ? (
                       <button 
                         onClick={() => navigate('/learner/dashboard', { state: { tab: 'certificates' } })}
-                        className="flex items-center gap-2 px-6 py-3 bg-[#10b981] text-white rounded-lg font-semibold hover:bg-[#059669] transition-colors shadow-sm"
+                        className="flex items-center gap-3 px-6 py-3 bg-[#10b981] text-white rounded-xl font-semibold hover:bg-[#059669] transition-colors shadow-[0_0_20px_rgba(16,185,129,0.3)]"
                       >
                         View Certificate
                         <CheckCircle className="w-5 h-5" />
@@ -1300,7 +1341,7 @@ const CoursePlayer = () => {
                       <button 
                         onClick={() => markLessonComplete(activeLesson.id)}
                         disabled={completedLessons.includes(activeLesson?.id)}
-                        className="flex items-center gap-2 px-6 py-3 bg-[#3b82f6] text-white rounded-lg font-semibold hover:bg-[#2563eb] transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center gap-3 px-6 py-3 bg-[#3b82f6] text-white rounded-xl font-semibold hover:bg-[#2563eb] transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {completedLessons.includes(activeLesson?.id) ? 'Course Completed' : 'Finish Course'}
                         <CheckCircle className="w-5 h-5" />
