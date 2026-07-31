@@ -567,6 +567,25 @@ class SystemHealthViewSet(viewsets.ViewSet):
         except Exception as e:
             return Response({'error': str(e)}, status=500)
 
+    @action(detail=False, methods=['get'])
+    def download_backup(self, request):
+        filename = request.query_params.get('filename')
+        if not filename:
+            return Response({'error': 'Filename is required'}, status=400)
+            
+        import os
+        from django.conf import settings
+        from django.http import FileResponse
+        
+        backup_dir = os.path.join(settings.BASE_DIR, 'backups')
+        filepath = os.path.join(backup_dir, filename)
+        
+        if not os.path.exists(filepath):
+            return Response({'error': 'Backup file not found'}, status=404)
+            
+        response = FileResponse(open(filepath, 'rb'), as_attachment=True, filename=filename)
+        return response
+
     @action(detail=False, methods=['post'])
     def test_email(self, request):
         email = request.data.get('email')

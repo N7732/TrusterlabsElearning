@@ -59,6 +59,35 @@ const SystemHealthDashboard = () => {
     }
   };
 
+  const handleDownloadBackup = async (filename) => {
+    try {
+      const response = await apiClient.get(`/settings/system-health/download_backup/?filename=${filename}`);
+      // Assuming apiClient is customized and might return JSON on error, 
+      // but wait, apiClient.get parses JSON if content-type is application/json.
+      // If the backend returns FileResponse, the content-type is application/octet-stream or similar.
+      // Let's implement a direct fetch to handle blobs safely.
+      const token = localStorage.getItem('truster_lab_token');
+      const url = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/settings/system-health/download_backup/?filename=${filename}`;
+      const fetchRes = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!fetchRes.ok) throw new Error('Download failed');
+      const blob = await fetchRes.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (err) {
+      alert('Failed to download backup: ' + err.message);
+    }
+  };
+
   const handleTestEmail = async () => {
     if (!user?.email) return alert('No email found for current user.');
     try {
@@ -427,6 +456,12 @@ const SystemHealthDashboard = () => {
                         <span className="text-xs text-slate-500 flex items-center gap-1.5 font-medium">
                           <Clock size={12} className="text-slate-600" /> {format(new Date(backup.created_at * 1000), 'MMM d, yyyy • HH:mm')}
                         </span>
+                        <button 
+                          onClick={() => handleDownloadBackup(backup.name)}
+                          className="text-[11px] font-bold text-blue-400 hover:text-white bg-blue-500/10 hover:bg-blue-500 px-2.5 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-all flex items-center gap-1.5 border border-blue-500/20 hover:border-blue-500 shadow-[0_0_10px_rgba(59,130,246,0)] hover:shadow-[0_0_15px_rgba(59,130,246,0.5)] mr-2"
+                        >
+                          <DownloadCloud size={12} /> DOWNLOAD
+                        </button>
                         <button 
                           onClick={() => handleRestoreBackup(backup.name)}
                           className="text-[11px] font-bold text-rose-400 hover:text-white bg-rose-500/10 hover:bg-rose-500 px-2.5 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-all flex items-center gap-1.5 border border-rose-500/20 hover:border-rose-500 shadow-[0_0_10px_rgba(244,63,94,0)] hover:shadow-[0_0_15px_rgba(244,63,94,0.5)]"
