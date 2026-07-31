@@ -121,3 +121,35 @@ class SiteVisitor(models.Model):
 
     def __str__(self):
         return f"{self.ip_address} - {self.path} - {self.visited_date}"
+
+class SystemHealthSnapshot(models.Model):
+    cpu_usage = models.FloatField(default=0.0)
+    memory_usage = models.FloatField(default=0.0)
+    disk_usage = models.FloatField(default=0.0)
+    db_status = models.BooleanField(default=True)
+    db_response_time = models.FloatField(default=0.0)
+    active_connections = models.IntegerField(default=0)
+    smtp_status = models.BooleanField(default=True)
+    pending_tasks = models.IntegerField(default=0)
+    failed_tasks = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Health Snapshot - {self.created_at}"
+
+class ErrorLog(models.Model):
+    level = models.CharField(max_length=50, default='ERROR')
+    message = models.TextField()
+    path = models.CharField(max_length=500, null=True, blank=True)
+    traceback = models.TextField(null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"[{self.level}] {self.path} - {self.created_at}"

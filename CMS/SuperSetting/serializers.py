@@ -49,3 +49,15 @@ class SiteVisitorSerializer(serializers.ModelSerializer):
     class Meta:
         model = SiteVisitor
         fields = '__all__'
+
+from .models import SystemHealthSnapshot, ErrorLog
+
+class SystemHealthSnapshotSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SystemHealthSnapshot
+        fields = '__all__'
+
+class ErrorLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ErrorLog
+        fields = '__all__'

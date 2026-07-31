@@ -7,3 +7,5 @@ class SupersettingConfig(AppConfig):
 
     def ready(self):
         import SuperSetting.signals
+        from . import tasks
+        tasks.start_scheduler()

@@ -30,6 +30,7 @@ const TermsAndConditions = lazy(() => import('../pages/public/TermsAndConditions
 // SuperAdmin Pages
 const SuperAdminLayout = lazy(() => import('../layouts/SuperAdminLayout'));
 const SuperAdminDashboard = lazy(() => import('../pages/superadmin/SuperAdminDashboard'));
+const SystemHealthDashboard = lazy(() => import('../pages/superadmin/SystemHealthDashboard'));
 const SuperAdminEntityList = lazy(() => import('../pages/superadmin/SuperAdminEntityList'));
 const SuperAdminEntityForm = lazy(() => import('../pages/superadmin/SuperAdminEntityForm'));
 const CertificateOverview = lazy(() => import('../pages/admin/CertificateOverview'));
@@ -84,6 +85,7 @@ const AppRoutes = () => {
                 <Route path="entity/certificates/offer" element={<OfferCertificates />} />
                 <Route path="entity/trainings/:id/dashboard" element={<TrainingDashboard />} />
                 <Route path="entity/trainings/:id/grading" element={<TrainingGrading />} />
+                <Route path="entity/system_health" element={<SystemHealthDashboard />} />
                 <Route path="entity/:entityId" element={<SuperAdminEntityList />} />
                 <Route path="entity/:entityId/:id" element={<SuperAdminEntityForm />} />
               </Route>

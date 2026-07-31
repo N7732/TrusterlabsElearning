@@ -3,7 +3,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, Users, Shield, Globe, BookOpen, LogOut, ChevronLeft,
   ChevronDown, Package, Settings, Briefcase, Calendar, FileText, Monitor,
-  Layers, List, HelpCircle, MessageSquare, Award
+  Layers, List, HelpCircle, MessageSquare, Award, Activity
 } from 'lucide-react';
 import NotificationDropdown from '../components/NotificationDropdown';
 import logoImg from '../assets/image2.jpeg';
@@ -70,6 +70,7 @@ const SuperAdminLayout = () => {
     { path: '/superadmin/entity/site_settings/1', label: 'Site Settings', icon: <Settings size={18} /> },
     { path: '/superadmin/entity/staff_members', label: 'Staff Members', icon: <Users size={18} /> },
     { path: '/superadmin/entity/system_logs', label: 'System Logs', icon: <Monitor size={18} /> },
+    { path: '/superadmin/entity/system_health', label: 'System Health', icon: <Activity size={18} /> },
   ];
 
   const getPageInfo = () => {

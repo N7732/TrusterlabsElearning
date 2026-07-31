@@ -109,6 +109,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'SuperSetting.middleware.AuditLogMiddleware',  # Automatically logs system actions
     'SuperSetting.middleware.VisitorTrackingMiddleware',  # Tracks website visitors
+    'SuperSetting.middleware.ExceptionLoggingMiddleware',
     'axes.middleware.AxesMiddleware',  # Brute-force protection
 ]
 
