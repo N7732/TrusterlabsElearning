@@ -42,10 +42,10 @@ const Academics = () => {
               Explore Courses <ArrowRight size={18} />
             </Link>
             <Link 
-              to="/about" 
+              to="/training" 
               className="px-8 py-3.5 bg-transparent border border-slate-600 hover:border-slate-400 text-white font-medium rounded-full flex items-center gap-3 transition-all hover:bg-white/5"
             >
-              About Trusterlab <div className="w-6 h-6 rounded-full border border-white flex items-center justify-center"><Play size={10} className="ml-0.5" /></div>
+              About Training <div className="w-6 h-6 rounded-full border border-white flex items-center justify-center"><Play size={10} className="ml-0.5" /></div>
             </Link>
           </div>
         </div>
