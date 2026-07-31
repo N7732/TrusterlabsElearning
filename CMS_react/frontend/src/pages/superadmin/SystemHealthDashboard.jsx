@@ -20,7 +20,7 @@ const SystemHealthDashboard = () => {
     try {
       setRefreshing(true);
       const response = await apiClient.get('/settings/system-health/');
-      setHealthData(response.data);
+      setHealthData(response);
       setError(null);
     } catch (err) {
       console.error('Error fetching system health', err);
@@ -39,10 +39,10 @@ const SystemHealthDashboard = () => {
     try {
       setBackupLoading(true);
       const res = await apiClient.post('/settings/system-health/trigger_backup/');
-      alert(res.data.message || 'Backup generated successfully');
+      alert(res.message || 'Backup generated successfully');
       fetchHealthData();
     } catch (err) {
-      alert('Failed to generate backup: ' + (err.response?.data?.error || err.message));
+      alert('Failed to generate backup: ' + err.message);
     } finally {
       setBackupLoading(false);
     }
@@ -53,9 +53,9 @@ const SystemHealthDashboard = () => {
     
     try {
       const res = await apiClient.post('/settings/system-health/restore_backup/', { filename });
-      alert(res.data.message || 'Backup restored successfully');
+      alert(res.message || 'Backup restored successfully');
     } catch (err) {
-      alert('Failed to restore backup: ' + (err.response?.data?.error || err.message));
+      alert('Failed to restore backup: ' + err.message);
     }
   };
 
@@ -64,9 +64,9 @@ const SystemHealthDashboard = () => {
     try {
       setTestEmailLoading(true);
       const res = await apiClient.post('/settings/system-health/test_email/', { email: user.email });
-      alert(res.data.message || 'Test email sent successfully');
+      alert(res.message || 'Test email sent successfully');
     } catch (err) {
-      alert('Failed to send test email: ' + (err.response?.data?.error || err.message));
+      alert('Failed to send test email: ' + err.message);
     } finally {
       setTestEmailLoading(false);
     }
