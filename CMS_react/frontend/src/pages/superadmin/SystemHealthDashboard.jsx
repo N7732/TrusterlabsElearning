@@ -61,11 +61,9 @@ const SystemHealthDashboard = () => {
 
   const handleDownloadBackup = async (filename) => {
     try {
-      const response = await apiClient.get(`/settings/system-health/download_backup/?filename=${filename}`);
-      // Assuming apiClient is customized and might return JSON on error, 
-      // but wait, apiClient.get parses JSON if content-type is application/json.
-      // If the backend returns FileResponse, the content-type is application/octet-stream or similar.
-      // Let's implement a direct fetch to handle blobs safely.
+      // Since the backend returns a FileResponse (application/octet-stream),
+      // we must use a direct fetch to handle blobs safely rather than apiClient
+      // which attempts to parse the response as JSON.
       const token = localStorage.getItem('truster_lab_token');
       const url = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/settings/system-health/download_backup/?filename=${filename}`;
       const fetchRes = await fetch(url, {
