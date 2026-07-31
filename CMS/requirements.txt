@@ -31,3 +31,5 @@ google-auth
 django-anymail[resend]>=10.2
 django-dbbackup>=4.0.2
 django-axes>=6.1.1
+psutil>=5.9.0
+apscheduler>=3.10.0
