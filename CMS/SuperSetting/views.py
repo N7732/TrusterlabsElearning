@@ -455,7 +455,7 @@ from rest_framework.decorators import action
 import glob
 
 class SystemHealthViewSet(viewsets.ViewSet):
-    permission_classes = [IsSuperAdmin]
+    permission_classes = [IsSuperAdminOrAdmin]
 
     def list(self, request):
         latest_snapshot = SystemHealthSnapshot.objects.first()
