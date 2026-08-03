@@ -71,9 +71,9 @@ class APIClient {
         const errorData = await response.json();
         errorMessage = errorData.detail || JSON.stringify(errorData);
       } catch (e) {
-        errorMessage = response.statusText;
+        errorMessage = response.statusText || 'Server Error: The request failed to process on the server.';
       }
-      throw new Error(errorMessage);
+      throw new Error(errorMessage || 'An unknown error occurred');
     }
 
     // Check if the response is JSON or empty
