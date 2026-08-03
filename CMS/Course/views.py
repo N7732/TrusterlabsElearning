@@ -436,12 +436,17 @@ class QuizesViewSet(viewsets.ModelViewSet):
         if not learner:
             return Response({"error": "Only registered learners can view submissions."}, status=status.HTTP_403_FORBIDDEN)
             
-        submission = QuizSubmission.objects.filter(learner=learner, quiz=quiz).first()
+        submissions = QuizSubmission.objects.filter(learner=learner, quiz=quiz)
+        attempts_count = submissions.count()
+        submission = submissions.first()
+        
         if submission:
             from .serializer import QuizSubmissionSerializer
-            return Response(QuizSubmissionSerializer(submission).data)
+            data = dict(QuizSubmissionSerializer(submission).data)
+            data['attempts_count'] = attempts_count
+            return Response(data)
             
-        return Response({"message": "No submission found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"message": "No submission found", "attempts_count": attempts_count}, status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def submit_quiz(self, request, pk=None):
@@ -460,6 +465,11 @@ class QuizesViewSet(viewsets.ModelViewSet):
             if not enrollment or enrollment.status not in ['active', 'completed']:
                 return Response({'error': 'You must be actively enrolled in this course to submit a quiz.'}, status=status.HTTP_403_FORBIDDEN)
             
+        if quiz.max_attempts and quiz.max_attempts > 0:
+            attempts_count = QuizSubmission.objects.filter(learner=learner, quiz=quiz).count()
+            if attempts_count >= quiz.max_attempts:
+                return Response({'error': f'You have reached the maximum number of attempts ({quiz.max_attempts}) for this quiz.'}, status=status.HTTP_403_FORBIDDEN)
+            
         submitted_answers = request.data.get('answers', {})
         total_score = 0
         total_possible = 0
@@ -467,8 +477,25 @@ class QuizesViewSet(viewsets.ModelViewSet):
         for question in quiz.questions.all():
             total_possible += question.marks
             submitted = submitted_answers.get(str(question.id))
-            if submitted and question.correct_option and submitted.upper() == question.correct_option.upper():
-                total_score += question.marks
+            
+            if getattr(question, 'question_type', 'MULTIPLE_CHOICE') == 'MATCHING':
+                if submitted and isinstance(submitted, dict) and question.matching_pairs:
+                    is_correct = True
+                    # All-or-nothing grading: every pair must be perfectly matched
+                    for pair in question.matching_pairs:
+                        expected_left = str(pair.get('id', pair.get('left')))
+                        expected_right = str(pair.get('right'))
+                        actual_right = str(submitted.get(expected_left, ''))
+                        if actual_right != expected_right:
+                            is_correct = False
+                            break
+                    
+                    # Also ensure they didn't submit extra mismatched pairs
+                    if is_correct and len(submitted) == len(question.matching_pairs):
+                        total_score += question.marks
+            else:
+                if submitted and question.correct_option and str(submitted).upper() == question.correct_option.upper():
+                    total_score += question.marks
                 
         percentage = (total_score / total_possible * 100) if total_possible > 0 else 0
         passed = percentage >= (quiz.pass_mark or 0)

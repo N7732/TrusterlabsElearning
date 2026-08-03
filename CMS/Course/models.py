@@ -240,21 +240,30 @@ class Quizes(models.Model):
         return "Lesson Quiz"
 
 class QuizQuestion(models.Model):
+    QUESTION_TYPES = [
+        ('MULTIPLE_CHOICE', 'Multiple Choice'),
+        ('MATCHING', 'Matching'),
+    ]
+
     quiz = models.ForeignKey(Quizes, related_name="questions", on_delete=models.CASCADE)
+    question_type = models.CharField(max_length=20, choices=QUESTION_TYPES, default='MULTIPLE_CHOICE')
     question_text = models.TextField()
 
-    #Answer Options for Multiple Choice Questions
-    option_a = models.CharField(max_length=100)
-    option_b = models.CharField(max_length=100)
-    option_c = models.CharField(max_length=100)
-    option_d = models.CharField(max_length=100)
+    # Answer Options for Multiple Choice Questions
+    option_a = models.CharField(max_length=100, null=True, blank=True)
+    option_b = models.CharField(max_length=100, null=True, blank=True)
+    option_c = models.CharField(max_length=100, null=True, blank=True)
+    option_d = models.CharField(max_length=100, null=True, blank=True)
 
     correct_option = models.CharField(max_length=1, choices=[
         ('A','Option A'),
         ('B', 'Option B'),
         ('C', 'Option C'),
         ('D', 'Option D'),
-    ])
+    ], null=True, blank=True)
+
+    # For Matching Questions
+    matching_pairs = models.JSONField(null=True, blank=True, help_text="Stored as [{'id': 1, 'left': '...', 'right': '...'}, ...]")
 
     order = models.PositiveBigIntegerField(default=0)
     marks = models.PositiveIntegerField(default=1, help_text="Marks awarded for this question")
