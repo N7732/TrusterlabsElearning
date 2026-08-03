@@ -178,7 +178,7 @@ const OfferCertificates = () => {
                   </tr>
                 ) : error ? (
                   <tr>
-                    <td colSpan="5" className="px-6 py-8 text-center text-red-500">{error}</td>
+                    <td colSpan="5" className="px-6 py-8 text-center text-red-500">{error?.message || (typeof error === 'string' ? error : 'Failed to load data')}</td>
                   </tr>
                 ) : filteredLearners.length === 0 ? (
                   <tr>

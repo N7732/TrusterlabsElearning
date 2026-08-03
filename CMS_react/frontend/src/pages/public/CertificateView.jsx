@@ -88,7 +88,7 @@ const CertificateView = () => {
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
           </div>
           <h2 className="text-xl font-bold text-slate-800 mb-2">Verification Failed</h2>
-          <p className="text-slate-500 mb-6">{error}</p>
+          <p className="text-slate-500 mb-6">{error?.message || (typeof error === 'string' ? error : 'Failed to verify certificate')}</p>
           <button onClick={() => navigate('/verify')} className="px-6 py-2 bg-[#0A66C2] text-white rounded-md font-medium">Try Another ID</button>
         </div>
       </div>
