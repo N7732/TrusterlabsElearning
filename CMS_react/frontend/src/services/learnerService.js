@@ -26,9 +26,7 @@ export const fetchTrainingDetails = async (id) => {
 };
 
 export const submitClasswork = async ({ classworkId, formData }) => {
-  const res = await apiClient.post(`/training/classwork/${classworkId}/submit/`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  });
+  const res = await apiClient.post(`/training/classwork/${classworkId}/submit/`, formData);
   return res;
 };
 
