@@ -26,6 +26,52 @@ from .serializers import (
     CustomTrainingRequestSerializer
 )
 
+def check_and_issue_certificate(training, user):
+    if not training.has_certificate:
+        return
+    learner = getattr(user, 'learner_profile', None)
+    if not learner:
+        return
+    
+    from certification.models import Certificate
+    from Course.models import QuizSubmission
+    
+    classworks = training.classworks.all()
+    exams = training.final_exams.all()
+    
+    all_scores = []
+    
+    for cw in classworks:
+        sub = cw.submissions.filter(participant=user).first()
+        if sub and sub.score is not None:
+            all_scores.append(float(sub.score))
+        elif cw.linked_quiz:
+            quiz_sub = QuizSubmission.objects.filter(learner=learner, quiz=cw.linked_quiz).first()
+            if quiz_sub:
+                all_scores.append(float(quiz_sub.score))
+                
+    for ex in exams:
+        sub = ex.submissions.filter(participant=user).first()
+        if sub and sub.score is not None:
+            all_scores.append(float(sub.score))
+        elif ex.linked_exam:
+            quiz_sub = QuizSubmission.objects.filter(learner=learner, quiz=ex.linked_exam).first()
+            if quiz_sub:
+                all_scores.append(float(quiz_sub.score))
+                
+    avg_score = sum(all_scores) / len(all_scores) if all_scores else 0.0
+    
+    total_assignments = classworks.count() + exams.count()
+    if len(all_scores) < total_assignments:
+        return
+        
+    if avg_score >= float(training.passing_score_percentage):
+        Certificate.objects.get_or_create(
+            learner=learner,
+            training=training,
+            defaults={'is_issued': training.auto_issue_certificate}
+        )
+
 class TrainingViewSet(viewsets.ModelViewSet):
     queryset = Training.objects.all().prefetch_related('courses', 'participants', 'classworks', 'final_exams')
     serializer_class = TrainingSerializer
@@ -340,20 +386,31 @@ class TrainingClassworkViewSet(viewsets.ModelViewSet):
             
         elif request.method == 'POST':
             # This is for grading
-            submission_id = request.data.get('submission_id')
+            participant_id = request.data.get('participant_id')
             score = request.data.get('score')
             
-            if not submission_id or score is None:
-                return Response({'detail': 'submission_id and score are required.'}, status=status.HTTP_400_BAD_REQUEST)
+            if not participant_id or score is None:
+                return Response({'detail': 'participant_id and score are required.'}, status=status.HTTP_400_BAD_REQUEST)
                 
+            from Auth.models import User
             try:
-                submission = TrainingClassworkSubmission.objects.get(id=submission_id, classwork=classwork)
+                participant_user = User.objects.get(id=participant_id)
+            except User.DoesNotExist:
+                return Response({'detail': 'Participant not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+            submission, created = TrainingClassworkSubmission.objects.get_or_create(
+                classwork=classwork,
+                participant=participant_user,
+                defaults={'score': score}
+            )
+            if not created:
                 submission.score = score
                 submission.save()
-                serializer = TrainingClassworkSubmissionSerializer(submission)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            except TrainingClassworkSubmission.DoesNotExist:
-                return Response({'detail': 'Submission not found.'}, status=status.HTTP_404_NOT_FOUND)
+                
+            check_and_issue_certificate(classwork.training, participant_user)
+
+            serializer = TrainingClassworkSubmissionSerializer(submission)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
 class TrainingFinalExamViewSet(viewsets.ModelViewSet):
     queryset = TrainingFinalExam.objects.all()
@@ -410,21 +467,31 @@ class TrainingFinalExamViewSet(viewsets.ModelViewSet):
             
         elif request.method == 'POST':
             # This is for grading
-            submission_id = request.data.get('submission_id')
+            participant_id = request.data.get('participant_id')
             score = request.data.get('score')
             
-            if not submission_id or score is None:
-                return Response({'detail': 'submission_id and score are required.'}, status=status.HTTP_400_BAD_REQUEST)
+            if not participant_id or score is None:
+                return Response({'detail': 'participant_id and score are required.'}, status=status.HTTP_400_BAD_REQUEST)
                 
+            from Auth.models import User
             try:
-                submission = TrainingFinalExamSubmission.objects.get(id=submission_id, exam=exam)
+                participant_user = User.objects.get(id=participant_id)
+            except User.DoesNotExist:
+                return Response({'detail': 'Participant not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+            submission, created = TrainingFinalExamSubmission.objects.get_or_create(
+                exam=exam,
+                participant=participant_user,
+                defaults={'score': score}
+            )
+            if not created:
                 submission.score = score
                 submission.save()
                 
-                serializer = TrainingFinalExamSubmissionSerializer(submission)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            except TrainingFinalExamSubmission.DoesNotExist:
-                return Response({'detail': 'Submission not found.'}, status=status.HTTP_404_NOT_FOUND)
+            check_and_issue_certificate(exam.training, participant_user)
+                
+            serializer = TrainingFinalExamSubmissionSerializer(submission)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
 class CustomTrainingRequestViewSet(viewsets.ModelViewSet):
     queryset = CustomTrainingRequest.objects.all().order_by('-created_at')

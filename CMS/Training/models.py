@@ -99,8 +99,14 @@ class TrainingFinalExam(models.Model):
 class TrainingFinalExamSubmission(models.Model):
     exam = models.ForeignKey(TrainingFinalExam, on_delete=models.CASCADE, related_name='submissions')
     participant = models.ForeignKey(User, on_delete=models.CASCADE)
-    submission_file = models.FileField(upload_to='exam_submissions/', storage=raw_storage)
+    submission_file = models.FileField(
+        upload_to='media/exam_submissions/', 
+        storage=raw_storage,
+        null=True, 
+        blank=True
+    )
     score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    feedback = models.TextField(null=True, blank=True)
     submission_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
