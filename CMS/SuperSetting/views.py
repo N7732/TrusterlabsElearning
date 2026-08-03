@@ -105,15 +105,8 @@ class SystemLogViewSet(viewsets.ModelViewSet):
     serializer_class = SystemLogSerializer
     permission_classes = [IsSuperAdminOrAdmin]
 
-    @method_decorator(cache_page(60 * 5))  # Cache for 5 minutes to load fast
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
-
     def get_queryset(self):
-        from django.utils import timezone
-        from datetime import timedelta
-        two_mins_ago = timezone.now() - timedelta(minutes=2)
-        return SystemLog.objects.filter(created_at__gte=two_mins_ago).order_by('-created_at')
+        return SystemLog.objects.all().order_by('-created_at')
 
 class SiteSettingViewSet(viewsets.ModelViewSet):
     """
