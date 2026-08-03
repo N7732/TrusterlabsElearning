@@ -37,7 +37,8 @@ const AuthPage = () => {
     confirmPassword: ''
   });
 
-  const from = location.state?.from?.pathname || '/';
+  const stateFrom = location.state?.from;
+  const from = (typeof stateFrom === 'string' ? stateFrom : stateFrom?.pathname) || '/';
 
   const validatePassword = (password) => {
     if (password.length < 8) return "Password must be at least 8 characters long.";

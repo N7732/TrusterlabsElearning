@@ -10,6 +10,8 @@ from Auth.models import Learner, Instructor
 from payment.models import Payment
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAdminUser
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from Auth.permissions import IsSuperAdminOrAdmin
 # pyrefly: ignore [missing-import]
 from .models import Partner, ContactMessage, SystemLog, SiteSetting, Notification, StaffMember, EmailTemplate, SiteVisitor
@@ -103,6 +105,10 @@ class SystemLogViewSet(viewsets.ModelViewSet):
     queryset = SystemLog.objects.all().order_by('-created_at')
     serializer_class = SystemLogSerializer
     permission_classes = [IsSuperAdminOrAdmin]
+
+    @method_decorator(cache_page(60 * 5))  # Cache for 5 minutes to load fast
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 class SiteSettingViewSet(viewsets.ModelViewSet):
     """
