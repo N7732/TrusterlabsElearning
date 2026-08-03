@@ -21,12 +21,12 @@ export const fetchMyCertificates = async () => {
 };
 
 export const fetchTrainingDetails = async (id) => {
-  const res = await apiClient.get(`/training/trainings//`);
+  const res = await apiClient.get(`/training/trainings/${id}/`);
   return res;
 };
 
 export const submitClasswork = async ({ classworkId, formData }) => {
-  const res = await apiClient.post(`/training/classwork//submit/`, formData, {
+  const res = await apiClient.post(`/training/classwork/${classworkId}/submit/`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   });
   return res;
