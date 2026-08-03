@@ -292,6 +292,8 @@ class TrainingClassworkViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.request.method in ['GET']:
             return [IsAuthenticated()]
+        if self.action == 'submit_classwork':
+            return [IsAuthenticated()]
         return [IsAdminUser()]
 
     @action(detail=True, methods=['post'], url_path='submit')
@@ -359,6 +361,8 @@ class TrainingFinalExamViewSet(viewsets.ModelViewSet):
     
     def get_permissions(self):
         if self.request.method in ['GET']:
+            return [IsAuthenticated()]
+        if self.action == 'submit_exam':
             return [IsAuthenticated()]
         return [IsAdminUser()]
 
