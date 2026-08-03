@@ -202,7 +202,8 @@ const LearnerTrainingDetail = () => {
                             <p className="text-sm text-slate-600">This classwork requires completing a quiz.</p>
                             <button 
                               onClick={() => navigate(`/quiz/${cw.linked_quiz}`)}
-                              className="bg-[#77C159] hover:bg-[#68AA4E] text-white text-sm font-bold py-2 px-4 rounded transition-colors"
+                              disabled={cw.due_date && new Date(cw.due_date) < new Date()}
+                              className={`text-sm font-bold py-2 px-4 rounded transition-colors ${cw.due_date && new Date(cw.due_date) < new Date() ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-[#77C159] hover:bg-[#68AA4E] text-white'}`}
                             >
                               Take Quiz
                             </button>
@@ -212,20 +213,27 @@ const LearnerTrainingDetail = () => {
                             <input 
                               type="file" 
                               onChange={(e) => handleFileChange(cw.id, e)}
+                              disabled={cw.due_date && new Date(cw.due_date) < new Date()}
                               className="block w-full text-sm text-slate-500
                                 file:mr-4 file:py-2 file:px-4
                                 file:rounded-full file:border-0
                                 file:text-sm file:font-semibold
                                 file:bg-emerald-50 file:text-emerald-700
-                                hover:file:bg-emerald-100 cursor-pointer"
+                                hover:file:bg-emerald-100 cursor-pointer disabled:opacity-50"
                             />
                             <button
                               onClick={() => handleSubmitClasswork(cw.id)}
-                              disabled={!fileMap[cw.id] || uploadingMap[cw.id]}
-                              className="w-full sm:w-auto shrink-0 bg-[#0A66C2] hover:bg-blue-700 disabled:bg-slate-300 text-white text-sm font-bold py-2 px-6 rounded-full transition-colors flex items-center justify-center gap-2"
+                              disabled={!fileMap[cw.id] || uploadingMap[cw.id] || (cw.due_date && new Date(cw.due_date) < new Date())}
+                              className="w-full sm:w-auto shrink-0 bg-[#0A66C2] hover:bg-blue-700 disabled:bg-slate-300 disabled:text-slate-500 text-white text-sm font-bold py-2 px-6 rounded-full transition-colors flex items-center justify-center gap-2"
                             >
                               {uploadingMap[cw.id] ? 'Uploading...' : <><Upload className="w-4 h-4" /> Submit File</>}
                             </button>
+                          </div>
+                        )}
+                        
+                        {cw.due_date && new Date(cw.due_date) < new Date() && (
+                          <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-md text-sm font-medium">
+                            The due date for this assignment has passed. Submissions are no longer accepted.
                           </div>
                         )}
                       </>
