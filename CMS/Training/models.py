@@ -1,6 +1,9 @@
 from django.db import models
 from Course.models import Course, Quizes
 from Auth.models import User
+from cloudinary_storage.storage import RawMediaCloudinaryStorage
+
+raw_storage = RawMediaCloudinaryStorage()
 
 
 class Training(models.Model):
@@ -63,7 +66,7 @@ class TrainingClasswork(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     due_date = models.DateField()
-    classwork_file = models.FileField(upload_to='classwork_files/', null=True, blank=True)
+    classwork_file = models.FileField(upload_to='classwork_files/', storage=raw_storage, null=True, blank=True)
     linked_quiz = models.ForeignKey(Quizes, on_delete=models.SET_NULL, null=True, blank=True, related_name='linked_training_classworks')
 
     def __str__(self):
@@ -73,7 +76,7 @@ class TrainingClasswork(models.Model):
 class TrainingClassworkSubmission(models.Model):
     classwork = models.ForeignKey(TrainingClasswork, on_delete=models.CASCADE, related_name='submissions')
     participant = models.ForeignKey(User, on_delete=models.CASCADE)
-    submission_file = models.FileField(upload_to='classwork_submissions/', null=True, blank=True)
+    submission_file = models.FileField(upload_to='classwork_submissions/', storage=raw_storage, null=True, blank=True)
     score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     submission_date = models.DateTimeField(auto_now_add=True)
 
@@ -86,7 +89,7 @@ class TrainingFinalExam(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     exam_date = models.DateField()
-    exam_file = models.FileField(upload_to='exam_files/', null=True, blank=True)
+    exam_file = models.FileField(upload_to='exam_files/', storage=raw_storage, null=True, blank=True)
     linked_exam = models.ForeignKey(Quizes, on_delete=models.SET_NULL, null=True, blank=True, related_name='linked_training_exams')
 
     def __str__(self):
@@ -96,7 +99,7 @@ class TrainingFinalExam(models.Model):
 class TrainingFinalExamSubmission(models.Model):
     exam = models.ForeignKey(TrainingFinalExam, on_delete=models.CASCADE, related_name='submissions')
     participant = models.ForeignKey(User, on_delete=models.CASCADE)
-    submission_file = models.FileField(upload_to='exam_submissions/')
+    submission_file = models.FileField(upload_to='exam_submissions/', storage=raw_storage)
     score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     submission_date = models.DateTimeField(auto_now_add=True)
 
