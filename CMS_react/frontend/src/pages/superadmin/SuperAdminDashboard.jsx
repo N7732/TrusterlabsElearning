@@ -336,6 +336,7 @@ const SuperAdminDashboard = () => {
                     <p className="text-xs mt-1 text-slate-400">The chart will appear once students enroll.</p>
                   </div>
                 )}
+              </div>
               <div className="w-full md:w-48 flex flex-row md:flex-col gap-4 md:gap-6 justify-center">
                 <div 
                   className="flex-1 bg-slate-50 p-4 rounded-xl border border-slate-100 cursor-pointer hover:bg-slate-100 hover:border-slate-200 transition-colors"

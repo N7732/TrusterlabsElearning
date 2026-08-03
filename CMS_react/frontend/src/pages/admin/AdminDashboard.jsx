@@ -254,6 +254,7 @@ const AdminDashboard = () => {
                     <Area type="monotone" dataKey="enrollments" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorEnrollments)" activeDot={{ r: 6, strokeWidth: 0, fill: '#3b82f6' }} />
                   </AreaChart>
                 </ResponsiveContainer>
+              </div>
               <div className="w-full md:w-48 flex flex-row md:flex-col gap-4 md:gap-6 justify-center">
                 <div 
                   className="flex-1 bg-slate-50 p-4 rounded-xl border border-slate-100 cursor-pointer hover:bg-slate-100 hover:border-slate-200 transition-colors"

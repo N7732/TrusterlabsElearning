@@ -207,8 +207,11 @@ const LessonForm = ({ isEditing, lessonId }) => {
                 <Editor
                   apiKey="30842fl2uv0e6tmoh0diverm0dqrmkduldtheg6trhcaf62g"
                   init={{
-                    plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount paste template',
-                    toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table template | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
+                    plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount template',
+                    toolbar: 'template | undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
+                    menu: {
+                      insert: { title: 'Insert', items: 'template | image link media addcomment pageembed codesample inserttable | charmap emoticons hr | pagebreak nonbreaking anchor toc | insertdatetime' }
+                    },
                     media_live_embeds: true,
                     smart_paste: true,
                     templates: [

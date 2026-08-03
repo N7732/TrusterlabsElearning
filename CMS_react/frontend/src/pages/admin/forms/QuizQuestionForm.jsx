@@ -253,6 +253,7 @@ const QuizQuestionForm = ({ isEditing, questionId }) => {
               </div>
             )}
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-1">Display Order</label>
                 <input 
