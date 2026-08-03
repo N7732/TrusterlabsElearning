@@ -57,6 +57,20 @@ class AuditLogMiddleware:
                     )
             except Exception as e:
                 pass
+
+        # Periodically clean up logs older than 7 days in the background
+        from django.core.cache import cache
+        if cache.add('system_log_cleanup_lock', 'true', 60 * 60 * 12):  # Lock for 12 hours
+            import threading
+            def clean_old_logs():
+                try:
+                    from django.utils import timezone
+                    from datetime import timedelta
+                    one_week_ago = timezone.now() - timedelta(days=7)
+                    SystemLog.objects.filter(created_at__lt=one_week_ago).delete()
+                except Exception:
+                    pass
+            threading.Thread(target=clean_old_logs).start()
                 
         return response
 
