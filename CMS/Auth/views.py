@@ -934,7 +934,7 @@ class LearnerGradesAPIView(APIView):
                 'title': cs.classwork.title,
                 'type': 'Training Classwork',
                 'score': float(cs.score) if cs.score is not None else None,
-                'total_marks': None,
+                'total_marks': 100,
                 'status': 'Graded' if cs.score is not None else 'Pending Review',
                 'date': cs.submission_date
             })
@@ -947,7 +947,7 @@ class LearnerGradesAPIView(APIView):
                 'title': es.exam.title,
                 'type': 'Training Final Exam',
                 'score': float(es.score) if es.score is not None else None,
-                'total_marks': None,
+                'total_marks': 100,
                 'status': 'Graded' if es.score is not None else 'Pending Review',
                 'date': es.submission_date
             })
