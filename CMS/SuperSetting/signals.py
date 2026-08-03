@@ -24,7 +24,7 @@ def enquiry_notification(sender, instance, created, **kwargs):
             title="New Student Enquiry",
             message=f"New enquiry from {user_name} regarding {course_name}.",
             notification_type="enquiry",
-            link="/admin/student_enquiries"
+            link="/admin/enquiries"
         )
 
 @receiver(post_save, sender=Course)

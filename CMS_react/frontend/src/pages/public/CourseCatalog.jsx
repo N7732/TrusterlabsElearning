@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { apiClient, getImageUrl } from '../../api/apiClient';
 import { usePublicCourses } from '../../hooks/queries/usePublicQueries';
 import { Search, Filter, Building2, BookOpen, Clock, MoreVertical } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import image3 from '../../assets/image3.png';
 
 const CourseCatalog = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   
   const { data: rawCourses, isLoading: loading, error: queryError } = usePublicCourses();
   
@@ -90,7 +93,17 @@ const CourseCatalog = () => {
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {displayCourses.map(course => (
-              <Link to={`/course/${course.id}`} key={course.id} className="block group">
+              <div 
+                key={course.id} 
+                onClick={() => {
+                  if (isAuthenticated) {
+                    navigate(`/course/${course.id}`);
+                  } else {
+                    navigate('/login', { state: { from: `/course/${course.id}` } });
+                  }
+                }} 
+                className="block group cursor-pointer"
+              >
                 <div className="bg-[#111827] border border-white/10 rounded-xl overflow-hidden flex flex-col h-full hover:border-[#D4AF37]/50 hover:shadow-[0_0_20px_rgba(212,175,55,0.1)] transition-all duration-300">
                   
                   {/* Image Header */}
@@ -144,9 +157,8 @@ const CourseCatalog = () => {
                       </div>
                     </div>
                   </div>
-
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         )}
