@@ -392,7 +392,7 @@ class SystemAlertsViewSet(viewsets.ViewSet):
         return Response(alerts)
 
     from rest_framework.decorators import action
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['post'], url_path='trigger_backup')
     def trigger_backup(self, request):
         try:
             from django.core.management import call_command
