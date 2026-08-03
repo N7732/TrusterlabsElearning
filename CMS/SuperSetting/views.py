@@ -102,13 +102,18 @@ class ContactMessageViewSet(viewsets.ModelViewSet):
         email_thread.start()
 
 class SystemLogViewSet(viewsets.ModelViewSet):
-    queryset = SystemLog.objects.all().order_by('-created_at')
     serializer_class = SystemLogSerializer
     permission_classes = [IsSuperAdminOrAdmin]
 
     @method_decorator(cache_page(60 * 5))  # Cache for 5 minutes to load fast
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
+
+    def get_queryset(self):
+        from django.utils import timezone
+        from datetime import timedelta
+        two_mins_ago = timezone.now() - timedelta(minutes=2)
+        return SystemLog.objects.filter(created_at__gte=two_mins_ago).order_by('-created_at')
 
 class SiteSettingViewSet(viewsets.ModelViewSet):
     """
@@ -156,6 +161,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
 class DashboardStatsViewSet(viewsets.ViewSet):
     permission_classes = [IsSuperAdminOrAdmin]
 
+    @method_decorator(cache_page(60 * 5))
     def list(self, request):
         time_filter = request.query_params.get('filter', 'month')
         now = timezone.now()
@@ -451,9 +457,14 @@ class EmailTemplateViewSet(viewsets.ModelViewSet):
         return Response({"message": f"Emails queued for sending to {len(emails)} recipient(s)."})
 
 class SiteVisitorViewSet(viewsets.ModelViewSet):
-    queryset = SiteVisitor.objects.all().order_by('-created_at')
     serializer_class = SiteVisitorSerializer
     permission_classes = [IsSuperAdminOrAdmin]
+
+    def get_queryset(self):
+        from django.utils import timezone
+        from datetime import timedelta
+        two_mins_ago = timezone.now() - timedelta(minutes=2)
+        return SiteVisitor.objects.filter(created_at__gte=two_mins_ago).order_by('-created_at')
 
 from .models import SystemHealthSnapshot, ErrorLog
 from .serializers import SystemHealthSnapshotSerializer, ErrorLogSerializer
