@@ -14,10 +14,20 @@ from Course.serializer import CourseSerializer
 
 class TrainingCoursesSerializer(serializers.ModelSerializer):
     course_detail = CourseSerializer(source='course', read_only=True)
+    is_completed = serializers.SerializerMethodField()
 
     class Meta:
         model = TrainingCourses
-        fields = ['id', 'training', 'course', 'course_detail']
+        fields = ['id', 'training', 'course', 'course_detail', 'is_completed']
+
+    def get_is_completed(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            learner = getattr(request.user, 'learner_profile', None)
+            if learner:
+                from .views import is_training_course_completed
+                return is_training_course_completed(obj.course, learner)
+        return False
 
 class TrainingParticipantsSerializer(serializers.ModelSerializer):
     participant_detail = UserSerializer(source='participant', read_only=True)

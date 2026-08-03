@@ -312,18 +312,17 @@ def check_and_update_course_completion(learner, course):
 
     # All conditions met - mark enrollment complete immediately
     enrollment = Enrollment.objects.filter(learner=learner, course=course).first()
-    if not enrollment:
-        return False
-
     just_completed = False
-    if enrollment.status != 'completed':
-        enrollment.status = 'completed'
-        enrollment.progress = 100
-        enrollment.save()
-        just_completed = True
-    elif enrollment.progress < 100:
-        enrollment.progress = 100
-        enrollment.save()
+    
+    if enrollment:
+        if enrollment.status != 'completed':
+            enrollment.status = 'completed'
+            enrollment.progress = 100
+            enrollment.save()
+            just_completed = True
+        elif enrollment.progress < 100:
+            enrollment.progress = 100
+            enrollment.save()
 
     # Issue certificate immediately if course has one
     certificate = None
@@ -347,6 +346,13 @@ def check_and_update_course_completion(learner, course):
             certificate_email(learner, course, certificate)
         except Exception as e:
             logger.error(f"Failed to send certificate email: {e}")
+            
+    # Check if this completes any Trainings!
+    from Training.models import TrainingCourses
+    from Training.views import check_and_issue_certificate
+    tcs = TrainingCourses.objects.filter(course=course, training__participants__participant=learner.user, training__participants__admission_status='ADMITTED')
+    for tc in tcs:
+        check_and_issue_certificate(tc.training, learner.user)
         
     return just_completed or certificate_created
 

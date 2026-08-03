@@ -114,6 +114,9 @@ const TrainingGrading = ({ trainingId, token }) => {
           <thead>
             <tr className="bg-gray-100 text-gray-700">
               <th className="p-3 border">Participant</th>
+              {trainingData.courses && trainingData.courses.map(tc => (
+                <th key={`tc-${tc.id}`} className="p-3 border text-center">Course: {tc.title}</th>
+              ))}
               {trainingData.classworks.map(cw => (
                 <th key={`cw-${cw.id}`} className="p-3 border text-center">Classwork: {cw.title}</th>
               ))}
@@ -130,6 +133,17 @@ const TrainingGrading = ({ trainingId, token }) => {
                   <p className="font-semibold text-gray-800">{p.name}</p>
                   <p className="text-sm text-gray-500">{p.email}</p>
                 </td>
+                
+                {/* Course Grading Cells */}
+                {trainingData.courses && trainingData.courses.map(tc => (
+                  <td key={`tc-cell-${tc.id}`} className="p-3 border text-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <span className={`font-bold ${p.course_scores[tc.id] !== null && p.course_scores[tc.id] !== undefined ? 'text-blue-600' : 'text-gray-400'}`}>
+                        {p.course_scores[tc.id] !== null && p.course_scores[tc.id] !== undefined ? `${p.course_scores[tc.id]}%` : 'Incomplete'}
+                      </span>
+                    </div>
+                  </td>
+                ))}
                 
                 {/* Classwork Grading Cells */}
                 {trainingData.classworks.map(cw => (
@@ -193,7 +207,7 @@ const TrainingGrading = ({ trainingId, token }) => {
             
             {trainingData.participants.length === 0 && (
               <tr>
-                <td colSpan={2 + trainingData.classworks.length + trainingData.exams.length} className="p-8 text-center text-gray-500">
+                <td colSpan={2 + trainingData.classworks.length + trainingData.exams.length + (trainingData.courses ? trainingData.courses.length : 0)} className="p-8 text-center text-gray-500">
                   No admitted participants found in this training.
                 </td>
               </tr>
