@@ -46,18 +46,20 @@ class CourseViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         
+        base_qs = Course.objects.select_related('instructor')
+
         if user.is_authenticated and user.user_type == 'instructor' and self.request.query_params.get('my_courses') == 'true':
-            return Course.objects.filter(instructor=user.instructor_profile)
+            return base_qs.filter(instructor=user.instructor_profile)
 
         if user.is_authenticated and (user.user_type == 'admin' or user.is_superuser or user.user_type == 'instructor'):
-            return Course.objects.all()
+            return base_qs.all()
             
         from django.db.models import Q
         if user.is_authenticated and getattr(user, 'learner_profile', None):
             enrolled_course_ids = Enrollment.objects.filter(learner=user.learner_profile, status='active').values_list('course_id', flat=True)
-            return Course.objects.filter(Q(course_status='published') | Q(id__in=enrolled_course_ids))
+            return base_qs.filter(Q(course_status='published') | Q(id__in=enrolled_course_ids))
             
-        return Course.objects.filter(course_status='published')
+        return base_qs.filter(course_status='published')
     
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:

@@ -17,7 +17,7 @@ class LearnerViewSet(viewsets.ModelViewSet):
     """
     ViewSet for viewing and editing Learner instances.
     """
-    queryset = Learner.objects.all()
+    queryset = Learner.objects.select_related('user').all()
     serializer_class = LearnerSerializer
     permission_classes = [permissions.IsAdminUser]
 
@@ -76,7 +76,7 @@ class InstructorViewSet(viewsets.ModelViewSet):
     """
     ViewSet for viewing and editing Instructor instances.
     """
-    queryset = Instructor.objects.all()
+    queryset = Instructor.objects.select_related('user').all()
     serializer_class = InstructorSerializer
     permission_classes = [permissions.IsAdminUser]
 
