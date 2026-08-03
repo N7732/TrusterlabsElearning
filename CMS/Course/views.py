@@ -66,11 +66,10 @@ class CourseViewSet(viewsets.ModelViewSet):
             ).values_list('course_id', flat=True)
             
             return base_qs.filter(
-                (Q(course_status='published') | Q(id__in=enrolled_course_ids) | Q(id__in=training_course_ids)) 
-                & ~Q(is_locked=True)
+                Q(course_status='published') | Q(id__in=enrolled_course_ids) | Q(id__in=training_course_ids)
             ).distinct()
             
-        return base_qs.filter(course_status='published', is_locked=False)
+        return base_qs.filter(course_status='published')
     
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
