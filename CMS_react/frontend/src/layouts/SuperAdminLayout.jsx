@@ -36,6 +36,7 @@ const SuperAdminLayout = () => {
   ];
 
   const accessInquiriesItems = [
+    { path: '/superadmin/enrollments', label: 'Enrollment Management', icon: <BookOpen size={18} /> },
     { path: '/superadmin/entity/learners', label: 'Learners', icon: <Users size={18} /> },
     { path: '/superadmin/entity/instructors', label: 'Instructors', icon: <Shield size={18} /> },
     { path: '/superadmin/entity/enquiries', label: 'Student Enquiries', icon: <MessageSquare size={18} /> },
@@ -164,7 +165,7 @@ const SuperAdminLayout = () => {
               onClick={() => toggleDropdown('accessInquiries')}
               className="w-full flex items-center justify-between px-6 py-2 text-xs font-semibold text-slate-500 tracking-wider hover:text-white transition-colors"
             >
-              <span>ACCESS & INQUIRIES</span>
+              <span>STUDENT & INSTRUCTOR MGT</span>
               <ChevronDown size={14} className={`transform transition-transform ${openDropdowns.accessInquiries ? 'rotate-180' : ''}`} />
             </button>
             <div className={`overflow-hidden transition-all duration-300 ease-in-out ${openDropdowns.accessInquiries ? 'max-h-[500px] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>

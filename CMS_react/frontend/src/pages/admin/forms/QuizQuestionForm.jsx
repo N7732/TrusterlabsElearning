@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { apiClient } from '../../../api/apiClient';
 import Card, { CardContent } from '../../../components/common/Card';
 import Button from '../../../components/common/Button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 
 const QuizQuestionForm = ({ isEditing, questionId }) => {
   const navigate = useNavigate();
@@ -16,15 +16,38 @@ const QuizQuestionForm = ({ isEditing, questionId }) => {
   
   const [formData, setFormData] = useState({
     quiz: '',
+    question_type: 'MULTIPLE_CHOICE',
     question_text: '',
     option_a: '',
     option_b: '',
     option_c: '',
     option_d: '',
     correct_option: 'A',
+    matching_pairs: [{ id: Date.now(), left: '', right: '' }],
     order: 0,
     marks: 1,
   });
+
+  const handleAddPair = () => {
+    setFormData(prev => ({
+      ...prev,
+      matching_pairs: [...prev.matching_pairs, { id: Date.now(), left: '', right: '' }]
+    }));
+  };
+
+  const handleRemovePair = (id) => {
+    setFormData(prev => ({
+      ...prev,
+      matching_pairs: prev.matching_pairs.filter(p => p.id !== id)
+    }));
+  };
+
+  const handlePairChange = (id, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      matching_pairs: prev.matching_pairs.map(p => p.id === id ? { ...p, [field]: value } : p)
+    }));
+  };
 
   useEffect(() => {
     fetchQuizzes();
@@ -48,12 +71,14 @@ const QuizQuestionForm = ({ isEditing, questionId }) => {
       const data = await apiClient.get(`/api/quiz_questions/${questionId}/`);
       setFormData({
         quiz: data.quiz || '',
+        question_type: data.question_type || 'MULTIPLE_CHOICE',
         question_text: data.question_text || '',
         option_a: data.option_a || '',
         option_b: data.option_b || '',
         option_c: data.option_c || '',
         option_d: data.option_d || '',
         correct_option: data.correct_option || 'A',
+        matching_pairs: (data.matching_pairs && data.matching_pairs.length > 0) ? data.matching_pairs : [{ id: Date.now(), left: '', right: '' }],
         order: data.order || 0,
         marks: data.marks || 1,
       });
@@ -123,6 +148,18 @@ const QuizQuestionForm = ({ isEditing, questionId }) => {
             </div>
 
             <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1">Question Type *</label>
+              <select 
+                name="question_type" required
+                value={formData.question_type} onChange={handleInputChange}
+                className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#F0C800] outline-none"
+              >
+                <option value="MULTIPLE_CHOICE">Multiple Choice</option>
+                <option value="MATCHING">Matching Pairs</option>
+              </select>
+            </div>
+
+            <div>
               <label className="block text-sm font-bold text-slate-700 mb-1">Question Text *</label>
               <textarea 
                 name="question_text" rows="3" required
@@ -132,55 +169,89 @@ const QuizQuestionForm = ({ isEditing, questionId }) => {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">Option A *</label>
-                <input 
-                  type="text" name="option_a" required
-                  value={formData.option_a} onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#F0C800] outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">Option B *</label>
-                <input 
-                  type="text" name="option_b" required
-                  value={formData.option_b} onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#F0C800] outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">Option C *</label>
-                <input 
-                  type="text" name="option_c" required
-                  value={formData.option_c} onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#F0C800] outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">Option D *</label>
-                <input 
-                  type="text" name="option_d" required
-                  value={formData.option_d} onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#F0C800] outline-none"
-                />
-              </div>
-            </div>
+            {formData.question_type === 'MULTIPLE_CHOICE' ? (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">Option A *</label>
+                    <input 
+                      type="text" name="option_a" required
+                      value={formData.option_a} onChange={handleInputChange}
+                      className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#F0C800] outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">Option B *</label>
+                    <input 
+                      type="text" name="option_b" required
+                      value={formData.option_b} onChange={handleInputChange}
+                      className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#F0C800] outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">Option C *</label>
+                    <input 
+                      type="text" name="option_c" required
+                      value={formData.option_c} onChange={handleInputChange}
+                      className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#F0C800] outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">Option D *</label>
+                    <input 
+                      type="text" name="option_d" required
+                      value={formData.option_d} onChange={handleInputChange}
+                      className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#F0C800] outline-none"
+                    />
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">Correct Option *</label>
-                <select 
-                  name="correct_option" required
-                  value={formData.correct_option} onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#F0C800] outline-none"
-                >
-                  <option value="A">Option A</option>
-                  <option value="B">Option B</option>
-                  <option value="C">Option C</option>
-                  <option value="D">Option D</option>
-                </select>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">Correct Option *</label>
+                  <select 
+                    name="correct_option" required
+                    value={formData.correct_option} onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#F0C800] outline-none"
+                  >
+                    <option value="A">Option A</option>
+                    <option value="B">Option B</option>
+                    <option value="C">Option C</option>
+                    <option value="D">Option D</option>
+                  </select>
+                </div>
+              </>
+            ) : (
+              <div className="space-y-4 p-4 border border-slate-200 rounded-lg bg-slate-50">
+                <h3 className="text-lg font-bold text-slate-800 border-b pb-2">Matching Pairs</h3>
+                <p className="text-sm text-slate-500 mb-4">Add pairs. The system will automatically shuffle the right side for the students.</p>
+                {formData.matching_pairs.map((pair, index) => (
+                  <div key={pair.id} className="flex flex-col sm:flex-row gap-4 items-center bg-white p-3 border rounded shadow-sm">
+                    <div className="flex-1 w-full">
+                      <label className="text-xs font-bold text-slate-500 uppercase">Left Item</label>
+                      <input 
+                        type="text" placeholder="e.g. Email Phishing" required
+                        value={pair.left} onChange={(e) => handlePairChange(pair.id, 'left', e.target.value)}
+                        className="w-full mt-1 px-3 py-2 border border-slate-300 rounded focus:ring-[#F0C800] outline-none"
+                      />
+                    </div>
+                    <div className="flex-1 w-full">
+                      <label className="text-xs font-bold text-slate-500 uppercase">Right Item (Match)</label>
+                      <input 
+                        type="text" placeholder="e.g. Fake email link..." required
+                        value={pair.right} onChange={(e) => handlePairChange(pair.id, 'right', e.target.value)}
+                        className="w-full mt-1 px-3 py-2 border border-slate-300 rounded focus:ring-[#F0C800] outline-none"
+                      />
+                    </div>
+                    <button type="button" onClick={() => handleRemovePair(pair.id)} className="p-2 mt-4 sm:mt-5 text-red-500 hover:bg-red-50 rounded transition-colors" title="Remove Pair">
+                       <Trash2 size={20} />
+                    </button>
+                  </div>
+                ))}
+                <button type="button" onClick={handleAddPair} className="flex items-center text-[#0A66C2] font-medium hover:underline mt-2">
+                  <Plus size={16} className="mr-1" /> Add Another Pair
+                </button>
               </div>
+            )}
 
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-1">Display Order</label>

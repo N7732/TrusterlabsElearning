@@ -14,6 +14,152 @@ import bgImage from '../../assets/Bac.jpg';
 import Prism from 'prismjs';
 import 'prismjs/themes/prism-tomorrow.css';
 
+const MatchingInteraction = ({ question, quizAnswers, setQuizAnswers }) => {
+  const [shuffledRights, setShuffledRights] = useState([]);
+  const [selectedLeft, setSelectedLeft] = useState(null);
+
+  const leftRefs = React.useRef({});
+  const rightRefs = React.useRef({});
+  const containerRef = React.useRef(null);
+  const [lines, setLines] = useState([]);
+
+  useEffect(() => {
+    if (question.matching_pairs) {
+      const rights = question.matching_pairs.map(p => ({ id: p.id || Math.random(), text: p.right }));
+      setShuffledRights(rights.sort(() => Math.random() - 0.5));
+    }
+  }, [question]);
+
+  const handleLeftClick = (id) => {
+    setSelectedLeft(id === selectedLeft ? null : id);
+  };
+
+  const handleRightClick = (text) => {
+    if (selectedLeft !== null) {
+      setQuizAnswers(prev => ({
+        ...prev,
+        [question.id]: {
+          ...(prev[question.id] || {}),
+          [selectedLeft]: text
+        }
+      }));
+      setSelectedLeft(null);
+    }
+  };
+
+  const handleRemoveMatch = (leftId) => {
+    setQuizAnswers(prev => {
+      const currentQAnswers = { ...prev[question.id] };
+      delete currentQAnswers[leftId];
+      return {
+        ...prev,
+        [question.id]: currentQAnswers
+      };
+    });
+  };
+
+  useEffect(() => {
+    const updateLines = () => {
+      if (!containerRef.current) return;
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const currentAnswers = quizAnswers[question.id] || {};
+      
+      const newLines = Object.entries(currentAnswers).map(([leftId, rightText]) => {
+        const leftEl = leftRefs.current[leftId];
+        const rightItem = shuffledRights.find(r => r.text === rightText);
+        const rightEl = rightItem ? rightRefs.current[rightItem.id] : null;
+
+        if (leftEl && rightEl) {
+          const lRect = leftEl.getBoundingClientRect();
+          const rRect = rightEl.getBoundingClientRect();
+          return {
+            id: leftId,
+            x1: lRect.right - containerRect.left,
+            y1: lRect.top + lRect.height / 2 - containerRect.top,
+            x2: rRect.left - containerRect.left,
+            y2: rRect.top + rRect.height / 2 - containerRect.top,
+          };
+        }
+        return null;
+      }).filter(Boolean);
+      
+      setLines(newLines);
+    };
+
+    updateLines();
+    const timeout = setTimeout(updateLines, 100);
+    window.addEventListener('resize', updateLines);
+    return () => {
+      clearTimeout(timeout);
+      window.removeEventListener('resize', updateLines);
+    };
+  }, [quizAnswers, question.id, shuffledRights]);
+
+  return (
+    <div ref={containerRef} className="relative flex justify-between gap-12 sm:gap-24 w-full my-6 select-none">
+      <svg className="absolute top-0 left-0 w-full h-full pointer-events-none z-10" style={{ minHeight: '200px' }}>
+        {lines.map(line => (
+          <line 
+            key={line.id} 
+            x1={line.x1} y1={line.y1} 
+            x2={line.x2} y2={line.y2} 
+            stroke="#3b82f6" strokeWidth="3" 
+            markerEnd="url(#arrowhead)"
+          />
+        ))}
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6" />
+          </marker>
+        </defs>
+      </svg>
+      
+      <div className="flex-1 flex flex-col gap-6 z-20">
+        {question.matching_pairs?.map(pair => {
+          const pairId = pair.id || pair.left;
+          const isMatched = (quizAnswers[question.id] || {})[pairId];
+          return (
+            <div 
+              key={pairId} 
+              ref={el => leftRefs.current[pairId] = el}
+              onClick={() => handleLeftClick(pairId)}
+              className={`p-4 border-2 rounded-lg shadow-sm cursor-pointer transition-all ${selectedLeft === pairId ? 'border-blue-500 bg-blue-50 ring-4 ring-blue-200/50 scale-[1.02]' : isMatched ? 'border-green-400 bg-green-50' : 'border-slate-200 bg-white hover:border-blue-300 hover:shadow'}`}
+            >
+              <div className="flex justify-between items-center">
+                <span className="font-medium text-slate-700">{pair.left}</span>
+                {isMatched && (
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleRemoveMatch(pairId); }}
+                    className="text-xs text-red-500 font-bold hover:underline bg-red-50 px-2 py-1 rounded"
+                  >
+                    Unmatch
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="flex-1 flex flex-col gap-6 z-20">
+        {shuffledRights.map(right => {
+          const isMatched = Object.values(quizAnswers[question.id] || {}).includes(right.text);
+          return (
+            <div 
+              key={right.id} 
+              ref={el => rightRefs.current[right.id] = el}
+              onClick={() => handleRightClick(right.text)}
+              className={`p-4 border-2 rounded-lg shadow-sm cursor-pointer transition-all flex items-center ${isMatched ? 'border-green-400 bg-green-50 opacity-50' : 'border-slate-200 bg-white hover:border-blue-300 hover:shadow'} ${selectedLeft !== null && !isMatched ? 'ring-2 ring-blue-300 animate-pulse' : ''}`}
+            >
+              <span className="font-medium text-slate-700">{right.text}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 const CoursePlayer = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
@@ -37,6 +183,7 @@ const CoursePlayer = () => {
   const [quizResult, setQuizResult] = useState(null);
   const [submittingQuiz, setSubmittingQuiz] = useState(false);
   const [quizStarted, setQuizStarted] = useState(false);
+  const [quizAttemptsCount, setQuizAttemptsCount] = useState(0);
 
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [courseCompletedState, setCourseCompletedState] = useState(false);
@@ -273,10 +420,18 @@ const CoursePlayer = () => {
   };
 
   const handleQuizSubmit = async () => {
+    // Check if all questions are answered
+    const totalQuestions = activeLesson.questions?.length || 0;
+    if (Object.keys(quizAnswers).length < totalQuestions) {
+      alert("Please answer all questions before submitting the quiz.");
+      return;
+    }
+
     try {
       setSubmittingQuiz(true);
       const response = await apiClient.post(`/api/quizes/${activeLesson.id}/submit_quiz/`, { answers: quizAnswers });
       setQuizResult(response);
+      setQuizAttemptsCount(prev => prev + 1);
       if (response.passed) {
         markLessonComplete(activeLesson.id);
         // Immediately refresh progress from server to get latest completion state
@@ -329,16 +484,24 @@ const CoursePlayer = () => {
     setQuizAnswers({});
     setQuizResult(null);
     setQuizStarted(false);
+    setQuizAttemptsCount(0);
     
     if (lesson.questions && lesson.questions.length > 0) {
       try {
         const response = await apiClient.get(`/api/quizes/${lesson.id}/my_submission/`);
-        setQuizResult(response);
-        if (response.passed) {
-          markLessonComplete(lesson.id);
+        if (response.attempts_count !== undefined) {
+          setQuizAttemptsCount(response.attempts_count);
+        }
+        if (response.passed !== undefined) {
+          setQuizResult(response);
+          if (response.passed) {
+            markLessonComplete(lesson.id);
+          }
         }
       } catch (e) {
-        // Expected if no previous submission
+        if (e.response && e.response.status === 404 && e.response.data?.attempts_count !== undefined) {
+          setQuizAttemptsCount(e.response.data.attempts_count);
+        }
       }
     }
   };
@@ -399,6 +562,10 @@ const CoursePlayer = () => {
     ));
     if (window.innerWidth < 1024) {
       setIsSidebarOpen(false);
+    }
+    const scrollContainer = document.getElementById('main-content-scroll');
+    if (scrollContainer) {
+      scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -992,7 +1159,7 @@ const CoursePlayer = () => {
         </div>
 
         {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto relative">
+        <div id="main-content-scroll" className="flex-1 overflow-y-auto relative scroll-smooth">
           
           {activeLesson ? (
             <>
@@ -1104,7 +1271,12 @@ const CoursePlayer = () => {
 
               {/* Text Content */}
               {activeLesson.max_attempts !== undefined ? (
-                <div className={`max-w-4xl mx-auto px-8 sm:px-12 py-16 min-h-[50vh] ${isDarkMode ? 'bg-slate-800' : 'bg-[#F9F9F9]'}`}>
+                <div 
+                  className={`max-w-4xl mx-auto px-8 sm:px-12 py-16 min-h-[50vh] select-none ${isDarkMode ? 'bg-slate-800' : 'bg-[#F9F9F9]'}`}
+                  onCopy={(e) => { e.preventDefault(); alert("Copying quiz content is disabled."); }}
+                  onCut={(e) => e.preventDefault()}
+                  onContextMenu={(e) => e.preventDefault()}
+                >
                   {activeLesson.is_locked && !isAdmin ? (
                     <div className="bg-red-50 text-red-600 p-8 rounded-xl border border-red-100 text-center shadow-sm">
                       <h3 className="text-xl font-bold mb-2">Access Denied</h3>
@@ -1138,12 +1310,20 @@ const CoursePlayer = () => {
                             </p>
                             
                             <div className="flex justify-center gap-4">
-                              <button 
-                                onClick={() => { setQuizAnswers({}); setQuizResult(null); setQuizStarted(true); }}
-                                className="px-6 py-3 border-2 border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-colors"
-                              >
-                                Try Again
-                              </button>
+                              <div className="flex flex-col gap-2">
+                                {activeLesson.max_attempts > 0 && quizAttemptsCount === activeLesson.max_attempts && (
+                                  <div className="text-red-500 font-bold text-sm mb-1">
+                                    You have reached the maximum number of attempts.
+                                  </div>
+                                )}
+                                <button 
+                                  onClick={() => { setQuizAnswers({}); setQuizResult(null); setQuizStarted(true); }}
+                                  disabled={activeLesson.max_attempts > 0 && quizAttemptsCount >= activeLesson.max_attempts}
+                                  className={`px-6 py-3 border-2 ${activeLesson.max_attempts > 0 && quizAttemptsCount >= activeLesson.max_attempts ? 'border-slate-200 text-slate-400 bg-slate-100 cursor-not-allowed' : 'border-slate-200 text-slate-600 hover:bg-slate-50'} font-bold rounded-xl transition-colors`}
+                                >
+                                  Try Again
+                                </button>
+                              </div>
                               {nextLesson ? (
                                 <button 
                                   onClick={() => handleNavigate(nextLesson)}
@@ -1196,12 +1376,20 @@ const CoursePlayer = () => {
                                     Skip Quiz <ChevronRight className="w-5 h-5" />
                                   </button>
                                 )}
-                                <button 
-                                  onClick={() => setQuizStarted(true)}
-                                  className="px-8 py-4 bg-[#2563eb] text-white font-bold rounded-xl shadow-md hover:bg-[#1d4ed8] transition-all text-lg flex items-center justify-center gap-2 flex-1"
-                                >
-                                  Start Quiz <ChevronRight className="w-5 h-5" />
-                                </button>
+                                <div className="flex-1 flex flex-col items-center">
+                                  {activeLesson.max_attempts > 0 && quizAttemptsCount === activeLesson.max_attempts - 1 && (
+                                    <div className="text-orange-500 font-bold text-sm mb-2 text-center">
+                                      ⚠️ Warning: This is your final attempt!
+                                    </div>
+                                  )}
+                                  <button 
+                                    onClick={() => setQuizStarted(true)}
+                                    disabled={activeLesson.max_attempts > 0 && quizAttemptsCount >= activeLesson.max_attempts}
+                                    className={`px-8 py-4 ${activeLesson.max_attempts > 0 && quizAttemptsCount >= activeLesson.max_attempts ? 'bg-slate-400 cursor-not-allowed' : 'bg-[#2563eb] hover:bg-[#1d4ed8]'} text-white font-bold rounded-xl shadow-md transition-all text-lg flex items-center justify-center gap-2 w-full`}
+                                  >
+                                    {activeLesson.max_attempts > 0 && quizAttemptsCount >= activeLesson.max_attempts ? 'Max Attempts Reached' : 'Start Quiz'} <ChevronRight className="w-5 h-5" />
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           ) : (
@@ -1212,29 +1400,33 @@ const CoursePlayer = () => {
                                     <span><span className="text-[#2563eb] mr-2">Question {i + 1}.</span> {q.question_text}</span>
                                     <span className="text-sm font-bold bg-slate-100 text-slate-500 px-3 py-1 rounded-full whitespace-nowrap">{q.marks || 1} Mark(s)</span>
                                   </h4>
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    {['A', 'B', 'C', 'D'].map(opt => (
-                                      <label key={opt} className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-colors group ${quizAnswers[q.id] === opt ? 'border-[#3b82f6] bg-[#f0f9ff]' : 'border-slate-200 hover:bg-slate-50'}`}>
-                                        <input 
-                                          type="radio" 
-                                          name={`question-${q.id}`} 
-                                          value={opt} 
-                                          checked={quizAnswers[q.id] === opt}
-                                          onChange={() => setQuizAnswers(prev => ({ ...prev, [q.id]: opt }))}
-                                          className="mt-1 w-4 h-4 text-[#3b82f6] border-slate-300 focus:ring-[#3b82f6]" 
-                                        />
-                                        <span className={`font-medium ${quizAnswers[q.id] === opt ? 'text-[#2563eb]' : 'text-slate-700 group-hover:text-slate-900'}`}>
-                                          {q[`option_${opt.toLowerCase()}`]}
-                                        </span>
-                                      </label>
-                                    ))}
-                                  </div>
+                                  {q.question_type === 'MATCHING' ? (
+                                    <MatchingInteraction question={q} quizAnswers={quizAnswers} setQuizAnswers={setQuizAnswers} />
+                                  ) : (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                      {['A', 'B', 'C', 'D'].map(opt => (
+                                        <label key={opt} className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-colors group ${quizAnswers[q.id] === opt ? 'border-[#3b82f6] bg-[#f0f9ff]' : 'border-slate-200 hover:bg-slate-50'}`}>
+                                          <input 
+                                            type="radio" 
+                                            name={`question-${q.id}`} 
+                                            value={opt} 
+                                            checked={quizAnswers[q.id] === opt}
+                                            onChange={() => setQuizAnswers(prev => ({ ...prev, [q.id]: opt }))}
+                                            className="mt-1 w-4 h-4 text-[#3b82f6] border-slate-300 focus:ring-[#3b82f6]" 
+                                          />
+                                          <span className={`font-medium ${quizAnswers[q.id] === opt ? 'text-[#2563eb]' : 'text-slate-700 group-hover:text-slate-900'}`}>
+                                            {q[`option_${opt.toLowerCase()}`]}
+                                          </span>
+                                        </label>
+                                      ))}
+                                    </div>
+                                  )}
                                 </div>
                               ))}
                               <div className="mt-8 flex justify-end">
                                 <button 
                                   onClick={handleQuizSubmit}
-                                  disabled={submittingQuiz || Object.keys(quizAnswers).length === 0}
+                                  disabled={submittingQuiz}
                                   className="px-8 py-4 bg-[#2563eb] disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow hover:bg-[#1d4ed8] transition-colors flex items-center gap-2"
                                 >
                                   {submittingQuiz ? "Submitting..." : "Submit Quiz"}

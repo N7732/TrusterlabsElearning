@@ -207,10 +207,16 @@ const LessonForm = ({ isEditing, lessonId }) => {
                 <Editor
                   apiKey="30842fl2uv0e6tmoh0diverm0dqrmkduldtheg6trhcaf62g"
                   init={{
-                    plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount paste',
-                    toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
+                    plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount paste template',
+                    toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table template | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
                     media_live_embeds: true,
                     smart_paste: true,
+                    templates: [
+                      { title: '💡 Tip Block', description: 'A blue block for helpful tips', content: '<div class="tip-block" style="padding: 1.5rem; background-color: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 0.5rem; margin: 1.5rem 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);"><h4 style="color: #1d4ed8; margin-top: 0; margin-bottom: 0.5rem; font-weight: bold; font-size: 1.1em; display: flex; align-items: center; gap: 0.5rem;">💡 Tip</h4><p style="margin: 0; color: #1e3a8a;">Enter your tip here...</p></div>' },
+                      { title: '⚠️ Warning Block', description: 'A yellow block for warnings', content: '<div class="warning-block" style="padding: 1.5rem; background-color: #fefce8; border-left: 4px solid #eab308; border-radius: 0.5rem; margin: 1.5rem 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);"><h4 style="color: #a16207; margin-top: 0; margin-bottom: 0.5rem; font-weight: bold; font-size: 1.1em; display: flex; align-items: center; gap: 0.5rem;">⚠️ Warning</h4><p style="margin: 0; color: #713f12;">Enter warning here...</p></div>' },
+                      { title: '💖 Caring / Note', description: 'A green block for important notes', content: '<div class="note-block" style="padding: 1.5rem; background-color: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 0.5rem; margin: 1.5rem 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);"><h4 style="color: #15803d; margin-top: 0; margin-bottom: 0.5rem; font-weight: bold; font-size: 1.1em; display: flex; align-items: center; gap: 0.5rem;">💖 Important Note</h4><p style="margin: 0; color: #14532d;">Enter note here...</p></div>' },
+                      { title: '📌 Dropdown Accordion', description: 'A clickable dropdown point', content: '<details class="dropdown-block" style="margin: 1rem 0; border: 1px solid #e2e8f0; border-radius: 0.5rem; background: #ffffff; box-shadow: 0 1px 2px rgba(0,0,0,0.05); overflow: hidden;"><summary style="font-weight: 600; cursor: pointer; padding: 1rem 1.5rem; outline: none; background-color: #f8fafc; color: #334155; list-style-position: inside;">📌 Point Topic (Click to Expand/Edit)</summary><div style="padding: 1rem 1.5rem; border-top: 1px solid #e2e8f0; color: #475569; background-color: #ffffff;"><p style="margin: 0;">Enter explanation or definition here...</p></div></details>' }
+                    ]
                   }}
                   value={formData.content}
                   onEditorChange={(content) => {

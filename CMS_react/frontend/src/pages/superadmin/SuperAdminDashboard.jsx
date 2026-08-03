@@ -336,17 +336,18 @@ const SuperAdminDashboard = () => {
                     <p className="text-xs mt-1 text-slate-400">The chart will appear once students enroll.</p>
                   </div>
                 )}
-              </div>
-              
-              <div className="w-full md:w-48 flex flex-col gap-6 justify-center">
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+              <div className="w-full md:w-48 flex flex-row md:flex-col gap-4 md:gap-6 justify-center">
+                <div 
+                  className="flex-1 bg-slate-50 p-4 rounded-xl border border-slate-100 cursor-pointer hover:bg-slate-100 hover:border-slate-200 transition-colors"
+                  onClick={() => navigate('/superadmin/enrollments')}
+                >
                   <p className="text-xs font-semibold text-slate-500 mb-1">Total Enrollments</p>
                   <div className="flex items-baseline gap-2">
                     <h4 className="text-2xl font-black text-slate-800">{dashboardData.total_enrollments}</h4>
                     <span className="text-xs font-bold text-green-500 flex items-center"><ArrowUp size={12} /> Live</span>
                   </div>
                 </div>
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <div className="flex-1 bg-slate-50 p-4 rounded-xl border border-slate-100">
                   <p className="text-xs font-semibold text-slate-500 mb-1">New Enrollments</p>
                   <div className="flex items-baseline gap-2">
                     <h4 className="text-2xl font-black text-slate-800">{dashboardData.new_enrollments}</h4>

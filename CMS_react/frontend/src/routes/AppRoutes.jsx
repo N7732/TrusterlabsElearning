@@ -37,6 +37,7 @@ const CertificateOverview = lazy(() => import('../pages/admin/CertificateOvervie
 const OfferCertificates = lazy(() => import('../pages/admin/OfferCertificates'));
 const TrainingDashboard = lazy(() => import('../pages/admin/TrainingDashboard'));
 const TrainingGrading = lazy(() => import('../pages/admin/TrainingGrading'));
+const AdminEnrollments = lazy(() => import('../pages/admin/AdminEnrollments'));
 
 // Instructor Pages
 const InstructorLayout = lazy(() => import('../layouts/InstructorLayout'));
@@ -81,6 +82,7 @@ const AppRoutes = () => {
               <Route path="/superadmin" element={<SuperAdminLayout />}>
                 <Route index element={<SuperAdminDashboard />} />
                 <Route path="dashboard" element={<SuperAdminDashboard />} />
+                <Route path="enrollments" element={<AdminEnrollments />} />
                 <Route path="entity/certificates/overview" element={<CertificateOverview />} />
                 <Route path="entity/certificates/offer" element={<OfferCertificates />} />
                 <Route path="entity/trainings/:id/dashboard" element={<TrainingDashboard />} />
