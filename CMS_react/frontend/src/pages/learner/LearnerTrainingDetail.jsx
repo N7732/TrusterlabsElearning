@@ -221,6 +221,7 @@ const LearnerTrainingDetail = () => {
                                 file:bg-emerald-50 file:text-emerald-700
                                 hover:file:bg-emerald-100 cursor-pointer disabled:opacity-50"
                             />
+                            <span className="text-xs text-slate-400 whitespace-nowrap">(Max size: 50MB)</span>
                             <button
                               onClick={() => handleSubmitClasswork(cw.id)}
                               disabled={!fileMap[cw.id] || uploadingMap[cw.id] || (cw.due_date && new Date(cw.due_date) < new Date())}
