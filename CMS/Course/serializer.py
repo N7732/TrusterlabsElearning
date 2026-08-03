@@ -70,8 +70,14 @@ class QuizesSerializer(serializers.ModelSerializer):
         model = Quizes
         fields = '__all__'
 
+class SimpleCourseSerializer(serializers.ModelSerializer):
+    instructor_name = serializers.CharField(source='instructor.user.get_full_name', read_only=True)
+    class Meta:
+        model = Course
+        fields = '__all__'
+        
 class EnrollmentSerializer(serializers.ModelSerializer):
-    course_details = CourseSerializer(source='course', read_only=True)
+    course_details = SimpleCourseSerializer(source='course', read_only=True)
     course_title = serializers.CharField(source='course.title', read_only=True)
     learner_name = serializers.SerializerMethodField()
     learner_email = serializers.SerializerMethodField()

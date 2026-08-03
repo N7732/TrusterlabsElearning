@@ -310,8 +310,8 @@ export const adminConfig = {
       { field: 'ip_address', label: 'IP Address' },
       { field: 'created_at', label: 'Timestamp' },
     ],
-    canCreate: true,
-    canEdit: true,
+    canCreate: false,
+    canEdit: false,
     canDelete: true,
   },
   site_settings: {
