@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
-import Navbar from '../../components/common/Navbar';
-import Footer from '../../components/common/Footer';
+
 
 const TermsAndConditions = () => {
   useEffect(() => {
@@ -9,7 +8,6 @@ const TermsAndConditions = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Navbar />
       
       <main className="flex-grow py-12 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto w-full">
         <div className="bg-white p-8 sm:p-12 rounded-2xl shadow-sm border border-slate-100 prose prose-slate max-w-none">
@@ -27,7 +25,7 @@ const TermsAndConditions = () => {
             Cybersecurity Execellence Built for Africa Provide Different kind of Training on Diffrent levels(profession , Academics) Cybersecurity researched.
           </p>
           <p>
-            You can contact us by phone at <strong>+250791756343</strong>, email at <a href="mailto:info@trusterlabs.com">info@trusterlabs.com</a>, or by mail to Kn7 st Kigali, Kigali, Kigali 00000, Rwanda.
+            You can contact us by phone at <strong>+250791756343</strong>, email at <a href="mailto:academic@trusterlabsacademy.com">academic@trusterlabsacademy.com</a>, or by mail to Kn7 st Kigali, Kigali, Kigali 00000, Rwanda.
           </p>
 
           <p>
@@ -75,7 +73,7 @@ const TermsAndConditions = () => {
             Except as set out in this section or elsewhere in our Legal Terms, no part of the Services and no Content or Marks may be copied, reproduced, aggregated, republished, uploaded, posted, publicly displayed, encoded, translated, transmitted, distributed, sold, licensed, or otherwise exploited for any commercial purpose whatsoever, without our express prior written permission.
           </p>
           <p>
-            If you wish to make any use of the Services, Content, or Marks other than as set out in this section or elsewhere in our Legal Terms, please address your request to: info@trusterlabs.com. If we ever grant you the permission to post, reproduce, or publicly display any part of our Services or Content, you must identify us as the owners or licensors of the Services, Content, or Marks and ensure that any copyright or proprietary notice appears or is visible on posting, reproducing, or displaying our Content.
+            If you wish to make any use of the Services, Content, or Marks other than as set out in this section or elsewhere in our Legal Terms, please address your request to: academic@trusterlabsacademy.com. If we ever grant you the permission to post, reproduce, or publicly display any part of our Services or Content, you must identify us as the owners or licensors of the Services, Content, or Marks and ensure that any copyright or proprietary notice appears or is visible on posting, reproducing, or displaying our Content.
           </p>
           <p>
             We reserve all rights not expressly granted to you in and to the Services, Content, and Marks.
@@ -155,7 +153,7 @@ const TermsAndConditions = () => {
           <h2 className="text-2xl font-bold mt-12 mb-6">6. SUBSCRIPTIONS</h2>
           <p><strong>Billing and Renewal:</strong> Your subscription will continue and automatically renew unless canceled. You consent to our charging your payment method on a recurring basis without requiring your prior approval for each recurring charge, until such time as you cancel the applicable order. The length of your billing cycle is annual.</p>
           <p><strong>Free Trial:</strong> We offer a 360-day free trial to new users who register with the Services. The account will be charged according to the user's chosen subscription at the end of the free trial.</p>
-          <p><strong>Cancellation:</strong> You can cancel your subscription at any time by contacting us using the contact information provided below. Your cancellation will take effect at the end of the current paid term. If you have any questions or are unsatisfied with our Services, please email us at info@trusterlabs.com.</p>
+          <p><strong>Cancellation:</strong> You can cancel your subscription at any time by contacting us using the contact information provided below. Your cancellation will take effect at the end of the current paid term. If you have any questions or are unsatisfied with our Services, please email us at academic@trusterlabsacademy.com.</p>
           <p><strong>Fee Changes:</strong> We may, from time to time, make changes to the subscription fee and will communicate any price changes to you in accordance with applicable law.</p>
 
           <h2 className="text-2xl font-bold mt-12 mb-6">7. POLICY</h2>
@@ -280,12 +278,10 @@ const TermsAndConditions = () => {
             <p>Kigali, Kigali 00000</p>
             <p>Rwanda</p>
             <p className="mt-2">Phone: +250791756343</p>
-            <p>Email: <a href="mailto:info@trusterlabs.com" className="text-blue-600 hover:underline">info@trusterlabs.com</a></p>
+            <p>Email: <a href="mailto:academic@trusterlabsacademy.com" className="text-blue-600 hover:underline">academic@trusterlabsacademy.com</a></p>
           </div>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 };

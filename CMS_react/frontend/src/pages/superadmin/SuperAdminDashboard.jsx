@@ -503,7 +503,7 @@ const SuperAdminDashboard = () => {
               )}
             </div>
             
-            <button onClick={() => navigate('/superadmin')} className="w-full mt-6 text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center justify-center gap-2 py-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors">
+            <button onClick={() => navigate('/superadmin/entity/system_health')} className="w-full mt-6 text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center justify-center gap-2 py-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors">
               View All Alerts <ArrowRight size={16} />
             </button>
           </CardContent>

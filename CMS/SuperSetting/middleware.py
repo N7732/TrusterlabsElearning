@@ -8,8 +8,21 @@ class AuditLogMiddleware:
     def __call__(self, request):
         response = self.get_response(request)
         
+        # Attempt to get user from JWT if standard request.user is Anonymous
+        user = getattr(request, 'user', None)
+        if not (user and user.is_authenticated):
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if auth_header.startswith('Bearer '):
+                try:
+                    from rest_framework_simplejwt.authentication import JWTAuthentication
+                    jwt_auth = JWTAuthentication()
+                    validated_token = jwt_auth.get_validated_token(auth_header.split(' ')[1])
+                    user = jwt_auth.get_user(validated_token)
+                except Exception:
+                    pass
+        
         # We only log modifying actions for authenticated users in the API
-        if hasattr(request, 'user') and request.user.is_authenticated and request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
+        if user and user.is_authenticated and request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
             # Avoid logging login/token endpoints to prevent noisy logs
             if 'token' in request.path.lower() or 'login' in request.path.lower():
                 return response
@@ -37,7 +50,7 @@ class AuditLogMiddleware:
                 # Only log successful or client error operations, skip 500s 
                 if response.status_code < 500:
                     SystemLog.objects.create(
-                        user=request.user,
+                        user=user,
                         action=action_name,
                         details=f"Method: {method}, Path: {path}, Status: {response.status_code}",
                         ip_address=ip

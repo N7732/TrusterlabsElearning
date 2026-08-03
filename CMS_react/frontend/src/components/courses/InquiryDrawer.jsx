@@ -2,20 +2,27 @@ import React, { useState, useEffect } from 'react';
 import { X, PhoneCall } from 'lucide-react';
 import Button from '../common/Button';
 import { getImageUrl, apiClient } from '../../api/apiClient';
+import { useAuth } from '../../context/AuthContext';
 
 const InquiryDrawer = ({ isOpen, onClose, course }) => {
   const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
+  
+  const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
     if (isOpen) {
       setSuccess(false);
       setError(null);
-      setFormData({ name: '', email: '', phone: '' });
+      
+      const prefillName = isAuthenticated && user ? (user.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : user.username || '') : '';
+      const prefillEmail = isAuthenticated && user ? user.email || '' : '';
+      
+      setFormData({ name: prefillName, email: prefillEmail, phone: '' });
     }
-  }, [isOpen]);
+  }, [isOpen, isAuthenticated, user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -96,9 +103,10 @@ const InquiryDrawer = ({ isOpen, onClose, course }) => {
                       type="text" 
                       value={formData.name}
                       onChange={e => setFormData({...formData, name: e.target.value})}
-                      className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm font-medium" 
+                      className={`w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm font-medium ${isAuthenticated ? 'bg-slate-100 text-slate-500' : ''}`} 
                       placeholder="Full Name" 
                       required 
+                      readOnly={isAuthenticated}
                     />
                   </div>
                   <div>
@@ -106,9 +114,10 @@ const InquiryDrawer = ({ isOpen, onClose, course }) => {
                       type="email" 
                       value={formData.email}
                       onChange={e => setFormData({...formData, email: e.target.value})}
-                      className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm font-medium" 
+                      className={`w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm font-medium ${isAuthenticated ? 'bg-slate-100 text-slate-500' : ''}`} 
                       placeholder="Email Address" 
                       required 
+                      readOnly={isAuthenticated}
                     />
                   </div>
                   <div>
