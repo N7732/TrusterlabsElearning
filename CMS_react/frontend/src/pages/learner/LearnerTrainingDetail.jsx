@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getImageUrl } from '../../api/apiClient';
 import { useAuth } from '../../context/AuthContext';
-import { BookOpen, Calendar, Clock, FileText, Upload, CheckCircle, Lock } from 'lucide-react';
+import { BookOpen, Calendar, Clock, FileText, Upload, CheckCircle, Lock, MessageSquare } from 'lucide-react';
 import { useTrainingDetails, useSubmitClasswork, useSubmitExam } from '../../hooks/queries/useLearnerQueries';
+import { apiClient } from '../../api/apiClient';
 
 const LearnerTrainingDetail = () => {
   const { user } = useAuth();
@@ -17,6 +18,18 @@ const LearnerTrainingDetail = () => {
   // File upload state per classwork ID
   const [uploadingMap, setUploadingMap] = useState({});
   const [fileMap, setFileMap] = useState({});
+  const [messages, setMessages] = useState([]);
+
+  React.useEffect(() => {
+    if (training && training.id) {
+      const currentParticipant = training.participants?.find(p => p.participant === user?.id);
+      if (currentParticipant?.admission_status === 'ADMITTED' || currentParticipant?.admission_status === 'COMPLETED') {
+        apiClient.get(`/training/trainings/${training.id}/messages/`)
+          .then(res => setMessages(Array.isArray(res) ? res : (res.data || [])))
+          .catch(err => console.error('Failed to fetch messages', err));
+      }
+    }
+  }, [training, user]);
 
   const handleFileChange = (classworkId, e) => {
     const file = e.target.files[0];
@@ -98,6 +111,7 @@ const LearnerTrainingDetail = () => {
 
   const currentParticipant = training.participants?.find(p => p.participant === user?.id);
   const isAdmitted = currentParticipant?.admission_status === 'ADMITTED';
+  const isCompleted = currentParticipant?.admission_status === 'COMPLETED';
 
   return (
     <div className="min-h-screen bg-[#F4F5F7] py-8">
@@ -116,7 +130,55 @@ const LearnerTrainingDetail = () => {
           </div>
         </div>
 
-        {!isAdmitted ? (
+        {isCompleted ? (
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12">
+            <div className="text-center mb-10">
+              <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-green-100">
+                <CheckCircle className="w-10 h-10 text-green-500" />
+              </div>
+              <h2 className="text-3xl font-black text-slate-800 mb-4">Congratulations! 🎉</h2>
+              <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+                You have successfully completed <strong>{training.title}</strong>! Thank you for participating in this training. Your hard work has paid off. Your official certificate is currently being processed and will be available in your Certificates tab shortly.
+              </p>
+            </div>
+            
+            <div className="max-w-4xl mx-auto bg-slate-50 rounded-xl p-8 border border-slate-200">
+              <h3 className="text-xl font-bold text-slate-800 mb-6 text-center">Your Training Summary</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200 text-center">
+                  <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <BookOpen className="w-6 h-6" />
+                  </div>
+                  <h4 className="font-bold text-slate-800 text-lg">{training.courses?.length || 0}</h4>
+                  <p className="text-sm text-slate-500 font-medium uppercase tracking-wider">Courses Finished</p>
+                </div>
+                
+                <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200 text-center">
+                  <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <FileText className="w-6 h-6" />
+                  </div>
+                  <h4 className="font-bold text-slate-800 text-lg">{training.classworks?.length || 0}</h4>
+                  <p className="text-sm text-slate-500 font-medium uppercase tracking-wider">Classworks Submitted</p>
+                </div>
+                
+                <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200 text-center">
+                  <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <CheckCircle className="w-6 h-6" />
+                  </div>
+                  <h4 className="font-bold text-slate-800 text-lg">{training.final_exams?.length || 0}</h4>
+                  <p className="text-sm text-slate-500 font-medium uppercase tracking-wider">Final Exams Passed</p>
+                </div>
+              </div>
+              
+              <div className="mt-8 text-center">
+                <button onClick={() => navigate('/learner/dashboard', { state: { tab: 'certificates' } })} className="bg-[#0A66C2] hover:bg-[#004182] text-white px-6 py-3 rounded-lg font-bold transition-colors shadow-sm">
+                  View My Certificates
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : !isAdmitted ? (
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
             <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4">
               <Lock className="w-8 h-8 text-amber-500" />
@@ -132,6 +194,34 @@ const LearnerTrainingDetail = () => {
               <h2 className="text-xl font-bold text-slate-800 mb-4">Description</h2>
               <p className="text-slate-600 whitespace-pre-wrap">{training.description}</p>
             </div>
+            
+            {/* Messages Section */}
+            {messages.length > 0 && (
+              <div className="bg-[#f0f7ff] rounded-xl shadow-sm border border-blue-200 p-6 mb-8">
+                <h2 className="text-xl font-bold text-[#0A66C2] mb-6 flex items-center">
+                  <MessageSquare className="w-5 h-5 mr-2" /> 
+                  Announcements & Messages
+                </h2>
+                <div className="space-y-4">
+                  {messages.map(msg => (
+                    <div key={msg.id} className="bg-white rounded-lg shadow-sm border border-blue-100 p-5">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <span className="font-bold text-slate-800">{msg.sender_name}</span>
+                          <span className="ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 uppercase">
+                            {msg.sender_type}
+                          </span>
+                        </div>
+                        <span className="text-xs text-slate-500 font-medium">
+                          {new Date(msg.date_sent).toLocaleString()}
+                        </span>
+                      </div>
+                      <p className="text-slate-700 whitespace-pre-wrap text-sm leading-relaxed mt-2">{msg.message}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Courses / Modules Section */}
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
@@ -185,9 +275,16 @@ const LearnerTrainingDetail = () => {
               {training.classworks.map(cw => (
                 <div key={cw.id} className="border border-slate-200 rounded-lg p-5 hover:border-[#77C159] transition-colors">
                   <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="font-bold text-lg text-slate-800">{cw.title}</h3>
-                      <p className="text-sm text-slate-500 flex items-center mt-1">
+                    <div className="flex-1 pr-4">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-bold text-lg text-slate-800">{cw.title}</h3>
+                        {cw.my_submission && (
+                          <span className="flex items-center text-xs font-bold bg-green-100 text-green-700 px-2 py-1 rounded-full whitespace-nowrap">
+                            <CheckCircle className="w-3 h-3 mr-1" /> Completed
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-slate-500 flex items-center">
                         <Clock className="w-4 h-4 mr-1" /> Due: {cw.due_date}
                       </p>
                     </div>
@@ -293,10 +390,18 @@ const LearnerTrainingDetail = () => {
               {training.final_exams.map(ex => (
                 <div key={ex.id} className="border border-slate-200 rounded-lg p-5 hover:border-purple-500 transition-colors">
                   <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="font-bold text-lg text-slate-800">{ex.title}</h3>
-                      <p className="text-sm text-slate-500 flex items-center mt-1">
-                        <Clock className="w-4 h-4 mr-1" /> Due: {ex.due_date}
+                    <div className="flex-1 pr-4">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-bold text-lg text-slate-800">{ex.title}</h3>
+                        {ex.my_submission && (
+                          <span className="flex items-center text-xs font-bold bg-green-100 text-green-700 px-2 py-1 rounded-full whitespace-nowrap">
+                            <CheckCircle className="w-3 h-3 mr-1" /> Completed
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-slate-500 flex items-center">
+                        <Clock className="w-4 h-4 mr-1" /> 
+                        {ex.exam_time ? `Available From: ${ex.exam_date} at ${ex.exam_time.substring(0,5)}` : `Available From: ${ex.exam_date}`}
                       </p>
                     </div>
                     {ex.exam_file && (
@@ -311,7 +416,7 @@ const LearnerTrainingDetail = () => {
                     dangerouslySetInnerHTML={{ __html: ex.description }}
                   ></div>
 
-                  <div className="bg-[#F8F9FA] rounded-lg p-4 border border-slate-100">
+                  <div className="bg-[#F8F9FA] rounded-lg p-4 border border-slate-100 relative">
                     <h4 className="text-sm font-bold text-slate-800 mb-3">Your Submission</h4>
                     
                     {ex.my_submission ? (
@@ -372,13 +477,31 @@ const LearnerTrainingDetail = () => {
                             </button>
                           </div>
                         )}
-                        
-                        {ex.due_date && new Date(ex.due_date) < new Date() && (
-                          <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-md text-sm font-medium">
-                            The due date for this exam has passed. Submissions are no longer accepted.
-                          </div>
-                        )}
                       </>
+                    )}
+                    
+                    {/* Access check message */}
+                    {!ex.my_submission && (
+                      (() => {
+                        const examDateTime = ex.exam_time 
+                          ? new Date(`${ex.exam_date}T${ex.exam_time}`)
+                          : new Date(`${ex.exam_date}T00:00:00`);
+                        
+                        if (new Date() < examDateTime) {
+                          return (
+                            <div className="absolute inset-0 z-10 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center rounded-lg border border-slate-200">
+                               <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-3 border border-slate-200 shadow-sm">
+                                  <Lock className="w-6 h-6 text-slate-400" />
+                               </div>
+                               <h4 className="text-lg font-bold text-slate-800 mb-1">Exam Locked</h4>
+                               <p className="text-sm font-medium text-slate-600">
+                                  Available on {examDateTime.toLocaleDateString()} at {examDateTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                               </p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()
                     )}
                   </div>
                 </div>

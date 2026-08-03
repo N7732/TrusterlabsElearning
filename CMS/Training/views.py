@@ -8,23 +8,18 @@ from django.db import transaction
 from .models import (
     Training,
     TrainingCourses,
-    TrainingParticipants,
-    TrainingClasswork,
-    TrainingClassworkSubmission,
-    TrainingFinalExam,
-    TrainingFinalExamSubmission,
-    CustomTrainingRequest
+    TrainingParticipants, TrainingClasswork, TrainingClassworkSubmission, TrainingFinalExam, TrainingFinalExamSubmission, CustomTrainingRequest, TrainingMessage
 )
 # pyrefly: ignore [missing-import]
 from .serializers import (
-    TrainingSerializer,
-    TrainingParticipantsSerializer,
-    TrainingClassworkSerializer,
-    TrainingClassworkSubmissionSerializer,
-    TrainingFinalExamSerializer,
-    TrainingFinalExamSubmissionSerializer,
-    CustomTrainingRequestSerializer
+    TrainingSerializer, TrainingCoursesSerializer, TrainingParticipantsSerializer, TrainingClassworkSerializer,
+    TrainingClassworkSubmissionSerializer, TrainingFinalExamSerializer, TrainingFinalExamSubmissionSerializer, CustomTrainingRequestSerializer, TrainingMessageSerializer
 )
+from django.utils import timezone
+from Auth.views import render_email_template, send_email_async
+from django.core.mail import EmailMultiAlternatives
+from django.conf import settings
+from django.utils.html import strip_tags
 
 def is_training_course_completed(course, learner):
     from Course.models import Lesson, LessonProgress, Quizes, QuizSubmission
@@ -118,9 +113,36 @@ def check_and_issue_certificate(training, user):
     if total_assignments > 0 and len(all_scores) < total_assignments:
         return
         
+    # Strictly enforce that a Training MUST have Final Exams to be completed
+    if exams.count() == 0:
+        return
+        
     if total_assignments > 0:
-        # User has completed all classworks, exams, and courses.
-        TrainingParticipants.objects.filter(training=training, participant=user).update(admission_status='COMPLETED')
+        # Check if already completed to prevent duplicate emails
+        participant_record = TrainingParticipants.objects.filter(training=training, participant=user).first()
+        if participant_record and participant_record.admission_status != 'COMPLETED':
+            TrainingParticipants.objects.filter(training=training, participant=user).update(admission_status='COMPLETED')
+            
+            # Send completion email
+            email = participant_record.application_email or user.email
+            name = participant_record.application_full_name or user.get_full_name()
+            if email:
+                context = {
+                    'name': name,
+                    'training_title': training.title,
+                    'average_score': round(avg_score, 2),
+                }
+                html_message, dynamic_subject = render_email_template('emails/training_completed.html', context)
+                text_content = strip_tags(html_message)
+                
+                email_message = EmailMultiAlternatives(
+                    subject=dynamic_subject or f"Completed: {training.title}",
+                    body=text_content,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    to=[email],
+                )
+                email_message.attach_alternative(html_message, "text/html")
+                send_email_async(email_message)
         
     if not training.has_certificate:
         return
@@ -258,6 +280,34 @@ class TrainingViewSet(viewsets.ModelViewSet):
         
         if action_type == 'ADMIT':
             participants.update(admission_status='ADMITTED')
+            
+            # Send admission emails
+            for p in participants:
+                user = p.participant
+                email = p.application_email or user.email
+                name = p.application_full_name or user.get_full_name()
+                if not email: continue
+                
+                context = {
+                    'name': name,
+                    'training_title': training.title,
+                    'start_date': training.starting_date.strftime('%B %d, %Y') if training.starting_date else 'TBD',
+                    'end_date': training.ending_date.strftime('%B %d, %Y') if training.ending_date else 'TBD',
+                    'frontend_url': settings.FRONTEND_URL.rstrip('/'),
+                    'training_id': training.id
+                }
+                html_message, dynamic_subject = render_email_template('emails/training_admitted.html', context)
+                text_content = strip_tags(html_message)
+                
+                email_message = EmailMultiAlternatives(
+                    subject=dynamic_subject or f"Admitted: {training.title}",
+                    body=text_content,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    to=[email],
+                )
+                email_message.attach_alternative(html_message, "text/html")
+                send_email_async(email_message)
+
         elif action_type == 'REJECT':
             participants.update(admission_status='REJECTED')
         elif action_type == 'REMOVE':
@@ -313,8 +363,7 @@ class TrainingViewSet(viewsets.ModelViewSet):
     def grades(self, request, pk=None):
         if not request.user.is_staff and request.user.user_type not in ['admin', 'instructor']:
             from rest_framework.exceptions import PermissionDenied
-    @action(detail=True, methods=['get'], url_path='grading')
-    def training_grading(self, request, pk=None):
+            raise PermissionDenied("You do not have permission to view training grades.")
         training = self.get_object()
         classworks = training.classworks.all()
         exams = training.final_exams.all()
@@ -405,10 +454,36 @@ class TrainingViewSet(viewsets.ModelViewSet):
         if not user.is_authenticated:
             return Response({'detail': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
         
-        # Get trainings where user is a participant
-        trainings = Training.objects.filter(participants__participant=user).distinct()
+        # Get trainings where user is a participant and prefetch related items to avoid N+1 queries
+        trainings = Training.objects.filter(participants__participant=user).distinct().prefetch_related('courses__course', 'participants__participant', 'classworks', 'final_exams')
         serializer = self.get_serializer(trainings, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get', 'post'], url_path='messages')
+    def messages(self, request, pk=None):
+        training = self.get_object()
+        
+        if request.method == 'GET':
+            # Admitted/Completed learners, instructors, and admins can view messages
+            if request.user.user_type not in ['instructor', 'admin'] and not request.user.is_superuser:
+                participant = TrainingParticipants.objects.filter(training=training, participant=request.user).first()
+                if not participant or participant.admission_status not in ['ADMITTED', 'COMPLETED']:
+                    return Response({"detail": "You do not have access to these messages."}, status=status.HTTP_403_FORBIDDEN)
+            
+            messages = training.messages.all().order_by('-date_sent')
+            serializer = TrainingMessageSerializer(messages, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+            
+        elif request.method == 'POST':
+            # Only Instructors and Admins can post messages
+            if request.user.user_type not in ['instructor', 'admin'] and not request.user.is_superuser:
+                return Response({"detail": "Only instructors and admins can send messages."}, status=status.HTTP_403_FORBIDDEN)
+                
+            serializer = TrainingMessageSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save(training=training, sender=request.user)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TrainingClassworkViewSet(viewsets.ModelViewSet):

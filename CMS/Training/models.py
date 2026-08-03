@@ -89,6 +89,7 @@ class TrainingFinalExam(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     exam_date = models.DateField()
+    exam_time = models.TimeField(null=True, blank=True)
     exam_file = models.FileField(upload_to='exam_files/', storage=raw_storage, null=True, blank=True)
     linked_exam = models.ForeignKey(Quizes, on_delete=models.SET_NULL, null=True, blank=True, related_name='linked_training_exams')
 
@@ -145,54 +146,11 @@ class CustomTrainingRequest(models.Model):
         return f"{self.full_name} - {self.training_type} ({self.status})"
 
 
+class TrainingMessage(models.Model):
+    training = models.ForeignKey(Training, on_delete=models.CASCADE, related_name='messages')
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_training_messages')
+    message = models.TextField()
+    date_sent = models.DateTimeField(auto_now_add=True)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def __str__(self):
+        return f"Message for {self.training.title} by {self.sender.username}"

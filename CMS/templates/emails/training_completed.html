@@ -1,0 +1,27 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+<h1>You Did It, {{ name }}! 🎓</h1>
+
+<p>We are incredibly proud to announce that you have successfully completed all the requirements for the following training program:</p>
+
+<div class="highlight-box" style="text-align: center;">
+    <h2 style="color: #ffffff; margin-top: 0;">{{ training_title }}</h2>
+    <p style="margin-bottom: 0;">
+        <strong>Your Final Score:</strong> {{ average_score }}%
+    </p>
+</div>
+
+<p>Your hard work and dedication have paid off. The administration team has been notified of your accomplishment, and your official Certificate of Completion is currently being generated.</p>
+
+<p><strong>Please wait a few moments</strong> as our Superadmin verifies and issues your certificate. You will receive another email shortly with a direct link to view and download your official certificate.</p>
+
+<hr>
+
+<p>If you do not receive your certificate within the next 24 hours or if you have any questions, please feel free to <a href="mailto:support@trusterlab.com" style="color: #d4af37;">contact us</a>.</p>
+
+<p>Congratulations once again on this fantastic achievement!</p>
+
+<p>Best regards,<br>
+The Trusterlabs Academy Team</p>
+{% endblock %}

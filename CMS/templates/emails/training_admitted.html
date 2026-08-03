@@ -1,0 +1,28 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+<h1>Congratulations, {{ name }}! 🎉</h1>
+
+<p>We are thrilled to inform you that your application has been successfully reviewed, and you have been <strong>ADMITTED</strong> into the following training program:</p>
+
+<div class="highlight-box" style="text-align: center;">
+    <h2 style="color: #ffffff; margin-top: 0;">{{ training_title }}</h2>
+    <p style="margin-bottom: 0;">
+        <strong>Start Date:</strong> {{ start_date }}<br>
+        <strong>End Date:</strong> {{ end_date }}
+    </p>
+</div>
+
+<p>Your learning journey starts now! You have been granted full access to the training modules, classwork assignments, and final exams.</p>
+
+<div style="text-align: center;">
+    <a href="{{ frontend_url }}/learner/training/{{ training_id }}" class="btn">Go to Training Dashboard</a>
+</div>
+
+<hr>
+
+<p>If you have any questions or require assistance during your training, please do not hesitate to reach out to our support team.</p>
+
+<p>Best regards,<br>
+The Trusterlabs Academy Team</p>
+{% endblock %}

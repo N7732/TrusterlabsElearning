@@ -654,14 +654,14 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
         user = self.request.user
         
         if user.user_type == 'instructor' and self.request.query_params.get('my_enrollments') == 'true':
-            return Enrollment.objects.filter(course__instructor=user.instructor_profile)
+            return Enrollment.objects.filter(course__instructor=user.instructor_profile).select_related('course', 'learner__user')
             
         if user.user_type == 'admin' or user.is_superuser:
-            return Enrollment.objects.all()
+            return Enrollment.objects.all().select_related('course', 'learner__user')
             
         learner = getattr(user, 'learner_profile', None)
         if learner:
-            return Enrollment.objects.filter(learner=learner)
+            return Enrollment.objects.filter(learner=learner).select_related('course', 'learner__user')
         return Enrollment.objects.none()
 
     @action(detail=True, methods=['post'])
