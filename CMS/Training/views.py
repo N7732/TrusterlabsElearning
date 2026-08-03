@@ -387,25 +387,37 @@ class TrainingClassworkViewSet(viewsets.ModelViewSet):
         elif request.method == 'POST':
             # This is for grading
             participant_id = request.data.get('participant_id')
+            submission_id = request.data.get('submission_id')
             score = request.data.get('score')
             
-            if not participant_id or score is None:
-                return Response({'detail': 'participant_id and score are required.'}, status=status.HTTP_400_BAD_REQUEST)
+            if score is None:
+                return Response({'detail': 'score is required.'}, status=status.HTTP_400_BAD_REQUEST)
                 
-            from Auth.models import User
-            try:
-                participant_user = User.objects.get(id=participant_id)
-            except User.DoesNotExist:
-                return Response({'detail': 'Participant not found.'}, status=status.HTTP_404_NOT_FOUND)
+            if submission_id:
+                try:
+                    submission = TrainingClassworkSubmission.objects.get(id=submission_id, classwork=classwork)
+                    submission.score = score
+                    submission.save()
+                    participant_user = submission.participant
+                except TrainingClassworkSubmission.DoesNotExist:
+                    return Response({'detail': 'Submission not found.'}, status=status.HTTP_404_NOT_FOUND)
+            elif participant_id:
+                from Auth.models import User
+                try:
+                    participant_user = User.objects.get(id=participant_id)
+                except User.DoesNotExist:
+                    return Response({'detail': 'Participant not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-            submission, created = TrainingClassworkSubmission.objects.get_or_create(
-                classwork=classwork,
-                participant=participant_user,
-                defaults={'score': score}
-            )
-            if not created:
-                submission.score = score
-                submission.save()
+                submission, created = TrainingClassworkSubmission.objects.get_or_create(
+                    classwork=classwork,
+                    participant=participant_user,
+                    defaults={'score': score}
+                )
+                if not created:
+                    submission.score = score
+                    submission.save()
+            else:
+                return Response({'detail': 'Either submission_id or participant_id is required.'}, status=status.HTTP_400_BAD_REQUEST)
                 
             check_and_issue_certificate(classwork.training, participant_user)
 
@@ -468,25 +480,37 @@ class TrainingFinalExamViewSet(viewsets.ModelViewSet):
         elif request.method == 'POST':
             # This is for grading
             participant_id = request.data.get('participant_id')
+            submission_id = request.data.get('submission_id')
             score = request.data.get('score')
             
-            if not participant_id or score is None:
-                return Response({'detail': 'participant_id and score are required.'}, status=status.HTTP_400_BAD_REQUEST)
+            if score is None:
+                return Response({'detail': 'score is required.'}, status=status.HTTP_400_BAD_REQUEST)
                 
-            from Auth.models import User
-            try:
-                participant_user = User.objects.get(id=participant_id)
-            except User.DoesNotExist:
-                return Response({'detail': 'Participant not found.'}, status=status.HTTP_404_NOT_FOUND)
+            if submission_id:
+                try:
+                    submission = TrainingFinalExamSubmission.objects.get(id=submission_id, exam=exam)
+                    submission.score = score
+                    submission.save()
+                    participant_user = submission.participant
+                except TrainingFinalExamSubmission.DoesNotExist:
+                    return Response({'detail': 'Submission not found.'}, status=status.HTTP_404_NOT_FOUND)
+            elif participant_id:
+                from Auth.models import User
+                try:
+                    participant_user = User.objects.get(id=participant_id)
+                except User.DoesNotExist:
+                    return Response({'detail': 'Participant not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-            submission, created = TrainingFinalExamSubmission.objects.get_or_create(
-                exam=exam,
-                participant=participant_user,
-                defaults={'score': score}
-            )
-            if not created:
-                submission.score = score
-                submission.save()
+                submission, created = TrainingFinalExamSubmission.objects.get_or_create(
+                    exam=exam,
+                    participant=participant_user,
+                    defaults={'score': score}
+                )
+                if not created:
+                    submission.score = score
+                    submission.save()
+            else:
+                return Response({'detail': 'Either submission_id or participant_id is required.'}, status=status.HTTP_400_BAD_REQUEST)
                 
             check_and_issue_certificate(exam.training, participant_user)
                 
