@@ -17,6 +17,7 @@ const Admission = lazy(() => import('../pages/public/Admission'));
 const MemberPortal = lazy(() => import('../pages/public/MemberPortal'));
 const LearnerDashboard = lazy(() => import('../pages/learner/LearnerDashboard'));
 const LearnerTrainingDetail = lazy(() => import('../pages/learner/LearnerTrainingDetail'));
+const TakeQuiz = lazy(() => import('../pages/learner/TakeQuiz'));
 const ProfileDrawer = lazy(() => import('../components/profile/ProfileDrawer'));
 const AboutUs = lazy(() => import('../pages/public/AboutUs'));
 const Membership = lazy(() => import('../pages/public/Membership'));
@@ -97,6 +98,7 @@ const AppRoutes = () => {
             <Route element={<ProtectedRoute allowedRoles={['learner', 'admin']} />}>
               <Route path="/learner/dashboard" element={<LearnerDashboard />} />
               <Route path="/learner/trainings/:id" element={<LearnerTrainingDetail />} />
+              <Route path="/quiz/:id" element={<TakeQuiz />} />
             </Route>
 
 

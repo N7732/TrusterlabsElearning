@@ -57,9 +57,20 @@ class CourseViewSet(viewsets.ModelViewSet):
         from django.db.models import Q
         if user.is_authenticated and getattr(user, 'learner_profile', None):
             enrolled_course_ids = Enrollment.objects.filter(learner=user.learner_profile, status='active').values_list('course_id', flat=True)
-            return base_qs.filter(Q(course_status='published') | Q(id__in=enrolled_course_ids))
             
-        return base_qs.filter(course_status='published')
+            # Fetch courses linked to trainings the user is admitted to
+            from Training.models import TrainingCourses
+            training_course_ids = TrainingCourses.objects.filter(
+                training__participants__participant=user,
+                training__participants__admission_status='ADMITTED'
+            ).values_list('course_id', flat=True)
+            
+            return base_qs.filter(
+                (Q(course_status='published') | Q(id__in=enrolled_course_ids) | Q(id__in=training_course_ids)) 
+                & ~Q(is_locked=True)
+            ).distinct()
+            
+        return base_qs.filter(course_status='published', is_locked=False)
     
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
@@ -438,7 +449,18 @@ class QuizesViewSet(viewsets.ModelViewSet):
         if not learner:
             return Response({"error": "Only registered learners can view submissions."}, status=status.HTTP_403_FORBIDDEN)
             
+        training_classwork_id = request.query_params.get('training_classwork')
+        training_exam_id = request.query_params.get('training_exam')
+        
         submissions = QuizSubmission.objects.filter(learner=learner, quiz=quiz)
+        
+        if training_classwork_id:
+            submissions = submissions.filter(training_classwork_id=training_classwork_id)
+        elif training_exam_id:
+            submissions = submissions.filter(training_exam_id=training_exam_id)
+        else:
+            submissions = submissions.filter(training_classwork__isnull=True, training_exam__isnull=True)
+            
         attempts_count = submissions.count()
         submission = submissions.first()
         
@@ -461,16 +483,24 @@ class QuizesViewSet(viewsets.ModelViewSet):
         if quiz.is_locked:
             return Response({"error": "This quiz is locked and cannot be submitted."}, status=status.HTTP_403_FORBIDDEN)
             
-        course = self.get_course_for_quiz(quiz=quiz)
-        if course:
-            enrollment = Enrollment.objects.filter(learner=learner, course=course).first()
-            if not enrollment or enrollment.status not in ['active', 'completed']:
-                return Response({'error': 'You must be actively enrolled in this course to submit a quiz.'}, status=status.HTTP_403_FORBIDDEN)
+        training_classwork_id = request.query_params.get('training_classwork') or request.data.get('training_classwork')
+        training_exam_id = request.query_params.get('training_exam') or request.data.get('training_exam')
+        
+        # Bypass Enrollment check if taking via Training
+        if not training_classwork_id and not training_exam_id:
+            course = self.get_course_for_quiz(quiz=quiz)
+            if course:
+                enrollment = Enrollment.objects.filter(learner=learner, course=course).first()
+                if not enrollment or enrollment.status not in ['active', 'completed']:
+                    return Response({'error': 'You must be actively enrolled in this course to submit a quiz.'}, status=status.HTTP_403_FORBIDDEN)
             
-        if quiz.max_attempts and quiz.max_attempts > 0:
-            attempts_count = QuizSubmission.objects.filter(learner=learner, quiz=quiz).count()
-            if attempts_count >= quiz.max_attempts:
-                return Response({'error': f'You have reached the maximum number of attempts ({quiz.max_attempts}) for this quiz.'}, status=status.HTTP_403_FORBIDDEN)
+            # Bypass Attempts check if taking via Training
+            if quiz.max_attempts and quiz.max_attempts > 0:
+                attempts_count = QuizSubmission.objects.filter(
+                    learner=learner, quiz=quiz, training_classwork__isnull=True, training_exam__isnull=True
+                ).count()
+                if attempts_count >= quiz.max_attempts:
+                    return Response({'error': f'You have reached the maximum number of attempts ({quiz.max_attempts}) for this quiz.'}, status=status.HTTP_403_FORBIDDEN)
             
         submitted_answers = request.data.get('answers', {})
         total_score = 0
@@ -508,11 +538,41 @@ class QuizesViewSet(viewsets.ModelViewSet):
             score=total_score,
             total_marks=total_possible,
             passed=passed,
-            answers_data=submitted_answers
+            answers_data=submitted_answers,
+            training_classwork_id=training_classwork_id,
+            training_exam_id=training_exam_id
         )
+        
+        # Synchronize score with Training Classwork/Exam submission automatically!
+        if training_classwork_id:
+            from Training.models import TrainingClassworkSubmission
+            from Training.views import check_and_issue_certificate
+            cw_sub, _ = TrainingClassworkSubmission.objects.get_or_create(
+                classwork_id=training_classwork_id,
+                participant=request.user,
+                defaults={'score': percentage}
+            )
+            if cw_sub.score != percentage:
+                cw_sub.score = percentage
+                cw_sub.save()
+            check_and_issue_certificate(cw_sub.classwork.training, request.user)
+            
+        if training_exam_id:
+            from Training.models import TrainingFinalExamSubmission
+            from Training.views import check_and_issue_certificate
+            ex_sub, _ = TrainingFinalExamSubmission.objects.get_or_create(
+                exam_id=training_exam_id,
+                participant=request.user,
+                defaults={'score': percentage}
+            )
+            if ex_sub.score != percentage:
+                ex_sub.score = percentage
+                ex_sub.save()
+            check_and_issue_certificate(ex_sub.exam.training, request.user)
+            
         course = quiz.course or (quiz.module.course if quiz.module else (quiz.lesson.module.course if quiz.lesson else None))
         course_completed = False
-        if course and passed:
+        if course and passed and not training_classwork_id and not training_exam_id:
             course_completed = check_and_update_course_completion(learner, course)
 
         return Response({

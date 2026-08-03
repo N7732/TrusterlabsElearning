@@ -223,7 +223,7 @@ class TrainingViewSet(viewsets.ModelViewSet):
                         if sub and sub.score is not None:
                             all_scores.append(float(sub.score))
                         elif cw.linked_quiz:
-                            quiz_sub = QuizSubmission.objects.filter(learner=learner, quiz=cw.linked_quiz).first()
+                            quiz_sub = QuizSubmission.objects.filter(learner=learner, quiz=cw.linked_quiz, training_classwork_id=cw.id).first()
                             if quiz_sub:
                                 all_scores.append(float(quiz_sub.score))
                                 
@@ -232,7 +232,7 @@ class TrainingViewSet(viewsets.ModelViewSet):
                         if sub and sub.score is not None:
                             all_scores.append(float(sub.score))
                         elif ex.linked_exam:
-                            quiz_sub = QuizSubmission.objects.filter(learner=learner, quiz=ex.linked_exam).first()
+                            quiz_sub = QuizSubmission.objects.filter(learner=learner, quiz=ex.linked_exam, training_exam_id=ex.id).first()
                             if quiz_sub:
                                 all_scores.append(float(quiz_sub.score))
                                 
@@ -271,7 +271,7 @@ class TrainingViewSet(viewsets.ModelViewSet):
                 if sub and sub.score is not None:
                     cw_scores[cw.id] = float(sub.score)
                 elif cw.linked_quiz and hasattr(user, 'learner_profile'):
-                    quiz_sub = QuizSubmission.objects.filter(learner=user.learner_profile, quiz=cw.linked_quiz).first()
+                    quiz_sub = QuizSubmission.objects.filter(learner=user.learner_profile, quiz=cw.linked_quiz, training_classwork_id=cw.id).first()
                     if quiz_sub:
                         cw_scores[cw.id] = quiz_sub.score
                 else:
@@ -283,7 +283,7 @@ class TrainingViewSet(viewsets.ModelViewSet):
                 if sub and sub.score is not None:
                     ex_scores[ex.id] = float(sub.score)
                 elif ex.linked_exam and hasattr(user, 'learner_profile'):
-                    quiz_sub = QuizSubmission.objects.filter(learner=user.learner_profile, quiz=ex.linked_exam).first()
+                    quiz_sub = QuizSubmission.objects.filter(learner=user.learner_profile, quiz=ex.linked_exam, training_exam_id=ex.id).first()
                     if quiz_sub:
                         ex_scores[ex.id] = quiz_sub.score
                 else:

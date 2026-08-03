@@ -201,7 +201,7 @@ const LearnerTrainingDetail = () => {
                           <div className="flex items-center justify-between">
                             <p className="text-sm text-slate-600">This classwork requires completing a quiz.</p>
                             <button 
-                              onClick={() => navigate(`/quiz/${cw.linked_quiz}`)}
+                              onClick={() => navigate(`/quiz/${cw.linked_quiz}?training_classwork=${cw.id}`)}
                               disabled={cw.due_date && new Date(cw.due_date) < new Date()}
                               className={`text-sm font-bold py-2 px-4 rounded transition-colors ${cw.due_date && new Date(cw.due_date) < new Date() ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-[#77C159] hover:bg-[#68AA4E] text-white'}`}
                             >

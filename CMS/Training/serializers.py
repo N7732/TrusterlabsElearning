@@ -49,7 +49,7 @@ class TrainingClassworkSerializer(serializers.ModelSerializer):
             # If no classwork submission, check if there's a linked quiz submission
             if obj.linked_quiz and hasattr(request.user, 'learner_profile'):
                 from Course.models import QuizSubmission
-                quiz_sub = QuizSubmission.objects.filter(learner=request.user.learner_profile, quiz=obj.linked_quiz).first()
+                quiz_sub = QuizSubmission.objects.filter(learner=request.user.learner_profile, quiz=obj.linked_quiz, training_classwork_id=obj.id).first()
                 if quiz_sub:
                     return {
                         'is_quiz': True,
@@ -84,7 +84,7 @@ class TrainingFinalExamSerializer(serializers.ModelSerializer):
             
             if obj.linked_exam and hasattr(request.user, 'learner_profile'):
                 from Course.models import QuizSubmission
-                quiz_sub = QuizSubmission.objects.filter(learner=request.user.learner_profile, quiz=obj.linked_exam).first()
+                quiz_sub = QuizSubmission.objects.filter(learner=request.user.learner_profile, quiz=obj.linked_exam, training_exam_id=obj.id).first()
                 if quiz_sub:
                     return {
                         'is_quiz': True,

@@ -281,6 +281,11 @@ class QuizSubmission(models.Model):
     total_marks = models.PositiveIntegerField(default=0)
     passed = models.BooleanField(default=False)
     answers_data = models.JSONField(null=True, blank=True, help_text="Stored answers submitted by the learner")
+    
+    # Context separation: Track if this quiz was taken as part of a Training Classwork or Final Exam
+    training_classwork = models.ForeignKey('Training.TrainingClasswork', on_delete=models.CASCADE, null=True, blank=True, related_name='+')
+    training_exam = models.ForeignKey('Training.TrainingFinalExam', on_delete=models.CASCADE, null=True, blank=True, related_name='+')
+    
     submitted_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
