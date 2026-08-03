@@ -61,7 +61,7 @@ const LearnerTrainingDetail = () => {
     return (
       <div className="min-h-screen bg-[#F4F5F7] py-8">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="text-red-500">{error || 'Training not found'}</p>
+          <p className="text-red-500">{error?.message || (typeof error === 'string' ? error : 'Training not found')}</p>
           <button onClick={() => navigate('/learner/dashboard')} className="mt-4 text-[#0A66C2] hover:underline">
             Back to Dashboard
           </button>

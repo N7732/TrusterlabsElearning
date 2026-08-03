@@ -90,7 +90,7 @@ const TrainingGrading = ({ trainingId, token }) => {
   };
 
   if (loading) return <div className="text-center p-8">Loading grades...</div>;
-  if (error) return <div className="text-red-500 p-8 text-center">{error}</div>;
+  if (error) return <div className="text-red-500 p-8 text-center">{error?.message || (typeof error === 'string' ? error : 'Failed to load data')}</div>;
   if (!trainingData) return null;
 
   return (

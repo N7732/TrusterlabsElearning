@@ -600,7 +600,7 @@ const CoursePlayer = () => {
       <div className="flex h-screen w-full items-center justify-center bg-[#F9F9F9]">
         <div className="bg-red-50 text-red-600 p-6 rounded-lg border border-red-100 shadow-sm max-w-md text-center">
           <h2 className="text-xl font-bold mb-2">Error</h2>
-          <p>{error || 'Course not found or access denied.'}</p>
+          <p>{error?.message || (typeof error === 'string' ? error : 'Course not found or access denied.')}</p>
         </div>
       </div>
     );
