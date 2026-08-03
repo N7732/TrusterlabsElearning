@@ -170,7 +170,7 @@ const TakeQuiz = () => {
         setLoading(true);
         // Fetch Quiz Questions
         const qRes = await apiClient.get(`/api/quizes/${quizId}/`);
-        setQuiz(qRes.data);
+        setQuiz(qRes);
         
         // Fetch Previous Submission in this Training Context
         let url = `/api/quizes/${quizId}/my_submission/`;
@@ -181,10 +181,10 @@ const TakeQuiz = () => {
         
         try {
           const subRes = await apiClient.get(url);
-          if (subRes.data && subRes.data.score !== undefined) {
-             setQuizResult(subRes.data);
-             if (subRes.data.answers_data) {
-                setQuizAnswers(subRes.data.answers_data);
+          if (subRes && subRes.score !== undefined) {
+             setQuizResult(subRes);
+             if (subRes.answers_data) {
+                setQuizAnswers(subRes.answers_data);
              }
           }
         } catch (err) {
@@ -211,7 +211,7 @@ const TakeQuiz = () => {
       if (queryParams.toString()) url += `?${queryParams.toString()}`;
 
       const res = await apiClient.post(url, { answers: quizAnswers });
-      setQuizResult(res.data);
+      setQuizResult(res);
       setSubmittingQuiz(false);
     } catch (err) {
       setError(err.response?.data?.error || "Failed to submit quiz.");
@@ -263,32 +263,39 @@ const TakeQuiz = () => {
             {quiz.questions && quiz.questions.length > 0 ? (
               quiz.questions.map((q, index) => (
                 <div key={q.id} className="p-6 bg-slate-50 rounded-xl border border-slate-200">
-                  <div className="flex items-start gap-4 mb-6">
-                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center">
-                      {index + 1}
+                  <div className="flex items-start gap-4 mb-6 justify-between">
+                    <span className="flex-1">
+                      <span className="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold mr-3">
+                        {index + 1}
+                      </span>
+                      <span className="text-xl font-bold text-slate-800">{q.question_text}</span>
                     </span>
-                    <h3 className="text-xl font-bold text-slate-800">{q.text}</h3>
+                    <span className="text-sm font-bold bg-slate-100 text-slate-500 px-3 py-1 rounded-full whitespace-nowrap">{q.marks || 1} Mark(s)</span>
                   </div>
                   
                   {q.question_type === 'MATCHING' ? (
                     <MatchingInteraction question={q} quizAnswers={quizAnswers} setQuizAnswers={setQuizAnswers} />
                   ) : (
                     <div className="grid gap-3 pl-12">
-                      {q.options && Object.entries(q.options).map(([optKey, optValue]) => (
-                        <label key={optKey} className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-colors group ${quizAnswers[q.id] === optKey ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:bg-slate-50'}`}>
-                          <input 
-                            type="radio" 
-                            name={`q_${q.id}`} 
-                            value={optKey}
-                            checked={quizAnswers[q.id] === optKey}
-                            onChange={() => setQuizAnswers(prev => ({ ...prev, [q.id]: optKey }))}
-                            className="mt-1 w-4 h-4 text-blue-600 focus:ring-blue-500 border-slate-300"
-                          />
-                          <span className={`font-medium ${quizAnswers[q.id] === optKey ? 'text-blue-700' : 'text-slate-700 group-hover:text-slate-900'}`}>
-                            {optValue}
-                          </span>
-                        </label>
-                      ))}
+                      {['A', 'B', 'C', 'D'].map(opt => {
+                        const optValue = q[`option_${opt.toLowerCase()}`];
+                        if (!optValue) return null;
+                        return (
+                          <label key={opt} className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-colors group ${quizAnswers[q.id] === opt ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:bg-slate-50'}`}>
+                            <input 
+                              type="radio" 
+                              name={`q_${q.id}`} 
+                              value={opt}
+                              checked={quizAnswers[q.id] === opt}
+                              onChange={() => setQuizAnswers(prev => ({ ...prev, [q.id]: opt }))}
+                              className="mt-1 w-4 h-4 text-blue-600 focus:ring-blue-500 border-slate-300"
+                            />
+                            <span className={`font-medium ${quizAnswers[q.id] === opt ? 'text-blue-700' : 'text-slate-700 group-hover:text-slate-900'}`}>
+                              {optValue}
+                            </span>
+                          </label>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
