@@ -30,7 +30,7 @@ export const useMyCertificates = () => {
 };
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchTrainingDetails, submitClasswork } from '../../services/learnerService';
+import { fetchTrainingDetails, submitClasswork, submitExam } from '../../services/learnerService';
 
 export const useTrainingDetails = (id) => {
   return useQuery({
@@ -44,6 +44,17 @@ export const useSubmitClasswork = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: submitClasswork,
+    onSuccess: (data, variables) => {
+      // Invalidate relevant queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['trainingDetails'] });
+    }
+  });
+};
+
+export const useSubmitExam = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: submitExam,
     onSuccess: (data, variables) => {
       // Invalidate relevant queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['trainingDetails'] });

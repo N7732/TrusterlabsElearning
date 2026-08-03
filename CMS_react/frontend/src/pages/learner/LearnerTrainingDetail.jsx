@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getImageUrl } from '../../api/apiClient';
 import { useAuth } from '../../context/AuthContext';
 import { BookOpen, Calendar, Clock, FileText, Upload, CheckCircle, Lock } from 'lucide-react';
-import { useTrainingDetails, useSubmitClasswork } from '../../hooks/queries/useLearnerQueries';
+import { useTrainingDetails, useSubmitClasswork, useSubmitExam } from '../../hooks/queries/useLearnerQueries';
 
 const LearnerTrainingDetail = () => {
   const { user } = useAuth();
@@ -12,6 +12,7 @@ const LearnerTrainingDetail = () => {
   
   const { data: training, isLoading: loading, error } = useTrainingDetails(id);
   const { mutateAsync: submitClasswork } = useSubmitClasswork();
+  const { mutateAsync: submitExam } = useSubmitExam();
   
   // File upload state per classwork ID
   const [uploadingMap, setUploadingMap] = useState({});
@@ -46,6 +47,31 @@ const LearnerTrainingDetail = () => {
       alert(err.message || 'Failed to submit classwork');
     } finally {
       setUploadingMap(prev => ({ ...prev, [classworkId]: false }));
+    }
+  };
+
+  const handleSubmitExam = async (examId) => {
+    const file = fileMap[examId];
+    if (!file) return;
+
+    try {
+      setUploadingMap(prev => ({ ...prev, [examId]: true }));
+      const formData = new FormData();
+      formData.append('submission_file', file);
+
+      await submitExam({ examId, formData });
+      
+      alert('Exam submitted successfully!');
+      // Clear file after submission
+      setFileMap(prev => {
+        const newMap = { ...prev };
+        delete newMap[examId];
+        return newMap;
+      });
+    } catch (err) {
+      alert(err.message || 'Failed to submit exam');
+    } finally {
+      setUploadingMap(prev => ({ ...prev, [examId]: false }));
     }
   };
 
@@ -125,7 +151,14 @@ const LearnerTrainingDetail = () => {
                         )}
                       </div>
                       <div className="p-4">
-                        <h3 className="font-bold text-slate-800 mb-1">{tc.course_detail?.title}</h3>
+                        <div className="flex justify-between items-start mb-1">
+                          <h3 className="font-bold text-slate-800 flex-1 pr-2">{tc.course_detail?.title}</h3>
+                          {tc.is_completed && (
+                            <span className="flex items-center text-xs font-bold bg-green-100 text-green-700 px-2 py-1 rounded-full whitespace-nowrap">
+                              <CheckCircle className="w-3 h-3 mr-1" /> Completed
+                            </span>
+                          )}
+                        </div>
                         <button 
                           onClick={() => navigate(`/course/${tc.course_detail?.id}`)}
                           className="mt-4 w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 rounded transition-colors text-sm"
@@ -244,7 +277,115 @@ const LearnerTrainingDetail = () => {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Final Exams Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mt-8">
+          <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center">
+            <FileText className="w-5 h-5 mr-2 text-purple-500" /> 
+            Final Exams
+          </h2>
+          
+          {(!training.final_exams || training.final_exams.length === 0) ? (
+            <p className="text-slate-500 italic text-center py-8">No final exams assigned yet.</p>
+          ) : (
+            <div className="space-y-6">
+              {training.final_exams.map(ex => (
+                <div key={ex.id} className="border border-slate-200 rounded-lg p-5 hover:border-purple-500 transition-colors">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="font-bold text-lg text-slate-800">{ex.title}</h3>
+                      <p className="text-sm text-slate-500 flex items-center mt-1">
+                        <Clock className="w-4 h-4 mr-1" /> Due: {ex.due_date}
+                      </p>
+                    </div>
+                    {ex.exam_file && (
+                      <a href={ex.exam_file} target="_blank" rel="noreferrer" className="text-sm font-medium text-purple-600 hover:underline bg-purple-50 px-3 py-1 rounded-full">
+                        View Exam Document
+                      </a>
+                    )}
+                  </div>
+
+                  <div 
+                    className="prose prose-sm prose-slate max-w-none text-slate-600 mb-6" 
+                    dangerouslySetInnerHTML={{ __html: ex.description }}
+                  ></div>
+
+                  <div className="bg-[#F8F9FA] rounded-lg p-4 border border-slate-100">
+                    <h4 className="text-sm font-bold text-slate-800 mb-3">Your Submission</h4>
+                    
+                    {ex.my_submission ? (
+                      <div className="flex items-center justify-between bg-white p-4 border border-slate-200 rounded-lg">
+                        <div>
+                          <p className="text-sm font-medium text-slate-800">
+                            {ex.my_submission.is_quiz ? 'Exam Quiz Completed' : 'Exam Document Submitted'}
+                          </p>
+                          <p className="text-xs text-slate-500 mt-1">
+                            Submitted on {new Date(ex.my_submission.submission_date).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          {ex.my_submission.score !== null ? (
+                            <span className="inline-block px-3 py-1 bg-green-100 text-green-800 font-bold text-sm rounded-full">
+                              Score: {ex.my_submission.score} {ex.my_submission.total_marks ? `/ ${ex.my_submission.total_marks}` : ''}
+                            </span>
+                          ) : (
+                            <span className="inline-block px-3 py-1 bg-amber-100 text-amber-800 font-bold text-sm rounded-full">
+                              Not yet Graded!
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        {ex.linked_exam ? (
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm text-slate-600">This final exam requires completing a quiz.</p>
+                            <button 
+                              onClick={() => navigate(`/quiz/${ex.linked_exam}?training_exam=${ex.id}`)}
+                              disabled={ex.due_date && new Date(ex.due_date) < new Date()}
+                              className={`text-sm font-bold py-2 px-4 rounded transition-colors ${ex.due_date && new Date(ex.due_date) < new Date() ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 text-white'}`}
+                            >
+                              Take Exam Quiz
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col sm:flex-row gap-3 items-center">
+                            <input 
+                              type="file" 
+                              onChange={(e) => handleFileChange(ex.id, e)}
+                              disabled={ex.due_date && new Date(ex.due_date) < new Date()}
+                              className="block w-full text-sm text-slate-500
+                                file:mr-4 file:py-2 file:px-4
+                                file:rounded-full file:border-0
+                                file:text-sm file:font-semibold
+                                file:bg-purple-50 file:text-purple-700
+                                hover:file:bg-purple-100 cursor-pointer disabled:opacity-50"
+                            />
+                            <span className="text-xs text-slate-400 whitespace-nowrap">(Max size: 50MB)</span>
+                            <button
+                              onClick={() => handleSubmitExam(ex.id)}
+                              disabled={!fileMap[ex.id] || uploadingMap[ex.id] || (ex.due_date && new Date(ex.due_date) < new Date())}
+                              className="w-full sm:w-auto shrink-0 bg-[#0A66C2] hover:bg-blue-700 disabled:bg-slate-300 disabled:text-slate-500 text-white text-sm font-bold py-2 px-6 rounded-full transition-colors flex items-center justify-center gap-2"
+                            >
+                              {uploadingMap[ex.id] ? 'Uploading...' : <><Upload className="w-4 h-4" /> Submit File</>}
+                            </button>
+                          </div>
+                        )}
+                        
+                        {ex.due_date && new Date(ex.due_date) < new Date() && (
+                          <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-md text-sm font-medium">
+                            The due date for this exam has passed. Submissions are no longer accepted.
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
+          )}
+        </div>
           </>
         )}
       </div>

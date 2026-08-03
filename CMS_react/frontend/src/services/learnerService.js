@@ -30,3 +30,8 @@ export const submitClasswork = async ({ classworkId, formData }) => {
   return res;
 };
 
+export const submitExam = async ({ examId, formData }) => {
+  const res = await apiClient.post(`/training/exams/${examId}/submit/`, formData);
+  return res;
+};
+

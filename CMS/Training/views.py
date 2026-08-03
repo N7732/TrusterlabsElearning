@@ -26,18 +26,64 @@ from .serializers import (
     CustomTrainingRequestSerializer
 )
 
+def is_training_course_completed(course, learner):
+    from Course.models import Lesson, LessonProgress, Quizes, QuizSubmission
+    from django.db.models import Q
+    total_lessons = Lesson.objects.filter(module__course=course, is_published=True).count()
+    completed_lessons = LessonProgress.objects.filter(
+        learner=learner,
+        lesson__module__course=course,
+        is_completed=True
+    ).count()
+
+    if total_lessons > 0 and completed_lessons < total_lessons:
+        return False
+
+    all_quizzes = Quizes.objects.filter(
+        Q(course=course) | Q(module__course=course) | Q(lesson__module__course=course),
+        is_published=True
+    )
+    
+    for quiz in all_quizzes:
+        submission = QuizSubmission.objects.filter(learner=learner, quiz=quiz, training_classwork__isnull=True, training_exam__isnull=True).first()
+        if not submission or not submission.passed:
+            return False
+            
+    return True
+
+def get_training_course_score(course, learner):
+    from Course.models import Quizes, QuizSubmission
+    from django.db.models import Q
+    all_quizzes = Quizes.objects.filter(
+        Q(course=course) | Q(module__course=course) | Q(lesson__module__course=course),
+        is_published=True
+    )
+    
+    if not all_quizzes.exists():
+        return 100.0
+        
+    scores = []
+    for quiz in all_quizzes:
+        submission = QuizSubmission.objects.filter(learner=learner, quiz=quiz, training_classwork__isnull=True, training_exam__isnull=True).first()
+        if submission and submission.score is not None:
+            scores.append(float(submission.score))
+        else:
+            return None
+            
+    return sum(scores) / len(scores)
+
 def check_and_issue_certificate(training, user):
-    if not training.has_certificate:
-        return
     learner = getattr(user, 'learner_profile', None)
     if not learner:
         return
     
     from certification.models import Certificate
     from Course.models import QuizSubmission
+    from .models import TrainingParticipants
     
     classworks = training.classworks.all()
     exams = training.final_exams.all()
+    courses = training.courses.all()
     
     all_scores = []
     
@@ -46,7 +92,7 @@ def check_and_issue_certificate(training, user):
         if sub and sub.score is not None:
             all_scores.append(float(sub.score))
         elif cw.linked_quiz:
-            quiz_sub = QuizSubmission.objects.filter(learner=learner, quiz=cw.linked_quiz).first()
+            quiz_sub = QuizSubmission.objects.filter(learner=learner, quiz=cw.linked_quiz, training_classwork_id=cw.id).first()
             if quiz_sub:
                 all_scores.append(float(quiz_sub.score))
                 
@@ -55,14 +101,28 @@ def check_and_issue_certificate(training, user):
         if sub and sub.score is not None:
             all_scores.append(float(sub.score))
         elif ex.linked_exam:
-            quiz_sub = QuizSubmission.objects.filter(learner=learner, quiz=ex.linked_exam).first()
+            quiz_sub = QuizSubmission.objects.filter(learner=learner, quiz=ex.linked_exam, training_exam_id=ex.id).first()
             if quiz_sub:
                 all_scores.append(float(quiz_sub.score))
                 
+    for tc in courses:
+        if not is_training_course_completed(tc.course, learner):
+            continue
+        score = get_training_course_score(tc.course, learner)
+        if score is not None:
+            all_scores.append(score)
+            
     avg_score = sum(all_scores) / len(all_scores) if all_scores else 0.0
     
-    total_assignments = classworks.count() + exams.count()
-    if len(all_scores) < total_assignments:
+    total_assignments = classworks.count() + exams.count() + courses.count()
+    if total_assignments > 0 and len(all_scores) < total_assignments:
+        return
+        
+    if total_assignments > 0:
+        # User has completed all classworks, exams, and courses.
+        TrainingParticipants.objects.filter(training=training, participant=user).update(admission_status='COMPLETED')
+        
+    if not training.has_certificate:
         return
         
     if avg_score >= float(training.passing_score_percentage):
@@ -253,27 +313,33 @@ class TrainingViewSet(viewsets.ModelViewSet):
     def grades(self, request, pk=None):
         if not request.user.is_staff and request.user.user_type not in ['admin', 'instructor']:
             from rest_framework.exceptions import PermissionDenied
-            raise PermissionDenied("You do not have permission to view training grades.")
-            
+    @action(detail=True, methods=['get'], url_path='grading')
+    def training_grading(self, request, pk=None):
         training = self.get_object()
         classworks = training.classworks.all()
         exams = training.final_exams.all()
-        participants = training.participants.filter(admission_status='ADMITTED')
+        courses = training.courses.all()
+        
+        participants = TrainingParticipants.objects.filter(
+            training=training, 
+            admission_status__in=['ADMITTED', 'COMPLETED']
+        )
         
         from Course.models import QuizSubmission
         
         participant_data = []
         for p in participants:
             user = p.participant
+            learner = getattr(user, 'learner_profile', None)
+            
             cw_scores = {}
             for cw in classworks:
                 sub = cw.submissions.filter(participant=user).first()
                 if sub and sub.score is not None:
                     cw_scores[cw.id] = float(sub.score)
-                elif cw.linked_quiz and hasattr(user, 'learner_profile'):
-                    quiz_sub = QuizSubmission.objects.filter(learner=user.learner_profile, quiz=cw.linked_quiz, training_classwork_id=cw.id).first()
-                    if quiz_sub:
-                        cw_scores[cw.id] = quiz_sub.score
+                elif cw.linked_quiz and learner:
+                    quiz_sub = QuizSubmission.objects.filter(learner=learner, quiz=cw.linked_quiz, training_classwork_id=cw.id).first()
+                    cw_scores[cw.id] = float(quiz_sub.score) if quiz_sub else None
                 else:
                     cw_scores[cw.id] = None
                     
@@ -282,14 +348,25 @@ class TrainingViewSet(viewsets.ModelViewSet):
                 sub = ex.submissions.filter(participant=user).first()
                 if sub and sub.score is not None:
                     ex_scores[ex.id] = float(sub.score)
-                elif ex.linked_exam and hasattr(user, 'learner_profile'):
-                    quiz_sub = QuizSubmission.objects.filter(learner=user.learner_profile, quiz=ex.linked_exam, training_exam_id=ex.id).first()
-                    if quiz_sub:
-                        ex_scores[ex.id] = quiz_sub.score
+                elif ex.linked_exam and learner:
+                    quiz_sub = QuizSubmission.objects.filter(learner=learner, quiz=ex.linked_exam, training_exam_id=ex.id).first()
+                    ex_scores[ex.id] = float(quiz_sub.score) if quiz_sub else None
                 else:
                     ex_scores[ex.id] = None
                     
-            all_scores = [s for s in list(cw_scores.values()) + list(ex_scores.values()) if s is not None]
+            tc_scores = {}
+            if learner:
+                for tc in courses:
+                    if is_training_course_completed(tc.course, learner):
+                        score = get_training_course_score(tc.course, learner)
+                        tc_scores[tc.course.id] = float(score) if score is not None else None
+                    else:
+                        tc_scores[tc.course.id] = None
+            else:
+                for tc in courses:
+                    tc_scores[tc.course.id] = None
+                    
+            all_scores = [s for s in list(cw_scores.values()) + list(ex_scores.values()) + list(tc_scores.values()) if s is not None]
             avg_score = sum(all_scores) / len(all_scores) if all_scores else None
             
             participant_data.append({
@@ -299,7 +376,9 @@ class TrainingViewSet(viewsets.ModelViewSet):
                 'email': p.application_email or user.email,
                 'classwork_scores': cw_scores,
                 'exam_scores': ex_scores,
-                'average': avg_score
+                'course_scores': tc_scores,
+                'average': avg_score,
+                'status': p.admission_status
             })
             
         # Overall Analysis
@@ -315,6 +394,7 @@ class TrainingViewSet(viewsets.ModelViewSet):
         return Response({
             'classworks': [{'id': cw.id, 'title': cw.title} for cw in classworks],
             'exams': [{'id': ex.id, 'title': ex.title} for ex in exams],
+            'courses': [{'id': tc.course.id, 'title': tc.course.title} for tc in courses],
             'participants': participant_data,
             'analysis': analysis
         }, status=status.HTTP_200_OK)
