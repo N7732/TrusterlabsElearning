@@ -36,7 +36,7 @@ class CertificateViewSet(viewsets.ModelViewSet):
     def my_certificates(self, request):
         if not hasattr(request.user, 'learner_profile'):
             return Response({"detail": "Not a learner"}, status=status.HTTP_403_FORBIDDEN)
-        certs = Certificate.objects.filter(learner=request.user.learner_profile, is_issued=True)
+        certs = Certificate.objects.filter(learner=request.user.learner_profile, is_issued=True).select_related('course', 'training', 'learner__user')
         serializer = self.get_serializer(certs, many=True)
         return Response(serializer.data)
 
@@ -102,10 +102,10 @@ class CertificateViewSet(viewsets.ModelViewSet):
         verify_url = f"{frontend_url}/verify/{cert.certificate_code}"
         
         context = {
-            'learner_name': learner_name,
+            'name': learner_name,
             'program_title': program_title,
             'certificate_id': cert.certificate_code,
-            'verify_url': verify_url
+            'certificate_url': verify_url
         }
         
         html_content, dynamic_subject = render_email_template('emails/certificate_issued.html', context)

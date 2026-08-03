@@ -7,7 +7,8 @@ from .models import (
     TrainingClassworkSubmission,
     TrainingFinalExam,
     TrainingFinalExamSubmission,
-    CustomTrainingRequest
+    CustomTrainingRequest,
+    TrainingMessage
 )
 from Auth.serializer import UserSerializer
 from Course.serializer import CourseSerializer
@@ -134,3 +135,13 @@ class CustomTrainingRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomTrainingRequest
         fields = '__all__'
+
+
+class TrainingMessageSerializer(serializers.ModelSerializer):
+    sender_name = serializers.CharField(source='sender.get_full_name', read_only=True)
+    sender_type = serializers.CharField(source='sender.user_type', read_only=True)
+
+    class Meta:
+        model = TrainingMessage
+        fields = ['id', 'training', 'sender', 'sender_name', 'sender_type', 'message', 'date_sent']
+        read_only_fields = ['sender', 'training', 'date_sent']

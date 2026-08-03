@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { apiClient } from '../../api/apiClient';
 import Card, { CardContent } from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import { Calendar, Users, BookOpen, FileText, Settings, Plus, Trash2, Award, ArrowLeft } from 'lucide-react';
+import { Calendar, Users, BookOpen, FileText, Settings, Plus, Trash2, Award, ArrowLeft, MessageSquare, Send } from 'lucide-react';
 
 const TrainingDashboard = () => {
   const { id } = useParams();
@@ -36,13 +36,45 @@ const TrainingDashboard = () => {
   const [eligibleLearners, setEligibleLearners] = useState([]);
   const [processingCert, setProcessingCert] = useState(false);
 
+  // New state for messages
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [sendingMessage, setSendingMessage] = useState(false);
+
   useEffect(() => {
     fetchTrainingData();
     fetchAllCourses();
     fetchAllQuizzes();
     fetchGradeData();
+    fetchGradeData();
     fetchEligibleLearners();
+    fetchMessages();
   }, [id]);
+
+  const fetchMessages = async () => {
+    try {
+      const res = await apiClient.get(`/training/trainings/${id}/messages/`);
+      setMessages(Array.isArray(res) ? res : (res.data || []));
+    } catch (err) {
+      console.error('Failed to fetch messages', err);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim()) return;
+    
+    try {
+      setSendingMessage(true);
+      await apiClient.post(`/training/trainings/${id}/messages/`, { message: newMessage });
+      setNewMessage('');
+      fetchMessages();
+      alert('Message sent to all participants!');
+    } catch (err) {
+      alert(err.message || 'Failed to send message');
+    } finally {
+      setSendingMessage(false);
+    }
+  };
 
   const fetchEligibleLearners = async () => {
     try {
@@ -220,6 +252,7 @@ const TrainingDashboard = () => {
     { id: 'classwork', label: 'Classwork', icon: <FileText size={18} /> },
     { id: 'exams', label: 'Final Exams', icon: <FileText size={18} /> },
     { id: 'participants', label: 'Participants', icon: <Users size={18} /> },
+    { id: 'messages', label: 'Announcements', icon: <MessageSquare size={18} /> },
     { id: 'grades', label: 'Student Marks', icon: <FileText size={18} /> },
     { id: 'certificates', label: 'Certificates', icon: <Award size={18} /> },
   ];
@@ -688,6 +721,67 @@ const TrainingDashboard = () => {
             </CardContent>
           </Card>
         )}
+
+      {activeTab === 'messages' && (
+        <div className="space-y-6">
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center">
+                <MessageSquare className="w-5 h-5 mr-2 text-[#0A66C2]" />
+                Broadcast Announcement
+              </h3>
+              <p className="text-slate-500 mb-4 text-sm">
+                Send a message, meeting link, or announcement to all admitted participants in this training.
+              </p>
+              <div className="space-y-4">
+                <textarea
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  rows={4}
+                  className="w-full p-4 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent outline-none"
+                  placeholder="Type your message here... Include links for online sessions if applicable."
+                />
+                <div className="flex justify-end">
+                  <Button 
+                    onClick={handleSendMessage} 
+                    disabled={sendingMessage || !newMessage.trim()}
+                    className="bg-[#0A66C2] hover:bg-[#004182] flex items-center"
+                  >
+                    {sendingMessage ? 'Sending...' : <><Send className="w-4 h-4 mr-2" /> Send Message</>}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <h3 className="text-xl font-bold text-slate-800 mt-8 mb-4">Message History</h3>
+          
+          {messages.length === 0 ? (
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center text-slate-500">
+              No messages have been sent yet.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {messages.map(msg => (
+                <div key={msg.id} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                  <div className="flex justify-between items-start mb-3 border-b border-slate-100 pb-3">
+                    <div>
+                      <span className="font-bold text-slate-800">{msg.sender_name}</span>
+                      <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 uppercase">
+                        {msg.sender_type}
+                      </span>
+                    </div>
+                    <span className="text-sm text-slate-500">
+                      {new Date(msg.date_sent).toLocaleString()}
+                    </span>
+                  </div>
+                  <p className="text-slate-700 whitespace-pre-wrap">{msg.message}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Submissions Modal */}
       {submissionModalOpen && (

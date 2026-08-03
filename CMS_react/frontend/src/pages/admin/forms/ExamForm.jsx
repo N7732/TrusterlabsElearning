@@ -15,6 +15,7 @@ const ExamForm = ({ isEditing, examId }) => {
     title: '',
     description: '',
     exam_date: '',
+    exam_time: '',
     training: initialTraining,
     linked_exam: ''
   });
@@ -67,6 +68,7 @@ const ExamForm = ({ isEditing, examId }) => {
         title: res.title || '',
         description: res.description || '',
         exam_date: res.exam_date || '',
+        exam_time: res.exam_time || '',
         training: res.training ? (typeof res.training === 'object' ? res.training.id : res.training) : '',
         linked_exam: res.linked_exam || ''
       });
@@ -112,6 +114,7 @@ const ExamForm = ({ isEditing, examId }) => {
     submitData.append('title', formData.title);
     submitData.append('training', formData.training);
     submitData.append('exam_date', formData.exam_date);
+    if (formData.exam_time) submitData.append('exam_time', formData.exam_time);
 
     // Only submit relevant fields based on contentMode
     if (contentMode === 'editor' && formData.description) {
@@ -198,13 +201,24 @@ const ExamForm = ({ isEditing, examId }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Exam Date *</label>
+                <label className="block text-sm font-bold text-slate-700 mb-2">Available Date *</label>
                 <input
                   type="date"
                   name="exam_date"
                   value={formData.exam_date}
                   onChange={handleChange}
                   required
+                  className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A66C2]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">Available Time</label>
+                <input
+                  type="time"
+                  name="exam_time"
+                  value={formData.exam_time}
+                  onChange={handleChange}
                   className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A66C2]"
                 />
               </div>
