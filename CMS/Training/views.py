@@ -68,9 +68,14 @@ def get_training_course_score(course, learner):
     return sum(scores) / len(scores)
 
 def check_and_issue_certificate(training, user):
-    learner = getattr(user, 'learner_profile', None)
-    if not learner:
+    """
+    Check if a specific user has passed all requirements for a training and issue certificate if auto_issue is True.
+    """
+    if not training.has_certificate:
         return
+    
+    from Auth.models import Learner
+    learner, _ = Learner.objects.get_or_create(user=user)
     
     from certification.models import Certificate
     from Course.models import QuizSubmission
@@ -323,9 +328,8 @@ class TrainingViewSet(viewsets.ModelViewSet):
                 
                 for p in participants:
                     user = p.participant
-                    learner = getattr(user, 'learner_profile', None)
-                    if not learner:
-                        continue
+                    from Auth.models import Learner
+                    learner, _ = Learner.objects.get_or_create(user=user)
                         
                     all_scores = []
                     for cw in classworks:
