@@ -171,6 +171,8 @@ class CertificateViewSet(viewsets.ModelViewSet):
 
         results = []
         for e in enrollments:
+            cert = Certificate.objects.filter(learner=e.learner, course=e.course).first()
+            
             results.append({
                 'id': f"course_{e.id}",
                 'learner_id': e.learner.id,
@@ -180,6 +182,8 @@ class CertificateViewSet(viewsets.ModelViewSet):
                 'program_title': e.course.title,
                 'score': float(e.score) if e.score else 0.0,
                 'date_completed': e.enrolled_at, # fallback if completed_at not available
+                'is_issued': cert.is_issued if cert else False,
+                'certificate_code': str(cert.certificate_code) if cert else None,
             })
 
         for p in training_participants:
@@ -190,6 +194,8 @@ class CertificateViewSet(viewsets.ModelViewSet):
             # Ensure learner profile exists and use its ID
             learner_profile, _ = Learner.objects.get_or_create(user=p.participant)
             
+            cert = Certificate.objects.filter(learner=learner_profile, training=p.training).first()
+            
             results.append({
                 'id': f"training_{p.id}",
                 'learner_id': learner_profile.id,
@@ -199,6 +205,8 @@ class CertificateViewSet(viewsets.ModelViewSet):
                 'program_title': p.training.title,
                 'score': score,
                 'date_completed': p.date_applied,
+                'is_issued': cert.is_issued if cert else False,
+                'certificate_code': str(cert.certificate_code) if cert else None,
             })
 
         return Response(results)

@@ -224,6 +224,8 @@ const TrainingDashboard = () => {
         is_issued: true
       });
       alert(`Certificate successfully issued to ${learner.learner_name}!`);
+      // Refresh the eligible learners list to show the new status
+      fetchEligibleLearners();
     } catch (err) {
       console.error(err);
       alert(`Failed to issue certificate: ${err.response?.data?.detail || err.message}`);
@@ -283,7 +285,7 @@ const TrainingDashboard = () => {
       </div>
 
       <div className="flex border-b border-slate-200">
-        <div className="flex overflow-x-auto hide-scrollbar">
+        <div className="flex flex-wrap w-full">
           {mainTabs.map(tab => (
             <button
               key={tab.id}
@@ -315,8 +317,8 @@ const TrainingDashboard = () => {
 
             {dropdownOpen && (
               <>
-                <div className="fixed inset-0 z-10" onClick={() => setDropdownOpen(false)}></div>
-                <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-slate-200 z-20 py-1">
+                <div className="fixed inset-0 z-40" onClick={() => setDropdownOpen(false)}></div>
+                <div className="absolute left-0 sm:left-auto sm:right-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-slate-200 z-50 py-1">
                   {moreTabs.map(tab => (
                     <button
                       key={tab.id}
@@ -748,13 +750,27 @@ const TrainingDashboard = () => {
                             </span>
                           </td>
                           <td className="px-6 py-4 text-right">
-                            <Button
-                              onClick={() => handleIssueCertificate(learner)}
-                              disabled={processingCert}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#153474] text-white text-xs font-medium rounded-lg hover:bg-[#0b1b3d] transition-colors disabled:opacity-50"
-                            >
-                              <Plus size={14} className="mr-1" /> Issue Certificate
-                            </Button>
+                            {learner.is_issued ? (
+                              <div className="flex items-center justify-end gap-3">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                                  <Award size={14} /> Issued
+                                </span>
+                                <Button
+                                  onClick={() => window.open(`/verify/${learner.certificate_code}`, '_blank')}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-300 text-slate-700 text-xs font-medium rounded-lg hover:bg-slate-50 transition-colors"
+                                >
+                                  View Certificate
+                                </Button>
+                              </div>
+                            ) : (
+                              <Button
+                                onClick={() => handleIssueCertificate(learner)}
+                                disabled={processingCert}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#153474] text-white text-xs font-medium rounded-lg hover:bg-[#0b1b3d] transition-colors disabled:opacity-50"
+                              >
+                                <Plus size={14} className="mr-1" /> Issue Certificate
+                              </Button>
+                            )}
                           </td>
                         </tr>
                       ))
