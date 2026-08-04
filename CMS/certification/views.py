@@ -8,6 +8,7 @@ from .serializers import CertificateSerializer
 from Course.models import Enrollment
 from Training.models import TrainingParticipants, TrainingFinalExamSubmission
 from SuperSetting.models import Notification
+from Auth.models import Learner
 
 class CertificateViewSet(viewsets.ModelViewSet):
     queryset = Certificate.objects.all()
@@ -185,9 +186,13 @@ class CertificateViewSet(viewsets.ModelViewSet):
             # try to find their final exam score
             final_exam = TrainingFinalExamSubmission.objects.filter(participant=p.participant, exam__training=p.training).order_by('-score').first()
             score = float(final_exam.score) if (final_exam and final_exam.score) else 0.0
+            
+            # Ensure learner profile exists and use its ID
+            learner_profile, _ = Learner.objects.get_or_create(user=p.participant)
+            
             results.append({
                 'id': f"training_{p.id}",
-                'learner_id': p.participant.id, # We'll need a way to link to Learner profile when issuing, but learner profile has user_id
+                'learner_id': learner_profile.id,
                 'learner_name': p.application_full_name or p.participant.get_full_name() or p.participant.username,
                 'program_type': 'training',
                 'program_id': p.training.id,

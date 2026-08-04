@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { apiClient } from '../../api/apiClient';
 import Card, { CardContent } from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import { Calendar, Users, BookOpen, FileText, Settings, Plus, Trash2, Award, ArrowLeft, MessageSquare, Send } from 'lucide-react';
+import { Calendar, Users, BookOpen, FileText, Settings, Plus, Trash2, Award, ArrowLeft, MessageSquare, Send, ChevronDown, MoreHorizontal } from 'lucide-react';
 
 const TrainingDashboard = () => {
   const { id } = useParams();
@@ -11,6 +11,7 @@ const TrainingDashboard = () => {
   const [training, setTraining] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const [editingDates, setEditingDates] = useState(false);
   const [dateForm, setDateForm] = useState({
@@ -246,13 +247,16 @@ const TrainingDashboard = () => {
     return <div className="p-12 text-center text-slate-500">Training session not found.</div>;
   }
 
-  const tabs = [
+  const mainTabs = [
     { id: 'overview', label: 'Overview', icon: <Calendar size={18} /> },
     { id: 'courses', label: 'Courses', icon: <BookOpen size={18} /> },
     { id: 'classwork', label: 'Classwork', icon: <FileText size={18} /> },
     { id: 'exams', label: 'Final Exams', icon: <FileText size={18} /> },
     { id: 'participants', label: 'Participants', icon: <Users size={18} /> },
     { id: 'messages', label: 'Announcements', icon: <MessageSquare size={18} /> },
+  ];
+
+  const moreTabs = [
     { id: 'grades', label: 'Student Marks', icon: <FileText size={18} /> },
     { id: 'certificates', label: 'Certificates', icon: <Award size={18} /> },
   ];
@@ -279,20 +283,60 @@ const TrainingDashboard = () => {
       </div>
 
       <div className="flex border-b border-slate-200">
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center px-6 py-3 border-b-2 font-medium text-sm transition-colors ${
-              activeTab === tab.id 
-                ? 'border-[#0A66C2] text-[#0A66C2]' 
-                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-            }`}
-          >
-            <span className="mr-2">{tab.icon}</span>
-            {tab.label}
-          </button>
-        ))}
+        <div className="flex overflow-x-auto hide-scrollbar">
+          {mainTabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center whitespace-nowrap px-4 sm:px-6 py-3 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === tab.id 
+                  ? 'border-[#0A66C2] text-[#0A66C2]' 
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              }`}
+            >
+              <span className="mr-2">{tab.icon}</span>
+              {tab.label}
+            </button>
+          ))}
+          
+          <div className="relative">
+            <button
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className={`flex items-center whitespace-nowrap px-4 sm:px-6 py-3 border-b-2 font-medium text-sm transition-colors ${
+                moreTabs.some(t => t.id === activeTab) 
+                  ? 'border-[#0A66C2] text-[#0A66C2]' 
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              }`}
+            >
+              <span className="mr-2"><MoreHorizontal size={18} /></span>
+              More
+              <ChevronDown size={14} className="ml-1" />
+            </button>
+
+            {dropdownOpen && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setDropdownOpen(false)}></div>
+                <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-slate-200 z-20 py-1">
+                  {moreTabs.map(tab => (
+                    <button
+                      key={tab.id}
+                      onClick={() => {
+                        setActiveTab(tab.id);
+                        setDropdownOpen(false);
+                      }}
+                      className={`w-full flex items-center px-4 py-2 text-sm ${
+                        activeTab === tab.id ? 'bg-blue-50 text-[#0A66C2] font-semibold' : 'text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span className="mr-2">{tab.icon}</span>
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="mt-6">

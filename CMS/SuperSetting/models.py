@@ -46,6 +46,7 @@ class SiteSetting(models.Model):
     twitter_url = models.URLField(max_length=500, null=True, blank=True)
     linkedin_url = models.URLField(max_length=500, null=True, blank=True)
     instagram_url = models.URLField(max_length=500, null=True, blank=True)
+    youtube_url = models.URLField(max_length=500, null=True, blank=True)
     navbar_logo = models.ImageField(upload_to='site_logos/', null=True, blank=True)
     top_announcements = models.TextField(blank=True, null=True, help_text="Enter announcements separated by new lines")
     updated_at = models.DateTimeField(auto_now=True)

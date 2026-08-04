@@ -14,6 +14,7 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
     twitter_url: '',
     linkedin_url: '',
     instagram_url: '',
+    youtube_url: '',
     navbar_logo: null,
     top_announcements: ''
   });
@@ -46,6 +47,7 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
         twitter_url: res.twitter_url || '',
         linkedin_url: res.linkedin_url || '',
         instagram_url: res.instagram_url || '',
+        youtube_url: res.youtube_url || '',
         navbar_logo: res.navbar_logo || null,
         top_announcements: res.top_announcements || ''
       });
@@ -315,6 +317,23 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
                   onChange={handleChange}
                   className={inputClass}
                   placeholder="https://instagram.com/trusterlabs"
+                />
+              </div>
+            </div>
+
+            <div className={rowClass}>
+              <label className="flex items-center gap-2 text-sm text-slate-600 min-w-[140px] shrink-0">
+                <div className="w-5 h-5 rounded bg-[#FF0000] text-white flex items-center justify-center font-bold text-[10px]">Yt</div>
+                YouTube URL
+              </label>
+              <div className="flex-1">
+                <input
+                  type="url"
+                  name="youtube_url"
+                  value={formData.youtube_url || ''}
+                  onChange={handleChange}
+                  className={inputClass}
+                  placeholder="https://youtube.com/c/trusterlabs"
                 />
               </div>
             </div>
