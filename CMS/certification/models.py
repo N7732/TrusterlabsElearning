@@ -19,7 +19,14 @@ class Certificate(models.Model):
     class Meta:
         ordering = ['-created_at']
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._original_is_issued = self.is_issued
+
     def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        became_issued = (is_new and self.is_issued) or (not is_new and self.is_issued and not getattr(self, '_original_is_issued', False))
+
         if not self.certificate_id:
             year = timezone.now().year
             while True:
@@ -29,6 +36,44 @@ class Certificate(models.Model):
                     self.certificate_id = new_id
                     break
         super().save(*args, **kwargs)
+
+        if became_issued:
+            try:
+                from Auth.views import render_email_template, send_email_async
+                from django.core.mail import EmailMultiAlternatives
+                from django.conf import settings
+                from django.utils.html import strip_tags
+                import os
+                
+                learner_name = self.learner.user.get_full_name() or self.learner.user.username
+                program_title = self.course.title if self.course else (self.training.title if self.training else 'Program')
+                
+                frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173').rstrip('/')
+                
+                context = {
+                    'learner': self.learner,
+                    'name': learner_name,
+                    'program_title': program_title,
+                    'certificate': self,
+                    'frontend_url': frontend_url
+                }
+                
+                html_message, dynamic_subject = render_email_template('emails/certificate_email.html', context)
+                text_content = strip_tags(html_message)
+                
+                email_message = EmailMultiAlternatives(
+                    subject=dynamic_subject or f"Your Certificate for {program_title}",
+                    body=text_content,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    to=[self.learner.user.email],
+                )
+                email_message.attach_alternative(html_message, "text/html")
+                send_email_async(email_message)
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).error(f"Failed to send certificate email: {e}")
+
+        self._original_is_issued = self.is_issued
 
     def __str__(self):
         if self.course:
