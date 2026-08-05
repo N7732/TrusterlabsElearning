@@ -9,7 +9,7 @@ class PBKDF2SHA512PasswordHasher(PBKDF2PasswordHasher):
     """
     algorithm = "pbkdf2_sha512"
     digest = hashlib.sha512
-    iterations = 720000
+    iterations = 100000
 
 
 class DirectSHA512PasswordHasher(BasePasswordHasher):

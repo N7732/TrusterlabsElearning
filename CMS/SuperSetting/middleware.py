@@ -49,12 +49,18 @@ class AuditLogMiddleware:
             try:
                 # Only log successful or client error operations, skip 500s 
                 if response.status_code < 500:
-                    SystemLog.objects.create(
-                        user=user,
-                        action=action_name,
-                        details=f"Method: {method}, Path: {path}, Status: {response.status_code}",
-                        ip_address=ip
-                    )
+                    import threading
+                    def record_audit():
+                        try:
+                            SystemLog.objects.create(
+                                user=user,
+                                action=action_name,
+                                details=f"Method: {method}, Path: {path}, Status: {response.status_code}",
+                                ip_address=ip
+                            )
+                        except Exception:
+                            pass
+                    threading.Thread(target=record_audit, daemon=True).start()
             except Exception as e:
                 pass
 
@@ -98,17 +104,22 @@ class VisitorTrackingMiddleware:
             if ip:
                 try:
                     # Redis/Memcached gating: check cache before performing database query on every GET hit
+                    import threading
                     from django.core.cache import cache
                     cache_key = f"visitor_track_{ip}_{request.path}_{today}"
                     if not cache.get(cache_key):
-                        SiteVisitor.objects.get_or_create(
-                            ip_address=ip,
-                            visited_date=today,
-                            path=request.path,
-                            defaults={'user_agent': user_agent}
-                        )
-                        # Cache for 24 hours (86400 seconds) to prevent repetitive database lookups today!
-                        cache.set(cache_key, '1', timeout=86400)
+                        def record_visitor():
+                            try:
+                                SiteVisitor.objects.get_or_create(
+                                    ip_address=ip,
+                                    visited_date=today,
+                                    path=request.path,
+                                    defaults={'user_agent': user_agent}
+                                )
+                                cache.set(cache_key, '1', timeout=86400)
+                            except Exception:
+                                pass
+                        threading.Thread(target=record_visitor, daemon=True).start()
                 except Exception:
                     pass
 
