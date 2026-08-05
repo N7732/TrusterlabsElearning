@@ -2,6 +2,7 @@ from django.db import models
 from Course.models import Course, Quizes
 from Auth.models import User
 from cloudinary_storage.storage import RawMediaCloudinaryStorage
+from CMS.security_utils import compute_file_sha256
 
 raw_storage = RawMediaCloudinaryStorage()
 
@@ -26,9 +27,14 @@ class Training(models.Model):
     certificate_program_title = models.CharField(max_length=200, blank=True, null=True, help_text="e.g., 'SSL/TLS: Securing Communication on the Internet'")
     certificate_description = models.TextField(blank=True, null=True, help_text="e.g., 'This workshop covered SSL/TLS fundamentals...'")
 
+    class Meta:
+        ordering = ['-date_created']
+        indexes = [
+            models.Index(fields=['instructor', '-date_created']),
+        ]
+
     def __str__(self):
         return self.title
-
 
 
 class TrainingCourses(models.Model):
@@ -40,10 +46,7 @@ class TrainingCourses(models.Model):
 
 
 class TrainingParticipants(models.Model):
-
-
     STATUS_CHOICES = (
-
         ('PENDING', 'Pending'),
         ('ADMITTED', 'Admitted'),
         ('COMPLETED', 'Completed'),
@@ -56,6 +59,15 @@ class TrainingParticipants(models.Model):
     application_email = models.EmailField(blank=True, null=True)
     admission_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
     date_applied = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date_applied']
+        indexes = [
+            models.Index(fields=['training', 'admission_status']),
+            models.Index(fields=['participant', 'admission_status']),
+            models.Index(fields=['admission_status', '-date_applied']),
+        ]
+
     def __str__(self):
         name = self.application_full_name or self.participant.get_full_name()
         return f"{name} - {self.admission_status}"
@@ -68,6 +80,12 @@ class TrainingClasswork(models.Model):
     due_date = models.DateField()
     classwork_file = models.FileField(upload_to='classwork_files/', storage=raw_storage, null=True, blank=True)
     linked_quiz = models.ForeignKey(Quizes, on_delete=models.SET_NULL, null=True, blank=True, related_name='linked_training_classworks')
+    sha256_hash = models.CharField(max_length=64, blank=True, null=True, help_text="SHA-256 cryptographic file integrity checksum")
+
+    def save(self, *args, **kwargs):
+        if self.classwork_file and not self.sha256_hash:
+            self.sha256_hash = compute_file_sha256(self.classwork_file)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
@@ -79,6 +97,12 @@ class TrainingClassworkSubmission(models.Model):
     submission_file = models.FileField(upload_to='classwork_submissions/', storage=raw_storage, null=True, blank=True)
     score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     submission_date = models.DateTimeField(auto_now_add=True)
+    sha256_hash = models.CharField(max_length=64, blank=True, null=True, help_text="SHA-256 cryptographic file integrity checksum")
+
+    def save(self, *args, **kwargs):
+        if self.submission_file and not self.sha256_hash:
+            self.sha256_hash = compute_file_sha256(self.submission_file)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.participant.get_full_name()} - {self.classwork.title}"
@@ -92,6 +116,12 @@ class TrainingFinalExam(models.Model):
     exam_time = models.TimeField(null=True, blank=True)
     exam_file = models.FileField(upload_to='exam_files/', storage=raw_storage, null=True, blank=True)
     linked_exam = models.ForeignKey(Quizes, on_delete=models.SET_NULL, null=True, blank=True, related_name='linked_training_exams')
+    sha256_hash = models.CharField(max_length=64, blank=True, null=True, help_text="SHA-256 cryptographic file integrity checksum")
+
+    def save(self, *args, **kwargs):
+        if self.exam_file and not self.sha256_hash:
+            self.sha256_hash = compute_file_sha256(self.exam_file)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
@@ -109,20 +139,23 @@ class TrainingFinalExamSubmission(models.Model):
     score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     feedback = models.TextField(null=True, blank=True)
     submission_date = models.DateTimeField(auto_now_add=True)
+    sha256_hash = models.CharField(max_length=64, blank=True, null=True, help_text="SHA-256 cryptographic file integrity checksum")
+
+    def save(self, *args, **kwargs):
+        if self.submission_file and not self.sha256_hash:
+            self.sha256_hash = compute_file_sha256(self.submission_file)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.participant.get_full_name()} - {self.exam.title}"
 
 
-
 class CustomTrainingRequest(models.Model):
-
     STATUS_CHOICES = (
         ('PENDING', 'Pending'),
         ('REVIEWED', 'Reviewed'),
         ('APPROVED', 'Approved'),
         ('REJECTED', 'Rejected'),
-
     )
 
     TRAINING_TYPE_CHOICES = (
@@ -142,7 +175,6 @@ class CustomTrainingRequest(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-
         return f"{self.full_name} - {self.training_type} ({self.status})"
 
 

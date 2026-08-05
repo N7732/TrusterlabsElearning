@@ -20,12 +20,16 @@ const CourseCatalog = () => {
   
   const error = queryError ? 'Failed to load courses. Make sure the backend server is running.' : null;
   
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const categories = ['All', 'Cybersecurity', 'Networking', 'Programming', 'Cloud Computing', 'AI & Data Science'];
+
   const filteredCourses = courses.filter(course => {
     const safeSearchTerm = (searchTerm || '').toLowerCase();
     const titleMatch = (course.title || '').toLowerCase().includes(safeSearchTerm);
     const instructorName = course.instructor_name || course.instructor?.name || '';
     const instructorMatch = instructorName.toLowerCase().includes(safeSearchTerm);
-    return titleMatch || instructorMatch;
+    const categoryMatch = selectedCategory === 'All' || (course.category || 'Cybersecurity') === selectedCategory;
+    return (titleMatch || instructorMatch) && categoryMatch;
   });
 
   const displayCourses = filteredCourses;
@@ -72,6 +76,26 @@ const CourseCatalog = () => {
           </div>
         </div>
 
+        {/* Category Filtering Tabs */}
+        <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-10 overflow-x-auto pb-2">
+          {categories.map((cat) => {
+            const active = selectedCategory === cat;
+            return (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold tracking-wider uppercase transition-all duration-300 transform active:scale-95 whitespace-nowrap border ${
+                  active
+                    ? 'bg-[#D4AF37] text-black border-[#D4AF37] shadow-[0_0_20px_rgba(212,175,55,0.4)] scale-105'
+                    : 'bg-[#111827] text-gray-400 border-white/10 hover:border-[#D4AF37]/50 hover:text-white'
+                }`}
+              >
+                {cat === 'All' ? 'All Courses' : cat}
+              </button>
+            );
+          })}
+        </div>
+
         {error && (
           <div className="bg-red-500/10 text-red-400 p-4 rounded-lg border border-red-500/20 mb-8 text-sm">
             {error}
@@ -116,9 +140,14 @@ const CourseCatalog = () => {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#111827] via-transparent to-transparent opacity-80"></div>
                     
-                    {/* Badge */}
-                    <div className="absolute top-4 left-4 bg-[#D4AF37] text-black text-[10px] font-bold px-3 py-1 uppercase tracking-wider rounded-full shadow-lg">
-                      {course.level || 'BEGINNER'}
+                    {/* Badges */}
+                    <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
+                      <div className="bg-[#111827]/90 text-[#D4AF37] border border-[#D4AF37]/40 text-[10px] font-extrabold px-3 py-1 uppercase tracking-wider rounded-full backdrop-blur-md shadow-lg">
+                        {course.category || 'Cybersecurity'}
+                      </div>
+                      <div className="bg-[#D4AF37] text-black text-[10px] font-bold px-3 py-1 uppercase tracking-wider rounded-full shadow-lg">
+                        {course.difficulty || course.level || 'BEGINNER'}
+                      </div>
                     </div>
 
 

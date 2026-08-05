@@ -6,10 +6,11 @@ from .serializers import ResearchPublicationSerializer, WebinarSerializer, Webin
 from Membership.models import Membership
 from Auth.views import send_webinar_registration_email
 import logging
+from SuperSetting.caching import CachedModelViewSetMixin
 
 logger = logging.getLogger(__name__)
 
-class ResearchPublicationViewSet(viewsets.ModelViewSet):
+class ResearchPublicationViewSet(CachedModelViewSetMixin, viewsets.ModelViewSet):
     queryset = ResearchPublication.objects.all().order_by('-publication_date')
     serializer_class = ResearchPublicationSerializer
 
@@ -18,7 +19,7 @@ class ResearchPublicationViewSet(viewsets.ModelViewSet):
             return [AllowAny()]
         return [IsAdminUser()]
 
-class WebinarViewSet(viewsets.ModelViewSet):
+class WebinarViewSet(CachedModelViewSetMixin, viewsets.ModelViewSet):
     queryset = Webinar.objects.all().order_by('date_time')
     serializer_class = WebinarSerializer
 

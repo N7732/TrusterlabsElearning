@@ -31,6 +31,12 @@ class SystemLog(models.Model):
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['-created_at', 'user']),
+        ]
+
     def __str__(self):
         return f"{self.action} by {self.user if self.user else 'System'}"
 
@@ -79,6 +85,9 @@ class Notification(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['is_read', '-created_at']),
+        ]
 
     def __str__(self):
         return f"{self.title} - {self.notification_type}"
@@ -119,6 +128,10 @@ class SiteVisitor(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['ip_address', 'visited_date', 'path']),
+            models.Index(fields=['-created_at']),
+        ]
 
     def __str__(self):
         return f"{self.ip_address} - {self.path} - {self.visited_date}"

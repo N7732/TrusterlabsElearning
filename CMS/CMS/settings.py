@@ -82,6 +82,7 @@ INSTALLED_APPS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'SuperSetting.authentication.CachedJWTAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
@@ -170,6 +171,40 @@ else:
         }
     }
 
+# --- REDIS & MEMCACHED CACHING ENGINE ---
+REDIS_URL = os.getenv('REDIS_URL') or os.getenv('REDIS_HOST')
+MEMCACHED_URL = os.getenv('MEMCACHED_URL') or os.getenv('MEMCACHED_LOCATION')
+
+if REDIS_URL:
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": REDIS_URL if "redis://" in str(REDIS_URL) else f"redis://{REDIS_URL}:6379/0",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "IGNORE_EXCEPTIONS": True, # Fallback gracefully if Redis connects intermittently
+            },
+            "KEY_PREFIX": "truster_cache_"
+        }
+    }
+elif MEMCACHED_URL:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
+            'LOCATION': MEMCACHED_URL,
+            'KEY_PREFIX': 'truster_cache_'
+        }
+    }
+else:
+    # High-speed local memory cache fallback for zero-config dev environments
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'truster-unique-snowflake',
+            'KEY_PREFIX': 'truster_cache_'
+        }
+    }
+
 # --- SECURITY & AUDIT SETTINGS ---
 
 # django-axes (Brute Force Protection)
@@ -196,6 +231,17 @@ STORAGES = {
         }
     }
 }
+
+# --- HARDENED PASSWORD HASHERS (SHA-512) ---
+# PBKDF2 with SHA-512 is set at index 0 so Django automatically upgrades legacy SHA-256/PBKDF2 hashes on login!
+PASSWORD_HASHERS = [
+    'Auth.hashers.PBKDF2SHA512PasswordHasher',
+    'Auth.hashers.DirectSHA512PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+]
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -239,6 +285,10 @@ if static_dir.exists():
     STATICFILES_DIRS = [static_dir]
 else:
     STATICFILES_DIRS = []
+
+# WhiteNoise HTTP browser caching configuration for static files
+WHITENOISE_MAX_AGE = 31536000  # 1 year (31,536,000 seconds) browser caching for logos, styles & scripts
+WHITENOISE_ALLOW_ALL_ORIGINS = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'Auth.User'  # Custom user model

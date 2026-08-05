@@ -97,11 +97,11 @@ const CertificateView = () => {
 
   const learnerName = certificate.learner_name || 'Learner';
   
-  // Extract Details object (either Course or Training)
-  const details = certificate.course_details || certificate.training_details || {};
+  // Extract Details object (prioritization: Training before Course)
+  const details = certificate.training_details || certificate.course_details || {};
   
-  const customDuration = details.certificate_duration || (certificate.course_details && details.duration_days ? details.duration_days + ' Days' : '');
-  const customCourseName = details.certificate_type_text || (certificate.course_details ? 'Course' : 'Training');
+  const customDuration = details.certificate_duration || (certificate.training_details && details.duration_days ? details.duration_days + ' Days' : (certificate.course_details && details.duration_days ? details.duration_days + ' Days' : ''));
+  const customCourseName = details.certificate_type_text || (certificate.training_details ? 'Training' : 'Course');
   const programTitle = details.certificate_program_title || details.title || certificate.program_title || 'Program Completion';
   const customDescription = details.certificate_description || details.description || '';
 

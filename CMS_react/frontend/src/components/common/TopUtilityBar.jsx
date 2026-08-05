@@ -1,27 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Phone, Mail, Clock } from 'lucide-react';
 import { apiClient } from '../../api/apiClient';
+import useSWR from 'swr';
 
 const TopUtilityBar = () => {
-  const [settings, setSettings] = useState(null);
+  const { data: rawSettings } = useSWR('/settings/site-settings/', {
+    dedupingInterval: 60000,
+    keepPreviousData: true,
+  });
 
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const data = await apiClient.get('/settings/site-settings/');
-        if (data && !data.results && !Array.isArray(data)) {
-          setSettings(data);
-        } else if (data.results && data.results.length > 0) {
-          setSettings(data.results[0]);
-        } else if (Array.isArray(data) && data.length > 0) {
-          setSettings(data[0]);
-        }
-      } catch (err) {
-        console.error('Failed to fetch site settings:', err);
-      }
-    };
-    fetchSettings();
-  }, []);
+  const settings = React.useMemo(() => {
+    if (!rawSettings) return null;
+    if (!rawSettings.results && !Array.isArray(rawSettings)) {
+      return rawSettings;
+    } else if (rawSettings.results && rawSettings.results.length > 0) {
+      return rawSettings.results[0];
+    } else if (Array.isArray(rawSettings) && rawSettings.length > 0) {
+      return rawSettings[0];
+    }
+    return null;
+  }, [rawSettings]);
 
   return (
     <div className="bg-[#071321]/90 backdrop-blur-md h-[40px] border-b border-white/10 relative overflow-hidden flex items-center font-['Work_Sans',sans-serif] shadow-[0_0_15px_rgba(59,130,246,0.2)]">

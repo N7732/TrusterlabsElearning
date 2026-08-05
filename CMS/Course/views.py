@@ -31,22 +31,27 @@ from django.urls import reverse_lazy
 from datetime import timedelta
 from django.utils import timezone
 from .form import CourseForm, ModuleForm, LessonForm, QuizesForm, QuizQuestionForm
+from SuperSetting.caching import CachedModelViewSetMixin
 
 User = get_user_model()
 
-class CourseViewSet(viewsets.ModelViewSet):
+class CourseViewSet(CachedModelViewSetMixin, viewsets.ModelViewSet):
     """
     API ViewSet for viewing, creating, updating, and deleting Course instances.
     Provides custom querysets based on user type (instructor, admin, learner) and 
     includes a bulk upload action for creating multiple courses at once.
     """
-    queryset = Course.objects.all()
+    queryset = Course.objects.select_related('instructor__user').prefetch_related('modules__lessons')
     serializer_class = CourseSerializer
     
     def get_queryset(self):
         user = self.request.user
         
-        base_qs = Course.objects.select_related('instructor')
+        base_qs = Course.objects.select_related('instructor__user').prefetch_related('modules__lessons')
+        
+        category = self.request.query_params.get('category')
+        if category and category.lower() != 'all':
+            base_qs = base_qs.filter(category__iexact=category)
 
         if user.is_authenticated and user.user_type == 'instructor' and self.request.query_params.get('my_courses') == 'true':
             return base_qs.filter(instructor=user.instructor_profile)
@@ -258,7 +263,7 @@ def check_course_subentity_permission(user, course, action):
         raise PermissionDenied("Only instructors or admins can modify course contents.")
 
 class ModuleViewSet(viewsets.ModelViewSet):
-    queryset = Module.objects.all()
+    queryset = Module.objects.select_related('course').prefetch_related('lessons')
     serializer_class = ModuleSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
@@ -358,7 +363,7 @@ def check_and_update_course_completion(learner, course):
 
 
 class LessonViewSet(viewsets.ModelViewSet):
-    queryset = Lesson.objects.all()
+    queryset = Lesson.objects.select_related('module__course')
     serializer_class = LessonSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
@@ -404,7 +409,7 @@ class LessonViewSet(viewsets.ModelViewSet):
         return Response({'detail': 'Lesson marked as complete.', 'course_completed': course_completed}, status=status.HTTP_200_OK)
 
 class QuizesViewSet(viewsets.ModelViewSet):
-    queryset = Quizes.objects.all()
+    queryset = Quizes.objects.select_related('course', 'module__course', 'lesson__module__course').prefetch_related('questions')
     serializer_class = QuizesSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
@@ -591,7 +596,7 @@ class QuizesViewSet(viewsets.ModelViewSet):
         })
 
 class QuizQuestionViewSet(viewsets.ModelViewSet):
-    queryset = QuizQuestion.objects.all()
+    queryset = QuizQuestion.objects.select_related('quiz__course', 'quiz__module', 'quiz__lesson')
     serializer_class = QuizQuestionSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
@@ -625,7 +630,7 @@ class QuizQuestionViewSet(viewsets.ModelViewSet):
 
 
 class CourseResourceViewSet(viewsets.ModelViewSet):
-    queryset = CourseResource.objects.all()
+    queryset = CourseResource.objects.select_related('course', 'module', 'lesson')
     serializer_class = CourseResourceSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
@@ -654,14 +659,14 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
         user = self.request.user
         
         if user.user_type == 'instructor' and self.request.query_params.get('my_enrollments') == 'true':
-            return Enrollment.objects.filter(course__instructor=user.instructor_profile).select_related('course', 'learner__user')
+            return Enrollment.objects.filter(course__instructor=user.instructor_profile).select_related('course__instructor__user', 'learner__user')
             
         if user.user_type == 'admin' or user.is_superuser:
-            return Enrollment.objects.all().select_related('course', 'learner__user')
+            return Enrollment.objects.all().select_related('course__instructor__user', 'learner__user')
             
         learner = getattr(user, 'learner_profile', None)
         if learner:
-            return Enrollment.objects.filter(learner=learner).select_related('course', 'learner__user')
+            return Enrollment.objects.filter(learner=learner).select_related('course__instructor__user', 'learner__user')
         return Enrollment.objects.none()
 
     @action(detail=True, methods=['post'])

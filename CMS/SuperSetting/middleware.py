@@ -14,8 +14,8 @@ class AuditLogMiddleware:
             auth_header = request.META.get('HTTP_AUTHORIZATION', '')
             if auth_header.startswith('Bearer '):
                 try:
-                    from rest_framework_simplejwt.authentication import JWTAuthentication
-                    jwt_auth = JWTAuthentication()
+                    from .authentication import CachedJWTAuthentication
+                    jwt_auth = CachedJWTAuthentication()
                     validated_token = jwt_auth.get_validated_token(auth_header.split(' ')[1])
                     user = jwt_auth.get_user(validated_token)
                 except Exception:
@@ -97,13 +97,18 @@ class VisitorTrackingMiddleware:
             
             if ip:
                 try:
-                    # Log unique visit per IP per path per day
-                    SiteVisitor.objects.get_or_create(
-                        ip_address=ip,
-                        visited_date=today,
-                        path=request.path,
-                        defaults={'user_agent': user_agent}
-                    )
+                    # Redis/Memcached gating: check cache before performing database query on every GET hit
+                    from django.core.cache import cache
+                    cache_key = f"visitor_track_{ip}_{request.path}_{today}"
+                    if not cache.get(cache_key):
+                        SiteVisitor.objects.get_or_create(
+                            ip_address=ip,
+                            visited_date=today,
+                            path=request.path,
+                            defaults={'user_agent': user_agent}
+                        )
+                        # Cache for 24 hours (86400 seconds) to prevent repetitive database lookups today!
+                        cache.set(cache_key, '1', timeout=86400)
                 except Exception:
                     pass
 

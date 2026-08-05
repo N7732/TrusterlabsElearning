@@ -3,6 +3,14 @@ from django.db import models
 from django.utils.text import slugify
 
 class Course(models.Model):
+    Category_Choices = [
+        ('Cybersecurity', 'Cybersecurity'),
+        ('Networking', 'Networking'),
+        ('Programming', 'Programming'),
+        ('Cloud Computing', 'Cloud Computing'),
+        ('AI & Data Science', 'AI & Data Science'),
+        ('Other', 'Other'),
+    ]
     Difficulty_Choices = [
         ('Beginner', 'Beginner'),
         ('Intermediate', 'Intermediate'),
@@ -17,6 +25,7 @@ class Course(models.Model):
     slug = models.SlugField(max_length=150,unique=True, blank=True)
     description = models.TextField()
     course_status = models.CharField(max_length=40,choices=Course_Status_choice, default="draft")
+    category = models.CharField(max_length=50, choices=Category_Choices, default='Cybersecurity', db_index=True)
     is_locked = models.BooleanField(default=False, help_text="If true, the course content is locked and cannot be accessed by learners.")
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -53,6 +62,11 @@ class Course(models.Model):
         ordering = ['-created_at']
         verbose_name = 'Course'
         verbose_name_plural = 'Courses'
+        indexes = [
+            models.Index(fields=['course_status', '-created_at']),
+            models.Index(fields=['instructor', 'course_status']),
+            models.Index(fields=['category', 'course_status']),
+        ]
 
     def __str__(self):
         return f"{self.title} {self.difficulty}"
@@ -292,6 +306,12 @@ class QuizSubmission(models.Model):
         ordering = ['-submitted_at']
         verbose_name = "Quiz Submission"
         verbose_name_plural = "Quiz Submissions"
+        indexes = [
+            models.Index(fields=['learner', 'quiz']),
+            models.Index(fields=['-submitted_at']),
+            models.Index(fields=['training_classwork']),
+            models.Index(fields=['training_exam']),
+        ]
 
     def __str__(self):
         return f"{self.learner} - {self.quiz.title} - Score: {self.score}/{self.total_marks}"
@@ -316,6 +336,11 @@ class Enrollment(models.Model):
         ordering = ['-enrolled_at']
         verbose_name = 'Enrollment'
         verbose_name_plural ='Enrollments'
+        indexes = [
+            models.Index(fields=['learner', 'status']),
+            models.Index(fields=['course', 'status']),
+            models.Index(fields=['-enrolled_at']),
+        ]
 
     def __str__(self):
         return f"{self.course.title}"
@@ -331,6 +356,10 @@ class LessonProgress(models.Model):
         unique_together = ('learner', 'lesson')
         verbose_name = "Lesson Progress"
         verbose_name_plural = "Lesson Progress"
+        indexes = [
+            models.Index(fields=['learner', 'is_completed']),
+            models.Index(fields=['lesson', 'is_completed']),
+        ]
 
     def __str__(self):
         return f"{self.learner} - {self.lesson} - {'Completed' if self.is_completed else 'In Progress'}"

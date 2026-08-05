@@ -15,8 +15,14 @@ class User(AbstractUser):
         ('instructor', 'Instructor'),
         ('admin', 'Admin'),
     )
-    user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES)
+    user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES, db_index=True)
     email = models.EmailField(unique=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['user_type', 'is_active']),
+            models.Index(fields=['date_joined']),
+        ]
 
     @property
     def is_learner(self):
@@ -49,6 +55,9 @@ class Learner(models.Model):
         verbose_name = "Learner"
         verbose_name_plural = "Learners"
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['-created_at']),
+        ]
     
     
 class Instructor(models.Model):
@@ -89,6 +98,10 @@ class Instructor(models.Model):
         verbose_name = "Instructor"
         verbose_name_plural = "Instructors"
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['-created_at']),
+            models.Index(fields=['is_approved']),
+        ]
 
 class AccountProfile(models.Model):
     """

@@ -7,6 +7,7 @@ import {
 import NotificationDropdown from '../components/NotificationDropdown';
 import logoImg from '../assets/image2.jpeg';
 import { useAuth } from '../context/AuthContext';
+import SmartLink from '../components/common/SmartLink';
 
 const InstructorLayout = () => {
   const location = useLocation();
@@ -22,21 +23,21 @@ const InstructorLayout = () => {
   };
 
   const courseManagementItems = [
-    { path: '/instructor/entity/courses', label: 'Courses', icon: <BookOpen size={18} /> },
-    { path: '/instructor/entity/modules', label: 'Modules', icon: <Layers size={18} /> },
-    { path: '/instructor/entity/lessons', label: 'Lessons', icon: <List size={18} /> },
-    { path: '/instructor/entity/quizzes', label: 'Quizzes', icon: <HelpCircle size={18} /> },
-    { path: '/instructor/entity/quiz_questions', label: 'Quiz Questions', icon: <HelpCircle size={18} /> },
+    { path: '/instructor/entity/courses', label: 'Courses', icon: <BookOpen size={18} />, prefetchApi: '/courses/courses/' },
+    { path: '/instructor/entity/modules', label: 'Modules', icon: <Layers size={18} />, prefetchApi: '/courses/modules/' },
+    { path: '/instructor/entity/lessons', label: 'Lessons', icon: <List size={18} />, prefetchApi: '/courses/lessons/' },
+    { path: '/instructor/entity/quizzes', label: 'Quizzes', icon: <HelpCircle size={18} />, prefetchApi: '/courses/quizzes/' },
+    { path: '/instructor/entity/quiz_questions', label: 'Quiz Questions', icon: <HelpCircle size={18} />, prefetchApi: '/courses/quiz-questions/' },
   ];
 
   const trainingItems = [
-    { path: '/instructor/entity/trainings', label: 'Trainings', icon: <Calendar size={18} /> },
-    { path: '/instructor/entity/classwork', label: 'Classwork', icon: <FileText size={18} /> },
-    { path: '/instructor/entity/exams', label: 'Exams', icon: <HelpCircle size={18} /> },
+    { path: '/instructor/entity/trainings', label: 'Trainings', icon: <Calendar size={18} />, prefetchApi: '/trainings/trainings/' },
+    { path: '/instructor/entity/classwork', label: 'Classwork', icon: <FileText size={18} />, prefetchApi: '/trainings/classwork/' },
+    { path: '/instructor/entity/exams', label: 'Exams', icon: <HelpCircle size={18} />, prefetchApi: '/trainings/final_exams/' },
   ];
 
   const enrollmentItems = [
-    { path: '/instructor/entity/enrollments', label: 'Learners', icon: <Users size={18} /> },
+    { path: '/instructor/entity/enrollments', label: 'Learners', icon: <Users size={18} />, prefetchApi: '/courses/enrollments/' },
     { path: '/instructor/entity/reuse_requests', label: 'Reuse Requests', icon: <Layers size={18} /> },
   ];
 
@@ -77,8 +78,9 @@ const InstructorLayout = () => {
           
           {/* Standalone Dashboard Link */}
           <div className="px-4 mb-6">
-            <Link
+            <SmartLink
               to="/instructor"
+              prefetchApi="/stats/instructor-dashboard/"
               onClick={() => setIsMobileMenuOpen(false)}
               className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
                 location.pathname === '/instructor' 
@@ -88,7 +90,7 @@ const InstructorLayout = () => {
             >
               <span className={`mr-4 ${location.pathname === '/instructor' ? 'text-white' : ''}`}><LayoutDashboard size={18} /></span>
               <span className="text-[14px]">Dashboard</span>
-            </Link>
+            </SmartLink>
           </div>
 
           <div className="mb-4">
@@ -104,9 +106,10 @@ const InstructorLayout = () => {
                 {courseManagementItems.map((item) => {
                   const isActive = location.pathname.startsWith(item.path);
                   return (
-                    <Link
+                    <SmartLink
                       key={item.path}
                       to={item.path}
+                      prefetchApi={item.prefetchApi}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
                         isActive 
@@ -116,7 +119,7 @@ const InstructorLayout = () => {
                     >
                       <span className={`mr-4 ${isActive ? 'text-[#3182ce]' : ''}`}>{item.icon}</span>
                       <span className="text-[14px]">{item.label}</span>
-                    </Link>
+                    </SmartLink>
                   );
                 })}
               </nav>
@@ -136,9 +139,10 @@ const InstructorLayout = () => {
                 {trainingItems.map((item) => {
                   const isActive = location.pathname.startsWith(item.path);
                   return (
-                    <Link
+                    <SmartLink
                       key={item.path}
                       to={item.path}
+                      prefetchApi={item.prefetchApi}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
                         isActive 
@@ -148,7 +152,7 @@ const InstructorLayout = () => {
                     >
                       <span className={`mr-4 ${isActive ? 'text-[#3182ce]' : ''}`}>{item.icon}</span>
                       <span className="text-[14px]">{item.label}</span>
-                    </Link>
+                    </SmartLink>
                   );
                 })}
               </nav>
@@ -163,9 +167,10 @@ const InstructorLayout = () => {
               {enrollmentItems.map((item) => {
                 const isActive = location.pathname.startsWith(item.path);
                 return (
-                  <Link
+                  <SmartLink
                     key={item.path}
                     to={item.path}
+                    prefetchApi={item.prefetchApi}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
                       isActive 
@@ -175,7 +180,7 @@ const InstructorLayout = () => {
                   >
                     <span className={`mr-4 ${isActive ? 'text-[#3182ce]' : ''}`}>{item.icon}</span>
                     <span className="text-[14px]">{item.label}</span>
-                  </Link>
+                  </SmartLink>
                 );
               })}
             </nav>

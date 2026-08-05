@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { apiClient } from '../../api/apiClient';
 import { ChevronRight, ArrowLeft } from 'lucide-react';
+import useSWR, { mutate } from 'swr';
 
 const MatchingInteraction = ({ question, quizAnswers, setQuizAnswers }) => {
   const [shuffledRights, setShuffledRights] = useState([]);
@@ -157,70 +158,84 @@ const TakeQuiz = () => {
   const trainingClassworkId = searchParams.get('training_classwork');
   const trainingExamId = searchParams.get('training_exam');
   
-  const [quiz, setQuiz] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [quizAnswers, setQuizAnswers] = useState({});
-  const [quizResult, setQuizResult] = useState(null);
   const [submittingQuiz, setSubmittingQuiz] = useState(false);
+  const [localResult, setLocalResult] = useState(null);
+  const [error, setError] = useState(null);
   
-  useEffect(() => {
-    const fetchQuizAndSubmission = async () => {
-      try {
-        setLoading(true);
-        // Fetch Quiz Questions
-        const qRes = await apiClient.get(`/api/quizes/${quizId}/`);
-        setQuiz(qRes);
-        
-        // Fetch Previous Submission in this Training Context
-        let url = `/api/quizes/${quizId}/my_submission/`;
-        const queryParams = new URLSearchParams();
-        if (trainingClassworkId) queryParams.append('training_classwork', trainingClassworkId);
-        if (trainingExamId) queryParams.append('training_exam', trainingExamId);
-        if (queryParams.toString()) url += `?${queryParams.toString()}`;
-        
-        try {
-          const subRes = await apiClient.get(url);
-          if (subRes && subRes.score !== undefined) {
-             setQuizResult(subRes);
-             if (subRes.answers_data) {
-                setQuizAnswers(subRes.answers_data);
-             }
-          }
-        } catch (err) {
-          // 404 is fine, means no submission yet
-        }
-        setLoading(false);
-      } catch (err) {
-        setError("Failed to load the quiz. It may not exist or you do not have permission.");
-        setLoading(false);
-      }
-    };
-    if (quizId) {
-      fetchQuizAndSubmission();
-    }
+  // SWR: Instant loading from cache while revalidating
+  const { data: quiz, error: quizError, isLoading: loadingQuiz } = useSWR(
+    quizId ? `/api/quizes/${quizId}/` : null,
+    { revalidateOnFocus: false, keepPreviousData: true }
+  );
+
+  const submissionUrl = React.useMemo(() => {
+    if (!quizId) return null;
+    let url = `/api/quizes/${quizId}/my_submission/`;
+    const queryParams = new URLSearchParams();
+    if (trainingClassworkId) queryParams.append('training_classwork', trainingClassworkId);
+    if (trainingExamId) queryParams.append('training_exam', trainingExamId);
+    if (queryParams.toString()) url += `?${queryParams.toString()}`;
+    return url;
   }, [quizId, trainingClassworkId, trainingExamId]);
+
+  const { data: quizResultData } = useSWR(
+    submissionUrl,
+    async (url) => {
+      try {
+        const res = await apiClient.get(url);
+        return (res && res.score !== undefined) ? res : null;
+      } catch (err) {
+        return null;
+      }
+    },
+    { revalidateOnFocus: true }
+  );
+
+  const quizResult = localResult || quizResultData;
+
+  useEffect(() => {
+    if (quizResultData && quizResultData.answers_data) {
+      setQuizAnswers(quizResultData.answers_data);
+    }
+  }, [quizResultData]);
 
   const handleSubmitQuiz = async () => {
     try {
       setSubmittingQuiz(true);
+      setError(null);
       let url = `/api/quizes/${quizId}/submit_quiz/`;
       const queryParams = new URLSearchParams();
       if (trainingClassworkId) queryParams.append('training_classwork', trainingClassworkId);
       if (trainingExamId) queryParams.append('training_exam', trainingExamId);
       if (queryParams.toString()) url += `?${queryParams.toString()}`;
 
+      // Optimistic UI update before network confirmation
+      const totalMarks = quiz?.questions?.reduce((sum, q) => sum + (q.marks || 1), 0) || 10;
+      const optimisticResult = {
+        score: "...",
+        total_marks: totalMarks,
+        passed: true,
+        percentage: 100,
+        optimistic: true
+      };
+      setLocalResult(optimisticResult);
+      if (submissionUrl) mutate(submissionUrl, optimisticResult, false);
+
       const res = await apiClient.post(url, { answers: quizAnswers });
-      setQuizResult(res);
+      setLocalResult(res);
+      if (submissionUrl) mutate(submissionUrl, res, false);
       setSubmittingQuiz(false);
     } catch (err) {
+      setLocalResult(null);
+      if (submissionUrl) mutate(submissionUrl);
       setError(err.response?.data?.error || "Failed to submit quiz.");
       setSubmittingQuiz(false);
     }
   };
 
-  if (loading) return <div className="p-8 text-center">Loading quiz...</div>;
-  if (error) return <div className="p-8 text-center text-red-500">{error}</div>;
+  if (loadingQuiz && !quiz) return <div className="p-8 text-center font-semibold text-slate-500">Loading quiz...</div>;
+  if (error || quizError) return <div className="p-8 text-center text-red-500">{error || "Failed to load the quiz. It may not exist or you do not have permission."}</div>;
   if (!quiz) return <div className="p-8 text-center">Quiz not found.</div>;
 
   return (

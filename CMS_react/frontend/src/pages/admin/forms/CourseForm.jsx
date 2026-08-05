@@ -19,6 +19,7 @@ const CourseForm = ({ isEditing, courseId }) => {
     currency: 'USD',
     access_type: 'paid', // 'free', 'paid', 'inquiry'
     price: '',
+    category: 'Cybersecurity',
     difficulty: 'Beginner',
     course_status: 'draft',
     is_locked: false,
@@ -64,6 +65,7 @@ const CourseForm = ({ isEditing, courseId }) => {
         currency: data.currency || 'USD',
         access_type: data.is_free ? 'free' : (parseFloat(data.price) > 0 ? 'paid' : 'inquiry'),
         price: data.price || '',
+        category: data.category || 'Cybersecurity',
         difficulty: data.difficulty || 'Beginner',
         course_status: data.course_status || 'draft',
         is_locked: data.is_locked || false,
@@ -153,6 +155,7 @@ const CourseForm = ({ isEditing, courseId }) => {
       } else if (formData.access_type === 'inquiry') {
         data.append('is_free', 'false');
       }
+      data.append('category', formData.category || 'Cybersecurity');
       data.append('difficulty', formData.difficulty);
       data.append('course_status', formData.course_status);
       data.append('is_locked', formData.is_locked);
@@ -313,6 +316,20 @@ const CourseForm = ({ isEditing, courseId }) => {
                       <option value="USD">USD ($)</option>
                       <option value="EUR">EUR (€)</option>
                       <option value="Rwf">Rwf (FRW)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">Category</label>
+                    <select 
+                      name="category" value={formData.category} onChange={handleInputChange}
+                      className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#3E8E41] outline-none"
+                    >
+                      <option value="Cybersecurity">Cybersecurity (Default)</option>
+                      <option value="Networking">Networking</option>
+                      <option value="Programming">Programming</option>
+                      <option value="Cloud Computing">Cloud Computing</option>
+                      <option value="AI & Data Science">AI & Data Science</option>
+                      <option value="Other">Other</option>
                     </select>
                   </div>
                   <div>
