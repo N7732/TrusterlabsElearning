@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import useSWR from 'swr';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { adminConfig } from '../../config/adminConfig';
 import { apiClient } from '../../api/apiClient';
@@ -14,8 +15,6 @@ const SuperAdminEntityList = () => {
   const location = useLocation();
   const { user, isAdmin } = useAuth();
   
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
   const [viewMode, setViewMode] = useState('my'); // 'my' or 'global'
@@ -112,36 +111,31 @@ const SuperAdminEntityList = () => {
 
   const config = getConfig();
 
-  useEffect(() => {
-    if (config) {
-      fetchData();
-    }
-  }, [entityId, isInstructor, viewMode]);
+  const queryParam = isInstructor && viewMode === 'my' ? `my_${entityId}=true` : '';
+  const separator = config?.endpoint?.includes('?') ? '&' : (queryParam ? '?' : '');
+  const paramString = isInstructor && viewMode === 'my' ? `my_${entityId}=true` : '';
+  const fullEndpoint = config ? (paramString ? `${config.endpoint}${separator}${paramString}` : config.endpoint) : null;
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const queryParam = isInstructor && viewMode === 'my' ? `my_${entityId}=true` : '';
-      const separator = config.endpoint.includes('?') ? '&' : (queryParam ? '?' : '');
-      const paramString = isInstructor && viewMode === 'my' ? `my_${entityId}=true` : '';
-      const fullEndpoint = paramString ? `${config.endpoint}${separator}${paramString}` : config.endpoint;
-      
-      const res = await apiClient.get(fullEndpoint);
-      let dataToSet = [];
-      if (Array.isArray(res)) {
-        dataToSet = res;
-      } else if (res && Array.isArray(res.results)) {
-        dataToSet = res.results;
-      } else if (res && typeof res === 'object') {
-        dataToSet = [res];
-      }
-      setData(dataToSet);
-    } catch (err) {
-      console.error('Failed to fetch data', err);
-    } finally {
-      setLoading(false);
+  const { data: rawData, isLoading: swrLoading, isValidating: refreshing, mutate: swrMutate } = useSWR(
+    fullEndpoint,
+    async (url) => {
+      const res = await apiClient.get(url);
+      if (Array.isArray(res)) return res;
+      if (res && Array.isArray(res.results)) return res.results;
+      if (res && typeof res === 'object') return [res];
+      return [];
+    },
+    {
+      keepPreviousData: true,
+      revalidateOnFocus: true,
+      dedupingInterval: 30000,
+      fallbackData: []
     }
-  };
+  );
+
+  const data = rawData || [];
+  const loading = swrLoading && !data.length;
+  const fetchData = () => swrMutate();
 
   // Fetch data for filters
   useEffect(() => {

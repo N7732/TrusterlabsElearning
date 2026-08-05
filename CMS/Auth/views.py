@@ -12,12 +12,13 @@ from django.contrib.auth.decorators import login_required
 from Auth.decorator import learner_required, instructor_required, is_admin
 
 from django.utils import timezone
+from SuperSetting.caching import CachedModelViewSetMixin
 
-class LearnerViewSet(viewsets.ModelViewSet):
+class LearnerViewSet(CachedModelViewSetMixin, viewsets.ModelViewSet):
     """
     ViewSet for viewing and editing Learner instances.
     """
-    queryset = Learner.objects.select_related('user').all()
+    queryset = Learner.objects.select_related('user').prefetch_related('enrolled_courses').all()
     serializer_class = LearnerSerializer
     permission_classes = [permissions.IsAdminUser]
 
@@ -72,7 +73,7 @@ class LearnerViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-class InstructorViewSet(viewsets.ModelViewSet):
+class InstructorViewSet(CachedModelViewSetMixin, viewsets.ModelViewSet):
     """
     ViewSet for viewing and editing Instructor instances.
     """
