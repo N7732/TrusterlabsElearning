@@ -9,8 +9,9 @@ from Course.models import Enrollment
 from Training.models import TrainingParticipants, TrainingFinalExamSubmission
 from SuperSetting.models import Notification
 from Auth.models import Learner
+from SuperSetting.caching import CachedModelViewSetMixin
 
-class CertificateViewSet(viewsets.ModelViewSet):
+class CertificateViewSet(CachedModelViewSetMixin, viewsets.ModelViewSet):
     queryset = Certificate.objects.select_related('learner__user', 'course__instructor', 'training__instructor')
     serializer_class = CertificateSerializer
     

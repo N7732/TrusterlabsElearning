@@ -491,7 +491,7 @@ class TrainingViewSet(CachedModelViewSetMixin, viewsets.ModelViewSet):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class TrainingClassworkViewSet(viewsets.ModelViewSet):
+class TrainingClassworkViewSet(CachedModelViewSetMixin, viewsets.ModelViewSet):
     queryset = TrainingClasswork.objects.select_related('training', 'linked_quiz')
     serializer_class = TrainingClassworkSerializer
     
@@ -584,7 +584,7 @@ class TrainingClassworkViewSet(viewsets.ModelViewSet):
             serializer = TrainingClassworkSubmissionSerializer(submission)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
-class TrainingFinalExamViewSet(viewsets.ModelViewSet):
+class TrainingFinalExamViewSet(CachedModelViewSetMixin, viewsets.ModelViewSet):
     queryset = TrainingFinalExam.objects.select_related('training', 'linked_exam')
     serializer_class = TrainingFinalExamSerializer
     
@@ -677,7 +677,7 @@ class TrainingFinalExamViewSet(viewsets.ModelViewSet):
             serializer = TrainingFinalExamSubmissionSerializer(submission)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
-class CustomTrainingRequestViewSet(viewsets.ModelViewSet):
+class CustomTrainingRequestViewSet(CachedModelViewSetMixin, viewsets.ModelViewSet):
     queryset = CustomTrainingRequest.objects.all().order_by('-created_at')
     serializer_class = CustomTrainingRequestSerializer
 
