@@ -5,6 +5,7 @@ class User(AbstractUser):
     """
     Custom User model extending Django's AbstractUser
     """
+    password = models.CharField(max_length=255, verbose_name='password')
 
     STUDENT = 'learner'
     INSTRUCTOR = 'instructor'
