@@ -183,6 +183,8 @@ if REDIS_URL:
             "OPTIONS": {
                 "CLIENT_CLASS": "django_redis.client.DefaultClient",
                 "IGNORE_EXCEPTIONS": True, # Fallback gracefully if Redis connects intermittently
+                "SOCKET_CONNECT_TIMEOUT": 0.2, # Fast fallback (200ms) to prevent 1s response hangs
+                "SOCKET_TIMEOUT": 0.2,
             },
             "KEY_PREFIX": "truster_cache_"
         }
