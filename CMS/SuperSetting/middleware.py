@@ -60,6 +60,9 @@ class AuditLogMiddleware:
                             )
                         except Exception:
                             pass
+                        finally:
+                            from django.db import connection
+                            connection.close()
                     threading.Thread(target=record_audit, daemon=True).start()
             except Exception as e:
                 pass
@@ -76,6 +79,9 @@ class AuditLogMiddleware:
                     SystemLog.objects.filter(created_at__lt=one_week_ago).delete()
                 except Exception:
                     pass
+                finally:
+                    from django.db import connection
+                    connection.close()
             threading.Thread(target=clean_old_logs).start()
                 
         return response
@@ -119,6 +125,9 @@ class VisitorTrackingMiddleware:
                                 cache.set(cache_key, '1', timeout=86400)
                             except Exception:
                                 pass
+                            finally:
+                                from django.db import connection
+                                connection.close()
                         threading.Thread(target=record_visitor, daemon=True).start()
                 except Exception:
                     pass

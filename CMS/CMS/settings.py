@@ -148,7 +148,7 @@ if DATABASE_URL:
             'PASSWORD': url.password,
             'HOST': url.hostname,
             'PORT': url.port or 5432,
-            'CONN_MAX_AGE': int(os.getenv('CONN_MAX_AGE', 60)),
+            'CONN_MAX_AGE': 0, # Must be 0 for Supabase connection pooler compatibility
         }
     }
 elif os.getenv('DB_NAME'):
@@ -160,7 +160,7 @@ elif os.getenv('DB_NAME'):
             'PASSWORD': os.getenv('DB_PASSWORD'),
             'HOST': os.getenv('DB_HOST'),
             'PORT': os.getenv('DB_PORT', '5432'),
-            'CONN_MAX_AGE': int(os.getenv('CONN_MAX_AGE', 60)),
+            'CONN_MAX_AGE': 0, # Must be 0 for Supabase connection pooler compatibility
         }
     }
 else:
