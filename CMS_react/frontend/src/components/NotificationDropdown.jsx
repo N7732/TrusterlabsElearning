@@ -2,43 +2,37 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Bell, Check, Info, User, BookOpen, MessageSquare, X } from 'lucide-react';
 import { apiClient } from '../api/apiClient';
 import { useNavigate } from 'react-router-dom';
+import useSWR, { mutate } from 'swr';
 
 const NotificationDropdown = ({ isSuperAdmin = false }) => {
-  const [notifications, setNotifications] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
-  const fetchNotifications = async () => {
-    // Prevent fetching if no token is present to avoid 401 errors
-    if (!localStorage.getItem('truster_lab_token')) {
-      return;
+  const token = localStorage.getItem('truster_lab_token');
+
+  const { data: notificationsData } = useSWR(
+    token ? '/settings/notifications/' : null,
+    {
+      refreshInterval: 60000,
+      revalidateOnFocus: true,
+      dedupingInterval: 5000,
+      keepPreviousData: true
     }
-    try {
-      const response = await apiClient.get('/settings/notifications/');
-      setNotifications(response.data?.results || response.data || []);
-    } catch (error) {
-      console.error("Failed to fetch notifications:", error);
-    }
-  };
+  );
+
+  const notifications = React.useMemo(() => {
+    return notificationsData?.results || notificationsData?.data?.results || (Array.isArray(notificationsData?.data) ? notificationsData.data : (Array.isArray(notificationsData) ? notificationsData : []));
+  }, [notificationsData]);
 
   useEffect(() => {
-    fetchNotifications();
-    
-    // Poll every 60 seconds
-    const interval = setInterval(fetchNotifications, 60000);
-    
-    // Handle click outside
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    
     return () => {
-      clearInterval(interval);
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
@@ -46,11 +40,24 @@ const NotificationDropdown = ({ isSuperAdmin = false }) => {
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
   const markAllAsRead = async () => {
+    // Optimistic UI update immediately
+    mutate(
+      '/settings/notifications/',
+      (current) => {
+        if (!current) return current;
+        const list = current.results || current.data || current;
+        if (!Array.isArray(list)) return current;
+        const updated = list.map(n => ({ ...n, is_read: true }));
+        return current.results ? { ...current, results: updated } : updated;
+      },
+      false
+    );
     try {
       await apiClient.post('/settings/notifications/mark-all-read/');
-      setNotifications(notifications.map(n => ({ ...n, is_read: true })));
+      mutate('/settings/notifications/');
     } catch (error) {
       console.error("Failed to mark notifications as read:", error);
+      mutate('/settings/notifications/');
     }
   };
 
@@ -65,11 +72,23 @@ const NotificationDropdown = ({ isSuperAdmin = false }) => {
 
   const handleNotificationClick = async (notification) => {
     if (!notification.is_read) {
+      // Optimistic UI immediately mark as read in cache
+      mutate(
+        '/settings/notifications/',
+        (current) => {
+          if (!current) return current;
+          const list = current.results || current.data || current;
+          if (!Array.isArray(list)) return current;
+          const updated = list.map(n => n.id === notification.id ? { ...n, is_read: true } : n);
+          return current.results ? { ...current, results: updated } : updated;
+        },
+        false
+      );
       try {
         await apiClient.patch(`/settings/notifications/${notification.id}/`, { is_read: true });
-        setNotifications(notifications.map(n => n.id === notification.id ? { ...n, is_read: true } : n));
       } catch (error) {
         console.error("Failed to mark as read:", error);
+        mutate('/settings/notifications/');
       }
     }
     

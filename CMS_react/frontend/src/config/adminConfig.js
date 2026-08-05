@@ -40,6 +40,7 @@ export const adminConfig = {
     columns: [
       { field: 'id', label: 'ID' },
       { field: 'title', label: 'Title' },
+      { field: 'category', label: 'Category' },
       { field: 'difficulty', label: 'Difficulty' },
       { field: 'course_status', label: 'Status' },
       { field: 'is_locked', label: 'Locked' },

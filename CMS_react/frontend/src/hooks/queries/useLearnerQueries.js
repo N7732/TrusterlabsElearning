@@ -1,64 +1,77 @@
-import { useQuery } from '@tanstack/react-query';
-import { fetchMyEnrollments, fetchMyTrainings, fetchMyGrades, fetchMyCertificates } from '../../services/learnerService';
+import useSWR, { mutate } from 'swr';
+import { 
+  fetchMyEnrollments, 
+  fetchMyTrainings, 
+  fetchMyGrades, 
+  fetchMyCertificates,
+  fetchTrainingDetails, 
+  submitClasswork, 
+  submitExam 
+} from '../../services/learnerService';
 
 export const useMyEnrollments = () => {
-  return useQuery({
-    queryKey: ['myEnrollments'],
-    queryFn: fetchMyEnrollments,
+  return useSWR('/api/enrollments/', fetchMyEnrollments, {
+    revalidateOnFocus: true,
+    dedupingInterval: 5000,
+    keepPreviousData: true
   });
 };
 
 export const useMyTrainings = () => {
-  return useQuery({
-    queryKey: ['myTrainings'],
-    queryFn: fetchMyTrainings,
+  return useSWR('/training/trainings/my-trainings/', fetchMyTrainings, {
+    revalidateOnFocus: true,
+    dedupingInterval: 5000,
+    keepPreviousData: true
   });
 };
 
 export const useMyGrades = () => {
-  return useQuery({
-    queryKey: ['myGrades'],
-    queryFn: fetchMyGrades,
+  return useSWR('/auth/api/my-grades/', fetchMyGrades, {
+    revalidateOnFocus: true,
+    dedupingInterval: 5000,
+    keepPreviousData: true
   });
 };
 
 export const useMyCertificates = () => {
-  return useQuery({
-    queryKey: ['myCertificates'],
-    queryFn: fetchMyCertificates,
+  return useSWR('/certification/api/certificates/my_certificates/', fetchMyCertificates, {
+    revalidateOnFocus: true,
+    dedupingInterval: 5000,
+    keepPreviousData: true
   });
 };
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchTrainingDetails, submitClasswork, submitExam } from '../../services/learnerService';
-
 export const useTrainingDetails = (id) => {
-  return useQuery({
-    queryKey: ['trainingDetails', id],
-    queryFn: () => fetchTrainingDetails(id),
-    enabled: !!id,
+  return useSWR(id ? `/training/trainings/${id}/` : null, () => fetchTrainingDetails(id), {
+    revalidateOnFocus: true,
+    dedupingInterval: 3000,
+    keepPreviousData: true
   });
 };
 
 export const useSubmitClasswork = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: submitClasswork,
-    onSuccess: (data, variables) => {
-      // Invalidate relevant queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ['trainingDetails'] });
+  const mutateAsync = async ({ classworkId, formData, trainingId }) => {
+    const res = await submitClasswork({ classworkId, formData });
+    if (trainingId) {
+      mutate(`/training/trainings/${trainingId}/`);
     }
-  });
+    mutate('/training/trainings/my-trainings/');
+    mutate('/auth/api/my-grades/');
+    return res;
+  };
+  return { mutateAsync };
 };
 
 export const useSubmitExam = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: submitExam,
-    onSuccess: (data, variables) => {
-      // Invalidate relevant queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ['trainingDetails'] });
+  const mutateAsync = async ({ examId, formData, trainingId }) => {
+    const res = await submitExam({ examId, formData });
+    if (trainingId) {
+      mutate(`/training/trainings/${trainingId}/`);
     }
-  });
+    mutate('/training/trainings/my-trainings/');
+    mutate('/auth/api/my-grades/');
+    mutate('/certification/api/certificates/my_certificates/');
+    return res;
+  };
+  return { mutateAsync };
 };
-

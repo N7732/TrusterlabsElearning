@@ -5,6 +5,7 @@ import Button from './Button';
 import { LogOut, User, ChevronDown, LayoutDashboard, ArrowLeft, Menu, X } from 'lucide-react';
 import logo from '../../assets/image2.jpeg';
 import TopUtilityBar from './TopUtilityBar';
+import SmartLink from './SmartLink';
 
 const Navbar = () => {
   const { isAuthenticated, user, logout, isInstructor, isAdmin, toggleProfile } = useAuth();
@@ -120,8 +121,8 @@ const Navbar = () => {
                     Courses <ChevronDown size={14} className="ml-1 transition-transform duration-200 group-hover:rotate-180" />
                   </button>
                   <div className="absolute top-full left-0 w-48 bg-white rounded-md shadow-lg py-2 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 mt-1 border border-slate-100">
-                    <Link to="/courses" className="block px-4 py-2 text-sm text-slate-700 font-bold hover:bg-slate-50 hover:text-[#FFD700] transition-colors">Courses</Link>
-                    <Link to="/training" className="block px-4 py-2 text-sm text-slate-700 font-bold hover:bg-slate-50 hover:text-[#FFD700] transition-colors">Training session</Link>
+                    <SmartLink to="/courses" prefetchApi="/courses/courses/" className="block px-4 py-2 text-sm text-slate-700 font-bold hover:bg-slate-50 hover:text-[#FFD700] transition-colors">Courses</SmartLink>
+                    <SmartLink to="/training" prefetchApi="/trainings/trainings/" className="block px-4 py-2 text-sm text-slate-700 font-bold hover:bg-slate-50 hover:text-[#FFD700] transition-colors">Training session</SmartLink>
                   </div>
                 </div>
 
@@ -135,8 +136,8 @@ const Navbar = () => {
                     Research <ChevronDown size={14} className="ml-1 transition-transform duration-200 group-hover:rotate-180" />
                   </button>
                   <div className="absolute top-full left-0 w-56 bg-white rounded-md shadow-lg py-2 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 mt-1 border border-slate-100">
-                    <Link to="/research/articles" className="block px-4 py-2 text-sm text-slate-700 font-bold hover:bg-slate-50 hover:text-[#FFD700] transition-colors">Research Articles</Link>
-                    <Link to="/research/webinars" className="block px-4 py-2 text-sm text-slate-700 font-bold hover:bg-slate-50 hover:text-[#FFD700] transition-colors">Cybersecurity Webinar</Link>
+                    <SmartLink to="/research/articles" prefetchApi="/research/publications/" className="block px-4 py-2 text-sm text-slate-700 font-bold hover:bg-slate-50 hover:text-[#FFD700] transition-colors">Research Articles</SmartLink>
+                    <SmartLink to="/research/webinars" prefetchApi="/webinars/webinars/" className="block px-4 py-2 text-sm text-slate-700 font-bold hover:bg-slate-50 hover:text-[#FFD700] transition-colors">Cybersecurity Webinar</SmartLink>
                   </div>
                 </div>
               </>
@@ -205,36 +206,39 @@ const Navbar = () => {
                       </div>
                       
                       {isAdmin && (
-                        <Link 
+                        <SmartLink 
                           to="/superadmin" 
+                          prefetchApi={['/stats/superadmin-dashboard/', '/courses/enrollments/']}
                           className="flex items-center px-4 py-2 text-sm text-slate-700 font-bold hover:bg-slate-100 hover:text-[#FFD700]"
                           onClick={() => setDropdownOpen(false)}
                         >
                           <LayoutDashboard className="mr-3 h-4 w-4" />
                           Admin Dashboard
-                        </Link>
+                        </SmartLink>
                       )}
                       
                       {isInstructor && !isAdmin && (
-                        <Link 
+                        <SmartLink 
                           to="/instructor" 
+                          prefetchApi="/stats/instructor-dashboard/"
                           className="flex items-center px-4 py-2 text-sm text-slate-700 font-bold hover:bg-slate-100 hover:text-[#FFD700]"
                           onClick={() => setDropdownOpen(false)}
                         >
                           <LayoutDashboard className="mr-3 h-4 w-4" />
                           Instructor Portal
-                        </Link>
+                        </SmartLink>
                       )}
                       
                       {!isInstructor && !isAdmin && (
-                        <Link 
+                        <SmartLink 
                           to="/learner/dashboard" 
+                          prefetchApi={['/stats/learner-dashboard/', '/courses/courses/']}
                           className="flex items-center px-4 py-2 text-sm text-slate-700 font-bold hover:bg-slate-100 hover:text-[#FFD700]"
                           onClick={() => setDropdownOpen(false)}
                         >
                           <LayoutDashboard className="mr-3 h-4 w-4" />
                           My Learning
-                        </Link>
+                        </SmartLink>
                       )}
 
                       <button 

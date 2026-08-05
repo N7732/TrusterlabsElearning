@@ -18,19 +18,19 @@ class CertificateSerializer(serializers.ModelSerializer):
         fields = ['id', 'learner', 'learner_name', 'learner_email', 'learner_phone', 'course', 'course_details', 'training', 'training_details', 'program_title', 'certificate_id', 'certificate_code', 'is_issued', 'issued_at', 'completed_at', 'enrolled_at', 'file', 'created_at']
 
     def get_program_title(self, obj):
-        if obj.course:
-            return obj.course.title
-        elif obj.training:
+        if obj.training:
             return obj.training.title
+        elif obj.course:
+            return obj.course.title
         return "Unknown Program"
         
     def get_enrolled_at(self, obj):
-        if obj.course:
-            from Course.models import Enrollment
-            enrollment = Enrollment.objects.filter(learner=obj.learner, course=obj.course).first()
-            return enrollment.enrolled_at if enrollment else None
-        elif obj.training:
+        if obj.training:
             from Training.models import TrainingParticipants
             participant = TrainingParticipants.objects.filter(participant=obj.learner.user, training=obj.training).first()
             return participant.date_applied if participant else None
+        elif obj.course:
+            from Course.models import Enrollment
+            enrollment = Enrollment.objects.filter(learner=obj.learner, course=obj.course).first()
+            return enrollment.enrolled_at if enrollment else None
         return None

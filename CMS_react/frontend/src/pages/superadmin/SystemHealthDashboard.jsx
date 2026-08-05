@@ -1,39 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Activity, Server, Database, HardDrive, Mail, ShieldAlert,
-  DownloadCloud, UploadCloud, CheckCircle, AlertTriangle, XCircle, RefreshCw, AlertCircle, Clock, Zap
+  DownloadCloud, UploadCloud, CheckCircle, AlertTriangle, XCircle, RefreshCw, AlertCircle as AlertCircleIcon, Clock, Zap
 } from 'lucide-react';
 import { apiClient } from '../../api/apiClient';
 import { useAuth } from '../../context/AuthContext';
 import { format, formatDistanceToNow } from 'date-fns';
+import useSWR, { mutate } from 'swr';
 
 const SystemHealthDashboard = () => {
   const { user } = useAuth();
-  const [healthData, setHealthData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState(null);
   const [backupLoading, setBackupLoading] = useState(false);
-  const [testEmailLoading, setTestEmailLoading] = useState(false);
 
-  const fetchHealthData = async () => {
-    try {
-      setRefreshing(true);
-      const response = await apiClient.get('/settings/system-health/');
-      setHealthData(response);
-      setError(null);
-    } catch (err) {
-      console.error('Error fetching system health', err);
-      setError('Failed to fetch system health data.');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+  const { data: healthData, error: swrError, isLoading: loading, isValidating: refreshing } = useSWR(
+    '/settings/system-health/',
+    {
+      revalidateOnFocus: true,
+      refreshInterval: 30000, // Background health checks every 30 seconds
+      keepPreviousData: true
     }
-  };
+  );
+  
+  const error = swrError ? 'Failed to fetch system health data.' : null;
 
-  useEffect(() => {
-    fetchHealthData();
-  }, []);
+  const fetchHealthData = () => mutate('/settings/system-health/');
 
   const handleTriggerBackup = async () => {
     try {

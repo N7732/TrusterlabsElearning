@@ -755,12 +755,13 @@ const TrainingDashboard = () => {
                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
                                   <Award size={14} /> Issued
                                 </span>
-                                <Button
+                                <button
+                                  type="button"
                                   onClick={() => window.open(`/verify/${learner.certificate_code}`, '_blank')}
-                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-300 text-slate-700 text-xs font-medium rounded-lg hover:bg-slate-50 transition-colors"
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 border-2 border-[#153474] text-[#153474] hover:bg-[#153474] hover:text-white text-xs font-medium rounded-lg transition-colors"
                                 >
                                   View Certificate
-                                </Button>
+                                </button>
                               </div>
                             ) : (
                               <Button

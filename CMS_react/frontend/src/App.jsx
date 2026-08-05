@@ -13,6 +13,7 @@ import AdminCustomRequests from './pages/admin/AdminCustomRequests';
 import CertificateOverview from './pages/admin/CertificateOverview';
 import OfferCertificates from './pages/admin/OfferCertificates';
 import ErrorBoundary from './components/ErrorBoundary';
+import NetworkStatusIndicator from './components/common/NetworkStatusIndicator';
 
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
@@ -23,6 +24,7 @@ function App() {
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <ErrorBoundary>
         <BrowserRouter>
+          <NetworkStatusIndicator />
           <AuthProvider>
           <Routes>
             {/* Admin Routes */}

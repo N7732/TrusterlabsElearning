@@ -2,6 +2,7 @@ import uuid
 import random
 from django.utils import timezone
 from django.db import models
+from CMS.security_utils import compute_file_sha256, generate_digital_signature
 
 class Certificate(models.Model):
     learner = models.ForeignKey('Auth.Learner', on_delete=models.CASCADE, related_name='certificates')
@@ -13,11 +14,19 @@ class Certificate(models.Model):
     is_issued = models.BooleanField(default=False)
     issued_at = models.DateTimeField(null=True, blank=True)
     file = models.FileField(upload_to='certificates/', null=True, blank=True)
+    sha256_hash = models.CharField(max_length=64, blank=True, null=True, help_text="SHA-256 cryptographic file integrity checksum")
+    digital_signature = models.CharField(max_length=64, blank=True, null=True, db_index=True, help_text="HMAC-SHA256 digital signature verifying authenticity")
 
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['learner', 'is_issued']),
+            models.Index(fields=['course', 'is_issued']),
+            models.Index(fields=['training', 'is_issued']),
+            models.Index(fields=['-created_at']),
+        ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -35,6 +44,20 @@ class Certificate(models.Model):
                 if not Certificate.objects.filter(certificate_id=new_id).exists():
                     self.certificate_id = new_id
                     break
+
+        # Calculate SHA-256 digital signature of certificate metadata
+        payload = {
+            'certificate_id': self.certificate_id,
+            'certificate_code': str(self.certificate_code),
+            'learner_id': getattr(self, 'learner_id', None),
+            'is_issued': self.is_issued,
+        }
+        self.digital_signature = generate_digital_signature(payload)
+
+        # Compute SHA-256 cryptographic hash of certificate document if present
+        if self.file and not self.sha256_hash:
+            self.sha256_hash = compute_file_sha256(self.file)
+
         super().save(*args, **kwargs)
 
         if became_issued:
@@ -46,7 +69,7 @@ class Certificate(models.Model):
                 import os
                 
                 learner_name = self.learner.user.get_full_name() or self.learner.user.username
-                program_title = self.course.title if self.course else (self.training.title if self.training else 'Program')
+                program_title = self.training.title if self.training else (self.course.title if self.course else 'Program')
                 
                 frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173').rstrip('/')
                 
@@ -76,8 +99,8 @@ class Certificate(models.Model):
         self._original_is_issued = self.is_issued
 
     def __str__(self):
-        if self.course:
-            return f"Certificate: {self.learner} - {self.course.title}"
         if self.training:
             return f"Certificate: {self.learner} - {self.training.title}"
+        if self.course:
+            return f"Certificate: {self.learner} - {self.course.title}"
         return f"Certificate: {self.learner} - {self.certificate_id or self.certificate_code}"

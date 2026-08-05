@@ -1,81 +1,96 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchPartners, fetchPublicCourses, fetchStudentStats, fetchTrainings, applyForTraining, requestCustomTraining, fetchPublications, fetchWebinars, registerForWebinar, checkMembership, createMembership } from '../../services/publicService';
+import useSWR, { mutate } from 'swr';
+import { 
+  fetchPartners, 
+  fetchPublicCourses, 
+  fetchStudentStats, 
+  fetchTrainings, 
+  applyForTraining, 
+  requestCustomTraining, 
+  fetchPublications, 
+  fetchWebinars, 
+  registerForWebinar, 
+  checkMembership, 
+  createMembership 
+} from '../../services/publicService';
 
 export const usePartners = () => {
-  return useQuery({
-    queryKey: ['partners'],
-    queryFn: fetchPartners,
-    staleTime: 10 * 60 * 1000, // Partners rarely change
+  return useSWR('/settings/partners/', fetchPartners, {
+    dedupingInterval: 60000,
+    keepPreviousData: true
   });
 };
 
 export const usePublicCourses = () => {
-  return useQuery({
-    queryKey: ['publicCourses'],
-    queryFn: fetchPublicCourses,
+  return useSWR('/api/courses/', fetchPublicCourses, {
+    dedupingInterval: 10000,
+    revalidateOnFocus: true,
+    keepPreviousData: true
   });
 };
 
 export const useStudentStats = () => {
-  return useQuery({
-    queryKey: ['studentStats'],
-    queryFn: fetchStudentStats,
+  return useSWR('/auth/api/learners/', fetchStudentStats, {
+    dedupingInterval: 10000,
+    keepPreviousData: true
   });
 };
 
 export const useTrainings = () => {
-  return useQuery({
-    queryKey: ['trainings'],
-    queryFn: fetchTrainings,
+  return useSWR('/training/trainings/', fetchTrainings, {
+    dedupingInterval: 10000,
+    revalidateOnFocus: true,
+    keepPreviousData: true
   });
 };
 
-
+const createCompatibleMutation = (mutationFn, onSuccessKeys = []) => {
+  const mutateAsync = async (vars) => {
+    const res = await mutationFn(vars);
+    onSuccessKeys.forEach(k => mutate(k));
+    return res;
+  };
+  const mutateCall = (vars, options = {}) => {
+    mutationFn(vars).then(res => {
+      onSuccessKeys.forEach(k => mutate(k));
+      if (options.onSuccess) options.onSuccess(res, vars);
+    }).catch(err => {
+      if (options.onError) options.onError(err, vars);
+      else console.error('Mutation error:', err);
+    });
+  };
+  return { mutateAsync, mutate: mutateCall };
+};
 
 export const useApplyForTraining = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: applyForTraining,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trainings'] });
-    },
-  });
+  return createCompatibleMutation(applyForTraining, ['/training/trainings/', '/training/trainings/my-trainings/']);
 };
 
 export const useRequestCustomTraining = () => {
-  return useMutation({
-    mutationFn: requestCustomTraining,
-  });
+  return createCompatibleMutation(requestCustomTraining);
 };
 
 export const usePublications = () => {
-  return useQuery({
-    queryKey: ['publications'],
-    queryFn: fetchPublications,
+  return useSWR('/api/research/publications/', fetchPublications, {
+    dedupingInterval: 30000,
+    keepPreviousData: true
   });
 };
 
 export const useWebinars = () => {
-  return useQuery({
-    queryKey: ['webinars'],
-    queryFn: fetchWebinars,
+  return useSWR('/api/research/webinars/', fetchWebinars, {
+    dedupingInterval: 30000,
+    keepPreviousData: true
   });
 };
 
 export const useRegisterForWebinar = () => {
-  return useMutation({
-    mutationFn: registerForWebinar,
-  });
+  return createCompatibleMutation(registerForWebinar, ['/api/research/webinars/']);
 };
 
 export const useCheckMembership = () => {
-  return useMutation({
-    mutationFn: checkMembership,
-  });
+  return createCompatibleMutation(checkMembership);
 };
 
 export const useCreateMembership = () => {
-  return useMutation({
-    mutationFn: createMembership,
-  });
+  return createCompatibleMutation(createMembership);
 };

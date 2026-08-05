@@ -39,6 +39,7 @@ const SuperAdminEntityList = () => {
   const [selectedCourse, setSelectedCourse] = useState(localStorage.getItem('truster_filter_course') || '');
   const [selectedModule, setSelectedModule] = useState(localStorage.getItem('truster_filter_module') || '');
   const [selectedQuiz, setSelectedQuiz] = useState(localStorage.getItem('truster_filter_quiz') || '');
+  const [selectedCategory, setSelectedCategory] = useState('');
 
   // Reset filters when changing routes if desired, but user wants persistence across sessions
   useEffect(() => {
@@ -171,8 +172,12 @@ const SuperAdminEntityList = () => {
 
   const filteredData = React.useMemo(() => {
     let filtered = data;
-    const needsFilters = ['modules', 'lessons', 'quizzes', 'quiz_questions'].includes(entityId);
+    const needsFilters = ['courses', 'modules', 'lessons', 'quizzes', 'quiz_questions'].includes(entityId);
     if (!needsFilters) return filtered;
+
+    if (entityId === 'courses' && selectedCategory) {
+        filtered = filtered.filter(item => item.category === selectedCategory);
+    }
 
     // Build helper maps to easily trace up to course
     const courseOfModule = {};
@@ -403,14 +408,32 @@ const SuperAdminEntityList = () => {
       </div>
 
       {/* Filtering Row */}
-      {['modules', 'lessons', 'quizzes', 'quiz_questions'].includes(entityId) && (
+      {['courses', 'modules', 'lessons', 'quizzes', 'quiz_questions'].includes(entityId) && (
         <div className="flex gap-4 mb-6 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
           <div className="flex items-center text-slate-500 mr-2">
             <Filter size={18} className="mr-2" />
             <span className="font-semibold text-sm">Filters:</span>
           </div>
-          <div className="flex-1 max-w-xs">
-            <select 
+          {entityId === 'courses' && (
+            <div className="flex-1 max-w-xs">
+              <select 
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 hover:bg-white transition-colors"
+              >
+                <option value="">All Categories</option>
+                <option value="Cybersecurity">Cybersecurity</option>
+                <option value="Networking">Networking</option>
+                <option value="Programming">Programming</option>
+                <option value="Cloud Computing">Cloud Computing</option>
+                <option value="AI & Data Science">AI & Data Science</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          )}
+          {['modules', 'lessons', 'quizzes', 'quiz_questions'].includes(entityId) && (
+            <div className="flex-1 max-w-xs">
+              <select 
               value={selectedCourse}
               onChange={handleCourseChange}
               className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 hover:bg-white transition-colors"
@@ -421,6 +444,7 @@ const SuperAdminEntityList = () => {
               ))}
             </select>
           </div>
+          )}
           {['lessons', 'quizzes', 'quiz_questions'].includes(entityId) && (
             <div className="flex-1 max-w-xs">
               <select 

@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from django.db import transaction
+from SuperSetting.caching import CachedModelViewSetMixin
 
 # pyrefly: ignore [missing-import]
 from .models import (
@@ -159,8 +160,8 @@ def check_and_issue_certificate(training, user):
             defaults={'is_issued': training.auto_issue_certificate}
         )
 
-class TrainingViewSet(viewsets.ModelViewSet):
-    queryset = Training.objects.all().prefetch_related('courses', 'participants', 'classworks', 'final_exams')
+class TrainingViewSet(CachedModelViewSetMixin, viewsets.ModelViewSet):
+    queryset = Training.objects.select_related('instructor__user').prefetch_related('courses__course', 'participants__participant', 'classworks', 'final_exams')
     serializer_class = TrainingSerializer
     
     def get_permissions(self):
@@ -170,7 +171,7 @@ class TrainingViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = Training.objects.all().prefetch_related('courses', 'participants', 'classworks', 'final_exams')
+        queryset = Training.objects.select_related('instructor__user').prefetch_related('courses__course', 'participants__participant', 'classworks', 'final_exams')
         
         if user.is_authenticated and user.user_type == 'instructor' and self.request.query_params.get('my_trainings') == 'true':
             return queryset.filter(instructor=user.instructor_profile)
@@ -491,7 +492,7 @@ class TrainingViewSet(viewsets.ModelViewSet):
 
 
 class TrainingClassworkViewSet(viewsets.ModelViewSet):
-    queryset = TrainingClasswork.objects.all()
+    queryset = TrainingClasswork.objects.select_related('training', 'linked_quiz')
     serializer_class = TrainingClassworkSerializer
     
     def get_permissions(self):
@@ -539,7 +540,7 @@ class TrainingClassworkViewSet(viewsets.ModelViewSet):
         classwork = self.get_object()
         
         if request.method == 'GET':
-            submissions = TrainingClassworkSubmission.objects.filter(classwork=classwork)
+            submissions = TrainingClassworkSubmission.objects.filter(classwork=classwork).select_related('participant', 'classwork')
             serializer = TrainingClassworkSubmissionSerializer(submissions, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
             
@@ -584,7 +585,7 @@ class TrainingClassworkViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
 class TrainingFinalExamViewSet(viewsets.ModelViewSet):
-    queryset = TrainingFinalExam.objects.all()
+    queryset = TrainingFinalExam.objects.select_related('training', 'linked_exam')
     serializer_class = TrainingFinalExamSerializer
     
     def get_permissions(self):

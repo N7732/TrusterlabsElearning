@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { BookOpen, Calendar, Clock, FileText, Upload, CheckCircle, Lock, MessageSquare } from 'lucide-react';
 import { useTrainingDetails, useSubmitClasswork, useSubmitExam } from '../../hooks/queries/useLearnerQueries';
 import { apiClient } from '../../api/apiClient';
+import { mutate } from 'swr';
 
 const LearnerTrainingDetail = () => {
   const { user } = useAuth();
@@ -47,16 +48,34 @@ const LearnerTrainingDetail = () => {
       const formData = new FormData();
       formData.append('submission_file', file);
 
-      await submitClasswork({ classworkId, formData });
+      // Optimistic UI: Immediately update training details cache to show submission progress
+      mutate(
+        `/training/trainings/${id}/`,
+        (current) => {
+          if (!current || !current.classworks) return current;
+          return {
+            ...current,
+            classworks: current.classworks.map(cw => 
+              cw.id === classworkId 
+                ? { ...cw, my_submission: { is_quiz: false, submission_date: new Date().toISOString(), score: null } }
+                : cw
+            )
+          };
+        },
+        false
+      );
+
+      await submitClasswork({ classworkId, formData, trainingId: id });
       
       alert('Classwork submitted successfully!');
-      // Clear file after submission
       setFileMap(prev => {
         const newMap = { ...prev };
         delete newMap[classworkId];
         return newMap;
       });
     } catch (err) {
+      // Revert optimistic update on failure
+      mutate(`/training/trainings/${id}/`);
       alert(err.message || 'Failed to submit classwork');
     } finally {
       setUploadingMap(prev => ({ ...prev, [classworkId]: false }));
@@ -72,16 +91,34 @@ const LearnerTrainingDetail = () => {
       const formData = new FormData();
       formData.append('submission_file', file);
 
-      await submitExam({ examId, formData });
+      // Optimistic UI: Immediately update training details cache for exams
+      mutate(
+        `/training/trainings/${id}/`,
+        (current) => {
+          if (!current || !current.final_exams) return current;
+          return {
+            ...current,
+            final_exams: current.final_exams.map(ex => 
+              ex.id === examId 
+                ? { ...ex, my_submission: { is_quiz: false, submission_date: new Date().toISOString(), score: null } }
+                : ex
+            )
+          };
+        },
+        false
+      );
+
+      await submitExam({ examId, formData, trainingId: id });
       
       alert('Exam submitted successfully!');
-      // Clear file after submission
       setFileMap(prev => {
         const newMap = { ...prev };
         delete newMap[examId];
         return newMap;
       });
     } catch (err) {
+      // Revert optimistic update on failure
+      mutate(`/training/trainings/${id}/`);
       alert(err.message || 'Failed to submit exam');
     } finally {
       setUploadingMap(prev => ({ ...prev, [examId]: false }));

@@ -11,7 +11,7 @@ from SuperSetting.models import Notification
 from Auth.models import Learner
 
 class CertificateViewSet(viewsets.ModelViewSet):
-    queryset = Certificate.objects.all()
+    queryset = Certificate.objects.select_related('learner__user', 'course__instructor', 'training__instructor')
     serializer_class = CertificateSerializer
     
     def get_permissions(self):
@@ -21,17 +21,18 @@ class CertificateViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+        base_qs = Certificate.objects.select_related('learner__user', 'course__instructor', 'training__instructor')
         if user.is_superuser or user.user_type == 'admin':
-            return Certificate.objects.all()
+            return base_qs.all()
         if hasattr(user, 'learner_profile'):
-            return Certificate.objects.filter(learner=user.learner_profile, is_issued=True)
+            return base_qs.filter(learner=user.learner_profile, is_issued=True)
         if user.user_type == 'instructor':
             # Instructors can see certificates for their courses or trainings
-            return Certificate.objects.filter(
+            return base_qs.filter(
                 Q(course__instructor=user.instructor_profile) | 
                 Q(training__instructor=user.instructor_profile)
             )
-        return Certificate.objects.none()
+        return base_qs.none()
 
     @action(detail=False, methods=['get'])
     def my_certificates(self, request):
@@ -91,13 +92,13 @@ class CertificateViewSet(viewsets.ModelViewSet):
         import os
         
         learner_name = cert.learner.user.get_full_name() or cert.learner.user.username
-        # Handle dynamic program title gracefully
-        if cert.course and cert.course.certificate_program_title:
-            program_title = cert.course.certificate_program_title
-        elif cert.training and getattr(cert.training, 'certificate_program_title', None):
+        # Handle dynamic program title gracefully, prioritizing training programs over individual courses
+        if cert.training and getattr(cert.training, 'certificate_program_title', None):
             program_title = cert.training.certificate_program_title
+        elif cert.course and cert.course.certificate_program_title:
+            program_title = cert.course.certificate_program_title
         else:
-            program_title = cert.program_title or (cert.course.title if cert.course else (cert.training.title if cert.training else 'Program'))
+            program_title = cert.program_title or (cert.training.title if cert.training else (cert.course.title if cert.course else 'Program'))
             
         frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
         verify_url = f"{frontend_url}/verify/{cert.certificate_code}"
@@ -128,7 +129,7 @@ class CertificateViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def render_html(self, request, pk=None):
         cert = self.get_object()
-        course_name = cert.course.title if cert.course else (cert.training.title if cert.training else 'Unknown Program')
+        course_name = cert.training.title if cert.training else (cert.course.title if cert.course else 'Unknown Program')
         learner_name = cert.learner.user.get_full_name()
         
         from django.template.loader import render_to_string

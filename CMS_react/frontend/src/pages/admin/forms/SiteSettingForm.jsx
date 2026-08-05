@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient, getImageUrl } from '../../../api/apiClient';
 import { Settings, Phone, Share2, Save, ArrowLeft, Image as ImageIcon, ChevronUp, FileText, Megaphone } from 'lucide-react';
+import useSWR, { mutate } from 'swr';
 
 const SiteSettingForm = ({ isEditing, settingId }) => {
   const navigate = useNavigate();
@@ -21,23 +22,14 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
   
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState(null);
-  const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
 
-  useEffect(() => {
-    if (isEditing && settingId) {
-      fetchSettingData();
-    } else {
-      setLoading(false);
-    }
-  }, [isEditing, settingId]);
-
-  const fetchSettingData = async () => {
-    try {
-      setLoading(true);
-      const res = await apiClient.get(`/settings/site-settings/${settingId}/`);
+  const { isLoading: loading } = useSWR(
+    (isEditing && settingId) ? `/settings/site-settings/${settingId}/` : null,
+    async (url) => {
+      const res = await apiClient.get(url);
       setFormData({
         company_name: res.company_name || '',
         contact_email: res.contact_email || '',
@@ -51,13 +43,10 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
         navbar_logo: res.navbar_logo || null,
         top_announcements: res.top_announcements || ''
       });
-    } catch (err) {
-      console.error(err);
-      setError('Failed to load site settings.');
-    } finally {
-      setLoading(false);
-    }
-  };
+      return res;
+    },
+    { keepPreviousData: true, revalidateOnFocus: false }
+  );
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -96,20 +85,40 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
         data.append('navbar_logo', logoFile);
       }
 
+      // Optimistic UI update across all components before network confirmation
+      mutate(
+        '/settings/site-settings/',
+        (current) => {
+          if (!current) return current;
+          const optimistic = { ...formData };
+          if (Array.isArray(current)) {
+            return current.map(item => item.id === settingId ? { ...item, ...optimistic } : item);
+          } else if (current.results) {
+            return { ...current, results: current.results.map(item => item.id === settingId ? { ...item, ...optimistic } : item) };
+          }
+          return { ...current, ...optimistic };
+        },
+        false
+      );
+
       if (isEditing) {
         await apiClient.put(`/settings/site-settings/${settingId}/`, data);
+        mutate(`/settings/site-settings/${settingId}/`);
       } else {
         await apiClient.post('/settings/site-settings/', data);
       }
+      mutate('/settings/site-settings/');
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       console.error(err);
+      mutate('/settings/site-settings/');
       setError(err.message || 'Failed to save settings.');
     } finally {
       setSaving(false);
     }
   };
+
 
   if (loading) {
     return (

@@ -8,6 +8,7 @@ import {
 import NotificationDropdown from '../components/NotificationDropdown';
 import logoImg from '../assets/image2.jpeg';
 import { useAuth } from '../context/AuthContext';
+import SmartLink from '../components/common/SmartLink';
 
 const SuperAdminLayout = () => {
   const location = useLocation();
@@ -28,15 +29,15 @@ const SuperAdminLayout = () => {
   };
 
   const courseManagementItems = [
-    { path: '/superadmin/entity/courses', label: 'Courses', icon: <BookOpen size={18} /> },
-    { path: '/superadmin/entity/modules', label: 'Modules', icon: <Layers size={18} /> },
-    { path: '/superadmin/entity/lessons', label: 'Lessons', icon: <List size={18} /> },
-    { path: '/superadmin/entity/quizzes', label: 'Quizzes', icon: <HelpCircle size={18} /> },
-    { path: '/superadmin/entity/quiz_questions', label: 'Quiz Questions', icon: <HelpCircle size={18} /> },
+    { path: '/superadmin/entity/courses', label: 'Courses', icon: <BookOpen size={18} />, prefetchApi: '/courses/courses/' },
+    { path: '/superadmin/entity/modules', label: 'Modules', icon: <Layers size={18} />, prefetchApi: '/courses/modules/' },
+    { path: '/superadmin/entity/lessons', label: 'Lessons', icon: <List size={18} />, prefetchApi: '/courses/lessons/' },
+    { path: '/superadmin/entity/quizzes', label: 'Quizzes', icon: <HelpCircle size={18} />, prefetchApi: '/courses/quizzes/' },
+    { path: '/superadmin/entity/quiz_questions', label: 'Quiz Questions', icon: <HelpCircle size={18} />, prefetchApi: '/courses/quiz-questions/' },
   ];
 
   const accessInquiriesItems = [
-    { path: '/superadmin/enrollments', label: 'Enrollment Management', icon: <BookOpen size={18} /> },
+    { path: '/superadmin/enrollments', label: 'Enrollment Management', icon: <BookOpen size={18} />, prefetchApi: '/courses/enrollments/' },
     { path: '/superadmin/entity/learners', label: 'Learners', icon: <Users size={18} /> },
     { path: '/superadmin/entity/instructors', label: 'Instructors', icon: <Shield size={18} /> },
     { path: '/superadmin/entity/enquiries', label: 'Student Enquiries', icon: <MessageSquare size={18} /> },
@@ -47,9 +48,9 @@ const SuperAdminLayout = () => {
   ];
 
   const trainingItems = [
-    { path: '/superadmin/entity/trainings', label: 'Trainings', icon: <Calendar size={18} /> },
-    { path: '/superadmin/entity/classwork', label: 'Classwork', icon: <FileText size={18} /> },
-    { path: '/superadmin/entity/exams', label: 'Exams', icon: <HelpCircle size={18} /> },
+    { path: '/superadmin/entity/trainings', label: 'Trainings', icon: <Calendar size={18} />, prefetchApi: '/trainings/trainings/' },
+    { path: '/superadmin/entity/classwork', label: 'Classwork', icon: <FileText size={18} />, prefetchApi: '/trainings/classwork/' },
+    { path: '/superadmin/entity/exams', label: 'Exams', icon: <HelpCircle size={18} />, prefetchApi: '/trainings/final_exams/' },
     { path: '/superadmin/entity/custom_training_requests', label: 'Requested Training', icon: <BookOpen size={18} /> },
   ];
 
@@ -60,7 +61,7 @@ const SuperAdminLayout = () => {
   ];
 
   const certificationAwardsItems = [
-    { path: '/superadmin/entity/certificates/overview', label: 'Certificate Overview', icon: <Award size={18} /> },
+    { path: '/superadmin/entity/certificates/overview', label: 'Certificate Overview', icon: <Award size={18} />, prefetchApi: '/certificates/' },
     { path: '/superadmin/entity/certificates', label: 'All Certificates', icon: <Award size={18} /> },
     { path: '/superadmin/entity/certificates/offer', label: 'Offer Certificates', icon: <Award size={18} /> },
   ];
@@ -111,8 +112,9 @@ const SuperAdminLayout = () => {
           
           {/* Standalone Dashboard Link */}
           <div className="px-4 mb-6">
-            <Link
+            <SmartLink
               to="/superadmin"
+              prefetchApi="/stats/superadmin-dashboard/"
               onClick={() => setIsMobileMenuOpen(false)}
               className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
                 location.pathname === '/superadmin' 
@@ -122,7 +124,7 @@ const SuperAdminLayout = () => {
             >
               <span className={`mr-4 ${location.pathname === '/superadmin' ? 'text-[#3b82f6]' : ''}`}><LayoutDashboard size={18} /></span>
               <span className="text-[14px]">Dashboard</span>
-            </Link>
+            </SmartLink>
           </div>
 
           {/* Section 1 */}

@@ -1,4 +1,5 @@
 from django.db import models
+from CMS.security_utils import compute_file_sha256
 
 
 class Research(models.Model):
@@ -35,7 +36,13 @@ class ResearchPublication(models.Model):
     image = models.ImageField(upload_to='research_images/', blank=True, null=True)
     publication_date = models.DateField()
     is_published = models.BooleanField(default=True)
+    sha256_hash = models.CharField(max_length=64, blank=True, null=True, help_text="SHA-256 cryptographic file integrity checksum")
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if self.document and not self.sha256_hash:
+            self.sha256_hash = compute_file_sha256(self.document)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
