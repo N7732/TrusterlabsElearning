@@ -1,1 +1,1 @@
-web: cd CMS && gunicorn CMS.wsgi:application --bind 0.0.0.0:${PORT:-8000}
+web: cd CMS && python manage.py migrate --noinput && gunicorn CMS.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 4 --threads 2 --timeout 120

@@ -2,10 +2,10 @@ asgiref>=3.7.0
 certifi
 cffi
 charset-normalizer
-cloudinary>=1.36.0
 cryptography
-Django==5.0.6
+cloudinary>=1.36.0
 django-cloudinary-storage>=0.3.0
+Django==5.0.6
 django-cors-headers>=4.3.0
 django-filter>=23.5,<25.0
 djangorestframework>=3.14.0
@@ -27,5 +27,12 @@ sqlparse
 tzdata
 urllib3
 whitenoise>=6.6.0
+google-auth
+django-anymail[resend]>=10.2
+django-dbbackup>=4.0.2
+django-axes>=6.1.1
 psutil>=5.9.0
 apscheduler>=3.10.0
+redis>=5.0.0
+django-redis>=5.4.0
+pymemcache>=4.0.0
