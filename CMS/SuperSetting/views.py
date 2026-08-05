@@ -253,7 +253,7 @@ class DashboardStatsViewSet(viewsets.ViewSet):
         alerts = []
         try:
             import psutil
-            cpu_usage = psutil.cpu_percent(interval=0.1)
+            cpu_usage = psutil.cpu_percent(interval=0.0)
             mem_usage = psutil.virtual_memory().percent
             
             if cpu_usage > 80 or mem_usage > 85:
@@ -348,7 +348,7 @@ class SystemAlertsViewSet(viewsets.ViewSet):
         alerts = []
         try:
             import psutil
-            cpu_usage = psutil.cpu_percent(interval=0.1)
+            cpu_usage = psutil.cpu_percent(interval=0.0)
             mem_usage = psutil.virtual_memory().percent
             
             if cpu_usage > 80 or mem_usage > 85:
