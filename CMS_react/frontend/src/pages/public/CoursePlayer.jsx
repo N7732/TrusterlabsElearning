@@ -174,6 +174,7 @@ const CoursePlayer = () => {
 
   const [completedLessons, setCompletedLessons] = useState([]);
   const [isEnrolled, setIsEnrolled] = useState(false);
+  const [enrollmentStatus, setEnrollmentStatus] = useState(null);
   const [checkingEnrollment, setCheckingEnrollment] = useState(true);
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [isPaymentDrawerOpen, setIsPaymentDrawerOpen] = useState(false);
@@ -299,6 +300,7 @@ const CoursePlayer = () => {
       const token = localStorage.getItem('truster_lab_token');
       if (!token) {
         setIsEnrolled(false);
+        setEnrollmentStatus(null);
         setCheckingEnrollment(false);
         return;
       }
@@ -309,6 +311,7 @@ const CoursePlayer = () => {
       // Admin/Instructor bypass logic
       if (isAdmin) {
         setIsEnrolled(true);
+        setEnrollmentStatus('active');
         setCheckingEnrollment(false);
         return;
       }
@@ -319,18 +322,25 @@ const CoursePlayer = () => {
         // If the user is the instructor of this course, let them preview it
         if (targetCourse.instructor && targetCourse.instructor.user === user.id) {
            setIsEnrolled(true);
+           setEnrollmentStatus('active');
            setCheckingEnrollment(false);
            return;
         }
       }
 
-      const enrolled = enrollments.some(e => 
-        (e.course_details?.id === parseInt(courseId) || e.course === parseInt(courseId)) 
-        && ['active', 'completed'].includes(e.status)
+      const myEnrollment = enrollments.find(e => 
+        (e.course_details?.id === parseInt(courseId) || e.course === parseInt(courseId))
       );
-      setIsEnrolled(enrolled);
+      if (myEnrollment) {
+        setEnrollmentStatus(myEnrollment.status);
+        setIsEnrolled(['active', 'completed'].includes(myEnrollment.status));
+      } else {
+        setEnrollmentStatus(null);
+        setIsEnrolled(false);
+      }
     } catch(err) {
       setIsEnrolled(false);
+      setEnrollmentStatus(null);
     } finally {
       setCheckingEnrollment(false);
     }
@@ -341,8 +351,9 @@ const CoursePlayer = () => {
       setIsEnrolling(true);
       const response = await apiClient.post(`/api/courses/${courseId}/enroll/`);
       // Any successful response (active, pending, or already enrolled) marks as enrolled
-      if (response.enrollment_status === 'active' || response.enrollment_status === 'pending') {
-        setIsEnrolled(true);
+      if (response.enrollment_status) {
+        setEnrollmentStatus(response.enrollment_status);
+        setIsEnrolled(['active', 'completed'].includes(response.enrollment_status));
         if (response.enrollment_status === 'pending') {
           alert('Your enrollment request has been submitted and is pending approval.');
         } else {
@@ -350,6 +361,7 @@ const CoursePlayer = () => {
         }
       } else {
         // Fallback: treat any successful response as enrolled
+        setEnrollmentStatus('active');
         setIsEnrolled(true);
         navigate('/learner/dashboard');
       }
@@ -364,8 +376,8 @@ const CoursePlayer = () => {
         errMsg.toLowerCase().includes('unique') ||
         errMsg.toLowerCase().includes('already registered')
       ) {
-        setIsEnrolled(true);
-        navigate('/learner/dashboard');
+        setEnrollmentStatus('pending');
+        alert('Your enrollment request is already pending approval.');
         return;
       }
       // Show a friendly alert only for real errors
@@ -799,10 +811,10 @@ const CoursePlayer = () => {
                         {isFree && (
                           <button 
                             onClick={() => isAuthenticated ? enrollUser() : navigate('/login')}
-                            disabled={isEnrolling}
-                            className={`w-full py-4 ${isEnrolling ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-600 hover:bg-blue-700'} text-white rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all`}
+                            disabled={isEnrolling || enrollmentStatus === 'pending'}
+                            className={`w-full py-4 ${isEnrolling ? 'bg-emerald-600 hover:bg-emerald-700' : (enrollmentStatus === 'pending' ? 'bg-amber-500 hover:bg-amber-600 cursor-not-allowed opacity-80' : 'bg-blue-600 hover:bg-blue-700')} text-white rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all`}
                           >
-                            {isEnrolling ? 'Enrolling...' : 'Enroll Now for Free'}
+                            {isEnrolling ? 'Enrolling...' : (enrollmentStatus === 'pending' ? 'Pending Admission' : 'Enroll Now for Free')}
                           </button>
                         )}
                         {isPaid && (
@@ -815,10 +827,11 @@ const CoursePlayer = () => {
                         )}
                         {isInquiry && (
                           <button 
-                            onClick={() => isAuthenticated ? setIsInquiryDrawerOpen(true) : navigate('/login')}
-                            className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all"
+                            onClick={() => isAuthenticated ? (enrollmentStatus === 'pending' ? null : enrollUser()) : navigate('/login')}
+                            disabled={isEnrolling || enrollmentStatus === 'pending'}
+                            className={`w-full py-4 ${enrollmentStatus === 'pending' ? 'bg-amber-500 hover:bg-amber-600 cursor-not-allowed opacity-80' : 'bg-amber-500 hover:bg-amber-600'} text-white rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all`}
                           >
-                            Request Access
+                            {isEnrolling ? 'Processing...' : (enrollmentStatus === 'pending' ? 'Pending Admission' : 'Request Access')}
                           </button>
                         )}
                       </>
