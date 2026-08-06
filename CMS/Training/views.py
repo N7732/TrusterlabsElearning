@@ -302,6 +302,20 @@ class TrainingViewSet(CachedModelViewSetMixin, viewsets.ModelViewSet):
         if action_type == 'ADMIT':
             participants.update(admission_status='ADMITTED')
             
+            # Auto-enroll admitted participants into all courses attached to this training
+            from Course.models import Enrollment
+            training_courses = training.courses.all()
+            for p in participants:
+                user = p.participant
+                learner = getattr(user, 'learner_profile', None)
+                if learner:
+                    for tc in training_courses:
+                        Enrollment.objects.get_or_create(
+                            learner=learner,
+                            course=tc.course,
+                            defaults={'status': 'active'}
+                        )
+            
             # Send admission emails
             for p in participants:
                 user = p.participant

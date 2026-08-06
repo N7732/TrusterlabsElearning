@@ -328,8 +328,9 @@ const CoursePlayer = () => {
         }
       }
 
+      const actualCourseId = targetCourse?.id || parseInt(courseId);
       const myEnrollment = enrollments.find(e => 
-        (e.course_details?.id === parseInt(courseId) || e.course === parseInt(courseId))
+        (e.course_details?.id === actualCourseId || e.course === actualCourseId)
       );
       if (myEnrollment) {
         setEnrollmentStatus(myEnrollment.status);
@@ -368,7 +369,7 @@ const CoursePlayer = () => {
     } catch(err) {
       console.error(err);
       const errMsg = err.message || '';
-      // If the error says already enrolled, treat it as success - just navigate
+      // If the error says already enrolled, treat it as success or pending based on course type
       if (
         errMsg.toLowerCase().includes('already enrolled') ||
         errMsg.toLowerCase().includes('already exist') ||
@@ -376,8 +377,14 @@ const CoursePlayer = () => {
         errMsg.toLowerCase().includes('unique') ||
         errMsg.toLowerCase().includes('already registered')
       ) {
-        setEnrollmentStatus('pending');
-        alert('Your enrollment request is already pending approval.');
+        if (courseData?.is_free) {
+          setEnrollmentStatus('active');
+          setIsEnrolled(true);
+          navigate('/learner/dashboard');
+        } else {
+          setEnrollmentStatus('pending');
+          alert('Your enrollment request is already pending approval.');
+        }
         return;
       }
       // Show a friendly alert only for real errors
