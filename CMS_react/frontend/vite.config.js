@@ -12,9 +12,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg', 'assets/*'],
       manifest: {
-        name: 'TrusterLab E-Learning & Course Management',
-        short_name: 'TrusterLab',
-        description: 'Elite E-Learning Platform with offline availability and zero-latency access',
+        name: 'TrusterLabs Academy',
+        short_name: 'TrusterLabs',
+        description: 'Premier cybersecurity training, professional courses, and consultancy for individuals and businesses across Rwanda and all of Africa. Offering specialized corporate and personal training, cybersecurity consultancy, and robust cybersecurity support.',
         theme_color: '#0a0f1d',
         background_color: '#0a0f1d',
         display: 'standalone',
@@ -40,7 +40,8 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,jpg,jpeg,woff,woff2}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,jpg,jpeg,woff,woff2,xml,txt}'],
+        navigateFallbackDenylist: [/^\/sitemap\.xml$/, /^\/robots\.txt$/],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
