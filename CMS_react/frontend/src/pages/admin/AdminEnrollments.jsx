@@ -49,7 +49,7 @@ const AdminEnrollments = () => {
   const handleApprove = async (enrollmentId) => {
     try {
       setProcessingId(enrollmentId);
-      await apiClient.put(`/api/enrollments/${enrollmentId}/`, { status: 'active' });
+      await apiClient.patch(`/api/enrollments/${enrollmentId}/`, { status: 'active' });
       
       // Update local state without full refetch
       setEnrollments(prev => prev.map(e => 
@@ -67,7 +67,7 @@ const AdminEnrollments = () => {
     if (!window.confirm("Are you sure you want to revoke access?")) return;
     try {
       setProcessingId(enrollmentId);
-      await apiClient.put(`/api/enrollments/${enrollmentId}/`, { status: 'dropped' });
+      await apiClient.patch(`/api/enrollments/${enrollmentId}/`, { status: 'dropped' });
       
       setEnrollments(prev => prev.map(e => 
         e.id === enrollmentId ? { ...e, status: 'dropped' } : e
