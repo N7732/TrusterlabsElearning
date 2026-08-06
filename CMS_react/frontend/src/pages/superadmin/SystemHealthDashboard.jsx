@@ -11,6 +11,7 @@ import useSWR, { mutate } from 'swr';
 const SystemHealthDashboard = () => {
   const { user } = useAuth();
   const [backupLoading, setBackupLoading] = useState(false);
+  const [testEmailLoading, setTestEmailLoading] = useState(false);
 
   const { data: healthData, error: swrError, isLoading: loading, isValidating: refreshing } = useSWR(
     '/settings/system-health/',

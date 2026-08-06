@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from django.db import transaction
+from django.shortcuts import get_object_or_404
 from SuperSetting.caching import CachedModelViewSetMixin
 
 # pyrefly: ignore [missing-import]
@@ -177,6 +178,20 @@ class TrainingViewSet(CachedModelViewSetMixin, viewsets.ModelViewSet):
             return queryset.filter(instructor=user.instructor_profile)
             
         return queryset
+
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        lookup = self.kwargs.get(self.lookup_url_kwarg or self.lookup_field)
+        if lookup is not None and str(lookup).isdigit():
+            try:
+                obj = queryset.get(pk=lookup)
+                self.check_object_permissions(self.request, obj)
+                return obj
+            except (queryset.model.DoesNotExist, ValueError, TypeError):
+                pass
+        obj = get_object_or_404(queryset, slug=lookup)
+        self.check_object_permissions(self.request, obj)
+        return obj
 
     def perform_create(self, serializer):
         user = self.request.user

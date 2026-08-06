@@ -81,6 +81,20 @@ class CourseViewSet(CachedModelViewSetMixin, viewsets.ModelViewSet):
             return [permissions.AllowAny()]
         return [permissions.IsAuthenticated()]
 
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        lookup = self.kwargs.get(self.lookup_url_kwarg or self.lookup_field)
+        if lookup is not None and str(lookup).isdigit():
+            try:
+                obj = queryset.get(pk=lookup)
+                self.check_object_permissions(self.request, obj)
+                return obj
+            except (queryset.model.DoesNotExist, ValueError, TypeError):
+                pass
+        obj = get_object_or_404(queryset, slug=lookup)
+        self.check_object_permissions(self.request, obj)
+        return obj
+
     @action(detail=False, methods=['post'], url_path='bulk_upload')
     def bulk_upload(self, request):
         if 'file' not in request.FILES:

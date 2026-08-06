@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.text import slugify
 from Course.models import Course, Quizes
 from Auth.models import User
 from cloudinary_storage.storage import RawMediaCloudinaryStorage
@@ -9,6 +10,7 @@ raw_storage = RawMediaCloudinaryStorage()
 
 class Training(models.Model):
     title = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=255, unique=True, blank=True)
     description = models.TextField()
     date_created = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
@@ -35,6 +37,17 @@ class Training(models.Model):
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base_slug = slugify(self.title)
+            slug = base_slug
+            counter = 1
+            while Training.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
 
 
 class TrainingCourses(models.Model):

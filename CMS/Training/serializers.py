@@ -123,7 +123,7 @@ class TrainingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Training
         fields = [
-            'id', 'title', 'description', 'starting_date', 'ending_date',
+            'id', 'title', 'slug', 'description', 'starting_date', 'ending_date',
             'application_open_date', 'application_close_date',
             'date_created', 'date_updated', 'courses', 'participants',
             'classworks', 'final_exams', 'has_certificate', 'auto_issue_certificate',

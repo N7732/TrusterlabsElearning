@@ -287,7 +287,7 @@ const LearnerTrainingDetail = () => {
                           )}
                         </div>
                         <button 
-                          onClick={() => navigate(`/course/${tc.course_detail?.id}`)}
+                          onClick={() => navigate(`/course/${tc.course_detail?.slug || tc.course_detail?.id}`)}
                           className="mt-4 w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 rounded transition-colors text-sm"
                         >
                           Access Module

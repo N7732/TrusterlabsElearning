@@ -144,7 +144,7 @@ const Admission = () => {
                               Your application for the <strong>{training.title}</strong> course has been accepted. We are thrilled to welcome you to TrusterLabs Academy.
                             </p>
                             <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                              <Link to={`/learner/trainings/${training.id}`}>
+                              <Link to={`/learner/trainings/${training.slug || training.id}`}>
                                 <Button className="bg-[#D4AF37] hover:bg-[#c29e2f] text-black border-none font-bold">
                                   Go to Training
                                 </Button>

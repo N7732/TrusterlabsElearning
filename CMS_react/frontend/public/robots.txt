@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password/*
+Disallow: /superadmin
+Disallow: /instructor
+Disallow: /learner/dashboard
+Disallow: /member-portal
+
+Sitemap: https://www.trusterlabsacademy.com/sitemap.xml
