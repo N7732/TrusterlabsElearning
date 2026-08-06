@@ -70,7 +70,7 @@ const PaymentDrawer = ({ isOpen, onClose, course }) => {
             variant="primary" 
             className="w-full h-11 text-base font-bold shadow hover:shadow-md bg-blue-600 hover:bg-blue-700 border-transparent rounded-xl"
             onClick={() => {
-              if (course) navigate(`/course/${course.id}?trial=true`);
+              if (course) navigate(`/course/${course.slug || course.id}?trial=true`);
             }}
           >
             Start Free Week

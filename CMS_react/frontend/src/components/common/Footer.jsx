@@ -48,6 +48,7 @@ const Footer = () => {
               <li><Link to="/admission" className="hover:text-[#D4AF37] transition-colors flex items-center gap-2"><span className="text-[#D4AF37] text-xs">▸</span> Admission</Link></li>
               <li><Link to="/research/articles" className="hover:text-[#D4AF37] transition-colors flex items-center gap-2"><span className="text-[#D4AF37] text-xs">▸</span> Research</Link></li>
               <li><Link to="/membership" className="hover:text-[#D4AF37] transition-colors flex items-center gap-2"><span className="text-[#D4AF37] text-xs">▸</span> Membership</Link></li>
+              <li><a href="/sitemap.xml" target="_blank" rel="noopener noreferrer" className="hover:text-[#D4AF37] transition-colors flex items-center gap-2"><span className="text-[#D4AF37] text-xs">▸</span> Sitemap</a></li>
             </ul>
           </div>
 

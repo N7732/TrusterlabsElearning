@@ -121,9 +121,9 @@ const CourseCatalog = () => {
                 key={course.id} 
                 onClick={() => {
                   if (isAuthenticated) {
-                    navigate(`/course/${course.id}`);
+                    navigate(`/course/${course.slug || course.id}`);
                   } else {
-                    navigate('/login', { state: { from: `/course/${course.id}` } });
+                    navigate('/login', { state: { from: `/course/${course.slug || course.id}` } });
                   }
                 }} 
                 className="block group cursor-pointer"

@@ -168,7 +168,7 @@ const LearnerDashboard = () => {
                 const isPending = enrollment.status === 'pending';
                 
                 return (
-                  <Link to={isPending ? '#' : `/course/${course.id}`} key={enrollment.id} className="block group">
+                  <Link to={isPending ? '#' : `/course/${course.slug || course.id}`} key={enrollment.id} className="block group">
                     <div className={`bg-[#F8F9FA] border border-slate-200 rounded-sm overflow-hidden flex flex-col h-full hover:shadow-md transition-shadow relative border-b-2 ${isPending ? 'border-b-amber-500' : 'border-b-[#0A66C2]'}`}>
                       
                       <div className="relative h-44 w-full bg-slate-300 overflow-hidden">
@@ -233,7 +233,7 @@ const LearnerDashboard = () => {
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {trainings.map(training => (
-                <Link to={`/learner/trainings/${training.id}`} key={training.id} className="block group">
+                <Link to={`/learner/trainings/${training.slug || training.id}`} key={training.id} className="block group">
                   <div className={`bg-[#F8F9FA] border border-slate-200 rounded-sm overflow-hidden flex flex-col h-full hover:shadow-md transition-shadow relative border-b-2 border-b-[#0A66C2]`}>
                     <div className="p-5 flex flex-col flex-grow">
                       <h3 className="text-lg font-bold text-slate-900 leading-snug mb-2 group-hover:text-[#0A66C2] transition-colors">
