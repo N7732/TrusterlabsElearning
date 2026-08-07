@@ -359,8 +359,6 @@ const CoursePlayer = () => {
         setIsEnrolled(['active', 'completed'].includes(response.enrollment_status));
         if (response.enrollment_status === 'pending') {
           alert('Your enrollment request has been submitted and is pending approval.');
-        } else {
-          navigate('/learner/dashboard');
         }
       } else {
         // Fallback: treat any successful response as enrolled
@@ -379,10 +377,9 @@ const CoursePlayer = () => {
         errMsg.toLowerCase().includes('unique') ||
         errMsg.toLowerCase().includes('already registered')
       ) {
-        if (courseData?.is_free) {
+        if (courseData?.is_free || courseData?.price == 0 || courseData?.price === '0.00') {
           setEnrollmentStatus('active');
           setIsEnrolled(true);
-          navigate('/learner/dashboard');
         } else {
           setEnrollmentStatus('pending');
           alert('Your enrollment request is already pending approval.');

@@ -219,7 +219,7 @@ class CourseViewSet(CachedModelViewSetMixin, viewsets.ModelViewSet):
                 }, status=status.HTTP_403_FORBIDDEN)
         
         # Enroll
-        status_val = 'active' if course.is_free else 'pending'
+        status_val = 'active' if (course.is_free or course.price == 0) else 'pending'
         Enrollment.objects.create(learner=learner, course=course, status=status_val)
         
         if status_val == 'active':
