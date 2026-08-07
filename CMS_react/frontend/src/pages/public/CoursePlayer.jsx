@@ -304,7 +304,7 @@ const CoursePlayer = () => {
         setCheckingEnrollment(false);
         return;
       }
-      const data = await apiClient.get('/api/enrollments/');
+      const data = await apiClient.get(`/api/enrollments/?t=${new Date().getTime()}`);
       const results = data.results || data;
       const enrollments = Array.isArray(results) ? results : [];
       
@@ -330,7 +330,9 @@ const CoursePlayer = () => {
 
       const actualCourseId = targetCourse?.id || parseInt(courseId);
       const myEnrollment = enrollments.find(e => 
-        (e.course_details?.id === actualCourseId || e.course === actualCourseId)
+        e.course_details?.id === actualCourseId || 
+        e.course === actualCourseId ||
+        (e.course_details?.slug && e.course_details.slug === courseId)
       );
       if (myEnrollment) {
         setEnrollmentStatus(myEnrollment.status);
