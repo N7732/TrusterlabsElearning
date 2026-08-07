@@ -341,7 +341,7 @@ const LearnerDashboard = () => {
                     <h3 className="text-lg font-bold text-slate-900 mb-2">Certificate of Completion</h3>
                     <p className="text-sm text-slate-600 mb-1">For successfully completing:</p>
                     <p className="text-base font-semibold text-[#0A66C2] mb-4">
-                      {cert.training_details ? cert.training_details.title : (cert.course_details ? cert.course_details.title : 'Unknown Program')}
+                      {cert.program_title || 'Unknown Program'}
                     </p>
                     <p className="text-xs text-slate-500">Issued to: {cert.learner_name}</p>
                     <p className="text-xs text-slate-500">Date: {new Date(cert.issued_at || cert.created_at).toLocaleDateString()}</p>
