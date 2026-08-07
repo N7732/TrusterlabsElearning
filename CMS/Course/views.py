@@ -196,7 +196,14 @@ class CourseViewSet(CachedModelViewSetMixin, viewsets.ModelViewSet):
         if not learner:
              return Response({'error': 'You must be registered as a student to enroll in courses. Instructors and Admins cannot enroll.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if Enrollment.objects.filter(learner=learner, course=course).exists():
+        enrollment = Enrollment.objects.filter(learner=learner, course=course).first()
+        if enrollment:
+             if enrollment.status == 'dropped':
+                 # Reactivate the enrollment
+                 status_val = 'active' if (course.is_free or course.price == 0) else 'pending'
+                 enrollment.status = status_val
+                 enrollment.save()
+                 return Response({'status': 'Re-enrolled successfully', 'enrollment_status': status_val}, status=status.HTTP_200_OK)
              return Response({'message': 'Already enrolled'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Check prerequisites
