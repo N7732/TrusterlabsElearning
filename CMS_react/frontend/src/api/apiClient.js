@@ -143,6 +143,14 @@ export const getImageUrl = (path) => {
     return path;
   }
   
+  // Handle Cloudinary URLs that might not start with http
+  if (path.includes('res.cloudinary.com')) {
+    if (!path.startsWith('http')) {
+      return `https://${path.replace(/^\/\//, '')}`;
+    }
+    return path;
+  }
+  
   const cleanBase = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
   
