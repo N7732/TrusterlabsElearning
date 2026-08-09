@@ -200,7 +200,10 @@ class CourseViewSet(CachedModelViewSetMixin, viewsets.ModelViewSet):
         if enrollment:
              if enrollment.status == 'dropped':
                  # Reactivate the enrollment
-                 status_val = 'active' if (course.is_free or course.price == 0) else 'pending'
+                 if not course.is_free and (course.price is None or course.price == 0):
+                     return Response({'error': 'This course requires an inquiry to re-enroll.'}, status=status.HTTP_400_BAD_REQUEST)
+                 
+                 status_val = 'active' if course.is_free else 'pending'
                  enrollment.status = status_val
                  enrollment.save()
                  return Response({'status': 'Re-enrolled successfully', 'enrollment_status': status_val}, status=status.HTTP_200_OK)
@@ -225,8 +228,12 @@ class CourseViewSet(CachedModelViewSetMixin, viewsets.ModelViewSet):
                     'error': f'Prerequisite not met. You must complete {required_course.title} first.'
                 }, status=status.HTTP_403_FORBIDDEN)
         
+        # Check if inquiry required
+        if not course.is_free and (course.price is None or course.price == 0):
+            return Response({'error': 'This course requires an inquiry to enroll.'}, status=status.HTTP_400_BAD_REQUEST)
+
         # Enroll
-        status_val = 'active' if (course.is_free or course.price == 0) else 'pending'
+        status_val = 'active' if course.is_free else 'pending'
         Enrollment.objects.create(learner=learner, course=course, status=status_val)
         
         if status_val == 'active':
