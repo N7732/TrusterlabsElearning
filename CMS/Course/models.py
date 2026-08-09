@@ -121,6 +121,8 @@ class Module(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='modules')
     title = models.CharField(max_length=150)
     description = models.TextField(blank=True, null=True)
+    thumbnail = models.ImageField(upload_to='module_thumbnails/', blank=True, null=True)
+    thumbnail_url = models.URLField(max_length=1000, blank=True, null=True, help_text="Direct link to module thumbnail (e.g., Cloudinary)")
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
