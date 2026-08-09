@@ -833,7 +833,7 @@ const CoursePlayer = () => {
                         )}
                         {isInquiry && (
                           <button 
-                            onClick={() => isAuthenticated ? (enrollmentStatus === 'pending' ? null : enrollUser()) : navigate('/login')}
+                            onClick={() => isAuthenticated ? (enrollmentStatus === 'pending' ? null : setIsInquiryDrawerOpen(true)) : navigate('/login')}
                             disabled={isEnrolling || enrollmentStatus === 'pending'}
                             className={`w-full py-4 ${enrollmentStatus === 'pending' ? 'bg-amber-500 hover:bg-amber-600 cursor-not-allowed opacity-80' : 'bg-amber-500 hover:bg-amber-600'} text-white rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all`}
                           >
