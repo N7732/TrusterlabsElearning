@@ -135,6 +135,3 @@ def get_learners_by_name(name):
     return Learner.objects.filter(user__first_name__icontains=name) | \
            Learner.objects.filter(user__last_name__icontains=name)
 
-# def get_active_subscriptions(learner):
-#     """Get active subscriptions for a learner"""
-#     return learner.subscriptions.filter(active=True)

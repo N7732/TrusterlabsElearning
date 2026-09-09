@@ -3,7 +3,7 @@ import sys
 
 try:
     # Replace with the actual path to your project on cPanel
-    sys.path.insert(0, "/home/trusteracademy/Trusterlabs")
+    sys.path.insert(0, "/home/trusteracademy/back.trusterlabsacademy")
     
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "CMS.settings")
     

@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
+# pyrefly: ignore [missing-import]
 from .models import Learner, Instructor, AccountProfile, User
 
 class LearnerRegistrationForm(UserCreationForm):

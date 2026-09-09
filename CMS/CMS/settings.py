@@ -38,6 +38,7 @@ ALLOWED_HOSTS = [
     "trusterlabselearning-production.up.railway.app",
     "www.trusterlabsacademy.com",
     "trusterlabsacademy.com",
+    "back.trusterlabsacademy.com",
     "localhost",
     "127.0.0.1"
 ]
@@ -154,13 +155,15 @@ if DATABASE_URL:
 elif os.getenv('DB_NAME'):
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('DB_NAME', 'postgres'),
+            'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.mysql'),
+            'NAME': os.getenv('DB_NAME'),
             'USER': os.getenv('DB_USER'),
             'PASSWORD': os.getenv('DB_PASSWORD'),
-            'HOST': os.getenv('DB_HOST'),
-            'PORT': os.getenv('DB_PORT', '5432'),
-            'CONN_MAX_AGE': 0, # Must be 0 for Supabase connection pooler compatibility
+            'HOST': os.getenv('DB_HOST', 'localhost'),
+            'PORT': os.getenv('DB_PORT', '3306'),
+            'OPTIONS': {
+                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            }
         }
     }
 else:
@@ -306,7 +309,8 @@ CORS_ALLOWED_ORIGINS = [
     "https://frontend-6od8rks2q-n7732s-projects.vercel.app",
     "https://trusterlabselearning-production.up.railway.app",
     "https://www.trusterlabsacademy.com",
-    "https://trusterlabsacademy.com"
+    "https://trusterlabsacademy.com",
+    "https://back.trusterlabsacademy.com"
 ]
 
 extra_cors = os.getenv('CORS_ALLOWED_ORIGINS')
@@ -319,7 +323,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://frontend-omega-five-21.vercel.app",
     "https://trusterlabselearning-production.up.railway.app",
     "https://www.trusterlabsacademy.com",
-    "https://trusterlabsacademy.com"
+    "https://trusterlabsacademy.com",
+    "https://back.trusterlabsacademy.com"
 ]
 
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://frontend-omega-five-21.vercel.app')
@@ -346,16 +351,16 @@ if RESEND_API_KEY:
     }
     DEFAULT_FROM_EMAIL = "Trusterlabsacademy.com <academic@trusterlabsacademy.com>"
 else:
-    # Fallback to standard SMTP if no Resend key is provided (e.g. for local dev)
+    # Fallback to standard SMTP if no Resend key is provided (e.g. for local dev or cPanel)
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = os.getenv('EMAIL_HOST', 'rs1.obambu.com')
+    EMAIL_HOST = os.getenv('EMAIL_HOST', 'mail.trusterlabsacademy.com')
     EMAIL_PORT = int(os.getenv('EMAIL_PORT', 465))
     EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'False') == 'True'
     EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'True') == 'True'
-    EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+    EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'academic@trusterlabsacademy.com')
     EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
     EMAIL_TIMEOUT = 30
-    DEFAULT_FROM_EMAIL = f"Trusterlabs Academy (No Reply) <{EMAIL_HOST_USER}>"
+    DEFAULT_FROM_EMAIL = f"Trusterlabs Academy <{EMAIL_HOST_USER}>"
 
 
 # Google OAuth
