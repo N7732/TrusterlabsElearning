@@ -1,0 +1,21 @@
+{% extends 'emails/base.html' %}
+
+{% block content %}
+<h1>Membership Approved</h1>
+<p>Dear {{ user.first_name }},</p>
+<p>Congratulations! Your Professional Membership application at TrusterLab has been approved and is now active.</p>
+
+<div class="highlight-box">
+    <p><strong>Membership Details:</strong></p>
+    <p>Membership ID: <strong>{{ membership.membership_id }}</strong></p>
+    <p>Start Date: <strong>{{ membership.start_date }}</strong></p>
+    <p>Expiry Date: <strong>{{ membership.expiry_date }}</strong></p>
+</div>
+
+<p>You now have full access to our professional features, including project submission, premium resources, and dedicated support.</p>
+<p>Log in to your account to explore your new benefits.</p>
+
+<a href="{{ profile_url }}" class="btn">Go to Dashboard</a>
+
+<p>If you have any questions, feel free to reply to this email.</p>
+{% endblock %}

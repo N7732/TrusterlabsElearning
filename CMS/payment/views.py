@@ -46,9 +46,12 @@ class PaymentCreateView(APIView):
 
             if payment.create():
                 new_payment = Payment.objects.create(
-                    customer_name=data['customer_name'],
-                    customer_email=data['customer_email'],
-                    amount=data['amount'],
+                    customer_name=data.get('customer_name'),
+                    customer_email=data.get('customer_email'),
+                    course=data.get('course'),
+                    membership_id=request.data.get('membership'),
+                    payment_type=request.data.get('payment_type', 'course'),
+                    amount=data.get('amount'),
                     paypal_payment_id=payment.id,
                     status='created'
                 )
@@ -106,6 +109,23 @@ class PaymentExecuteView(APIView):
                 db_payment = Payment.objects.get(paypal_payment_id=payment_id)
                 db_payment.status = 'completed'
                 db_payment.save()
+
+                if db_payment.payment_type == 'membership' and db_payment.membership:
+                    from datetime import date
+                    from dateutil.relativedelta import relativedelta
+                    membership = db_payment.membership
+                    membership.status = 'active'
+                    membership.payment_status = 'paid'
+                    membership.start_date = date.today()
+                    membership.expiry_date = date.today() + relativedelta(years=1)
+                    membership.save()
+                    
+                    try:
+                        from Auth.views import send_membership_approved_email
+                        send_membership_approved_email(membership)
+                    except Exception as e:
+                        logger.error(f"Failed to send membership email to {membership.email}: {e}")
+
                 return Response({
                     "status": "success",
                     "message": "Payment executed successfully",
@@ -169,3 +189,127 @@ class PaymentCancelView(APIView):
                 "status": "error",
                 "message": f"An unexpected error occurred: {str(e)}"
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+from django.db.models import Sum
+from django.db.models.functions import TruncWeek, TruncMonth, TruncYear
+from django.utils import timezone
+from Auth.decorator import is_admin
+from rest_framework.permissions import IsAuthenticated
+from SuperSetting.models import SiteSetting
+from Course.models import Course
+from .models import NegotiationIncome
+from rest_framework.serializers import ModelSerializer
+
+class NegotiationIncomeSerializer(ModelSerializer):
+    class Meta:
+        model = NegotiationIncome
+        fields = '__all__'
+
+class NegotiationIncomeAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if request.user.user_type != 'admin' and not request.user.is_superuser:
+            return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
+        incomes = NegotiationIncome.objects.all().order_by('-date')
+        serializer = NegotiationIncomeSerializer(incomes, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        if request.user.user_type != 'admin' and not request.user.is_superuser:
+            return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
+        serializer = NegotiationIncomeSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class FinanceOverviewAPIView(APIView):
+    """
+    API for superadmin to view financial income overview (weekly, monthly, yearly).
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if request.user.user_type != 'admin' and not request.user.is_superuser:
+            return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
+            
+        # Get completed payments only
+        payments = Payment.objects.filter(status='completed')
+
+        weekly_income = payments.annotate(period=TruncWeek('created_at')).values('period').annotate(total=Sum('amount')).order_by('period')
+        monthly_income = payments.annotate(period=TruncMonth('created_at')).values('period').annotate(total=Sum('amount')).order_by('period')
+        yearly_income = payments.annotate(period=TruncYear('created_at')).values('period').annotate(total=Sum('amount')).order_by('period')
+        
+        # Negotiations
+        negotiations = NegotiationIncome.objects.all()
+        neg_total = negotiations.aggregate(total=Sum('amount'))['total'] or 0
+        payment_total = payments.aggregate(total=Sum('amount'))['total'] or 0
+
+        return Response({
+            'weekly': weekly_income,
+            'monthly': monthly_income,
+            'yearly': yearly_income,
+            'total_income': payment_total + neg_total
+        })
+
+class CourseIncomeAPIView(APIView):
+    """
+    API for superadmin to view income per course.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if request.user.user_type != 'admin' and not request.user.is_superuser:
+            return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
+            
+        courses = Course.objects.all()
+        data = []
+        for course in courses:
+            income = Payment.objects.filter(course=course, status='completed').aggregate(total=Sum('amount'))['total'] or 0
+            enrollments = course.enrollments.count()
+            data.append({
+                'course_id': course.id,
+                'title': course.title,
+                'price': course.price,
+                'currency': course.current,
+                'total_income': income,
+                'enrollments': enrollments
+            })
+            
+        return Response(data)
+
+class ExternalFinanceAPIView(APIView):
+    """
+    External API for Trusterlabs Financial Department.
+    Protected by X-API-Key header.
+    """
+    permission_classes = [] # Handled manually
+
+    def get(self, request):
+        api_key = request.headers.get('X-API-Key')
+        setting = SiteSetting.objects.first()
+        if not setting or not setting.external_finance_api_key or setting.external_finance_api_key != api_key:
+            return Response({'detail': 'Invalid or missing API Key.'}, status=status.HTTP_401_UNAUTHORIZED)
+            
+        # Compile response
+        payments = Payment.objects.filter(status='completed')
+        neg_total = NegotiationIncome.objects.all().aggregate(total=Sum('amount'))['total'] or 0
+        total_income = (payments.aggregate(total=Sum('amount'))['total'] or 0) + neg_total
+        
+        course_data = []
+        courses = Course.objects.all()
+        for course in courses:
+            income = Payment.objects.filter(course=course, status='completed').aggregate(total=Sum('amount'))['total'] or 0
+            if income > 0:
+                course_data.append({
+                    'course_id': course.id,
+                    'title': course.title,
+                    'price': course.price,
+                    'total_income': income
+                })
+                
+        return Response({
+            'total_platform_income': total_income,
+            'income_by_course': course_data
+        })

@@ -78,7 +78,7 @@ const AuthPage = () => {
     setLoading(true);
     setError('');
     try {
-      await googleLogin(credentialResponse.credential);
+      await googleLogin(credentialResponse.credential, activeTab);
       let redirectPath = from;
       if (from === '/' || from === '/login') {
         redirectPath = '/';

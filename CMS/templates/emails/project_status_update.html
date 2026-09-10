@@ -1,0 +1,17 @@
+{% extends 'emails/base.html' %}
+
+{% block content %}
+<h1>Project Status Update</h1>
+<p>Dear {{ user.first_name }},</p>
+<p>There has been an update regarding your project: <strong>{{ project.name }}</strong>.</p>
+
+<div class="highlight-box">
+    <p><strong>Status Change:</strong></p>
+    <p>Old Status: <strong>{{ old_status }}</strong></p>
+    <p>New Status: <strong>{{ new_status }}</strong></p>
+</div>
+
+<p>Our team is continuing to process your project according to the new status. If further action is required from your side, you will be notified.</p>
+
+<a href="{{ settings.FRONTEND_URL|default:'https://frontend-omega-five-21.vercel.app' }}/dashboard" class="btn">View Project</a>
+{% endblock %}

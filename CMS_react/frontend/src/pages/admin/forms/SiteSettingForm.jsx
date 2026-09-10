@@ -17,7 +17,9 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
     instagram_url: '',
     youtube_url: '',
     navbar_logo: null,
-    top_announcements: ''
+    top_announcements: '',
+    allow_professional_membership: true,
+    allow_enterprise_membership: true
   });
   
   const [logoFile, setLogoFile] = useState(null);
@@ -41,7 +43,9 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
         instagram_url: res.instagram_url || '',
         youtube_url: res.youtube_url || '',
         navbar_logo: res.navbar_logo || null,
-        top_announcements: res.top_announcements || ''
+        top_announcements: res.top_announcements || '',
+        allow_professional_membership: res.allow_professional_membership ?? true,
+        allow_enterprise_membership: res.allow_enterprise_membership ?? true
       });
       return res;
     },
@@ -49,10 +53,10 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
   );
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : value
     }));
   };
 
@@ -80,6 +84,8 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
       data.append('linkedin_url', formData.linkedin_url);
       data.append('instagram_url', formData.instagram_url);
       data.append('top_announcements', formData.top_announcements);
+      data.append('allow_professional_membership', formData.allow_professional_membership);
+      data.append('allow_enterprise_membership', formData.allow_enterprise_membership);
       
       if (logoFile) {
         data.append('navbar_logo', logoFile);
@@ -374,6 +380,52 @@ const SiteSettingForm = ({ isEditing, settingId }) => {
                   placeholder={`✦ Latest News: TrusterLabs recognized as top cybersecurity provider...\n✦ Training: Next Cohort for Advanced Penetration Testing starts Sept 1st`}
                 ></textarea>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Panel 5: Membership Configurations */}
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 h-fit lg:col-span-2 xl:col-span-3 mb-8">
+          <div className="flex justify-between items-center p-4 border-b border-slate-100 bg-emerald-50/50">
+            <div className="flex items-center gap-2 text-emerald-700 font-semibold">
+              <Settings size={18} />
+              <span>Membership Applications Access</span>
+            </div>
+            <ChevronUp size={16} className="text-emerald-700" />
+          </div>
+          <div className="p-5 space-y-5">
+            <div className="flex flex-col sm:flex-row gap-8 items-start">
+              
+              <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-lg border border-slate-200 w-full sm:w-1/2">
+                <input
+                  type="checkbox"
+                  id="allow_professional_membership"
+                  name="allow_professional_membership"
+                  checked={formData.allow_professional_membership}
+                  onChange={handleChange}
+                  className="w-5 h-5 text-[#0A66C2] border-slate-300 rounded focus:ring-[#0A66C2] cursor-pointer"
+                />
+                <div>
+                  <label htmlFor="allow_professional_membership" className="block text-sm font-bold text-slate-800 cursor-pointer">Allow Professional Memberships</label>
+                  <p className="text-xs text-slate-500 mt-1">If disabled, the Professional Tier application will be closed to new users.</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-lg border border-slate-200 w-full sm:w-1/2">
+                <input
+                  type="checkbox"
+                  id="allow_enterprise_membership"
+                  name="allow_enterprise_membership"
+                  checked={formData.allow_enterprise_membership}
+                  onChange={handleChange}
+                  className="w-5 h-5 text-[#0A66C2] border-slate-300 rounded focus:ring-[#0A66C2] cursor-pointer"
+                />
+                <div>
+                  <label htmlFor="allow_enterprise_membership" className="block text-sm font-bold text-slate-800 cursor-pointer">Allow Enterprise Memberships</label>
+                  <p className="text-xs text-slate-500 mt-1">If disabled, the Enterprise Tier application will be closed to new users.</p>
+                </div>
+              </div>
+
             </div>
           </div>
         </div>

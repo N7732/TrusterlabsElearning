@@ -1,0 +1,21 @@
+{% extends 'emails/base.html' %}
+
+{% block content %}
+<h1>Welcome to Professional Membership</h1>
+<p>Dear {{ user.first_name }},</p>
+<p>An administrator at TrusterLab has set up a Professional Membership for your account.</p>
+
+<div class="highlight-box">
+    <p><strong>Membership Details:</strong></p>
+    <p>Membership ID: <strong>{{ membership.membership_id }}</strong></p>
+    <p>Start Date: <strong>{{ membership.start_date }}</strong></p>
+    <p>Expiry Date: <strong>{{ membership.expiry_date }}</strong></p>
+</div>
+
+<p>You can now access all of our professional features, such as premium resources, project submissions, and exclusive webinars.</p>
+<p>Log in to your account below to start utilizing your benefits.</p>
+
+<a href="{{ profile_url }}" class="btn">Log In Now</a>
+
+<p>If you have any questions or if you didn't expect this, please reach out to our support team.</p>
+{% endblock %}

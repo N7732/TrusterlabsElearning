@@ -55,9 +55,16 @@ class SiteSetting(models.Model):
     youtube_url = models.URLField(max_length=500, null=True, blank=True)
     navbar_logo = models.ImageField(upload_to='site_logos/', null=True, blank=True)
     top_announcements = models.TextField(blank=True, null=True, help_text="Enter announcements separated by new lines")
+    external_finance_api_key = models.CharField(max_length=100, blank=True, null=True, help_text="API key for the external Trusterlabs financial department")
+    allow_professional_membership = models.BooleanField(default=True, help_text="Toggle to allow or disable Professional Membership applications")
+    allow_enterprise_membership = models.BooleanField(default=True, help_text="Toggle to allow or disable Enterprise Membership applications")
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
+        import uuid
+        if not self.external_finance_api_key:
+            self.external_finance_api_key = str(uuid.uuid4()).replace("-", "")
+
         if not self.pk and SiteSetting.objects.exists():
             # if trying to create a new one but one already exists
             raise ValidationError('There can be only one SiteSetting instance.')

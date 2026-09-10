@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     'Course',
     'payment',
     'Enquiry',
+    'Project',
     'Training',
     'SuperSetting',
     'Membership',

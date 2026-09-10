@@ -545,5 +545,76 @@ export const adminConfig = {
     canCreate: true,
     canEdit: true,
     canDelete: true,
+  },
+  projects: {
+    label: 'User Projects',
+    endpoint: '/api/project/projects/',
+    columns: [
+      { field: 'id', label: 'ID' },
+      { field: 'title', label: 'Title' },
+      { field: 'owner_name', label: 'Owner' },
+      { 
+        field: 'status', 
+        label: 'Status',
+        type: 'select',
+        options: [
+          { value: 'active', label: 'Active', color: 'blue' },
+          { value: 'under_review', label: 'Under Review', color: 'yellow' },
+          { value: 'funded', label: 'Funded', color: 'green' },
+          { value: 'completed', label: 'Completed', color: 'slate' },
+        ]
+      },
+    ],
+    formFields: [
+      { field: 'title', label: 'Title', type: 'text', readOnlyOnEdit: true },
+      { field: 'description', label: 'Description', type: 'textarea', readOnlyOnEdit: true },
+      { field: 'industry', label: 'Industry', type: 'text', readOnlyOnEdit: true },
+      { field: 'stage', label: 'Stage', type: 'text', readOnlyOnEdit: true },
+      { field: 'funding_goal', label: 'Funding Goal', type: 'text', readOnlyOnEdit: true },
+      { field: 'status', label: 'Status', type: 'select', options: [
+        { value: 'active', label: 'Active' },
+        { value: 'under_review', label: 'Under Review' },
+        { value: 'funded', label: 'Funded' },
+        { value: 'completed', label: 'Completed' },
+      ] },
+    ],
+    canCreate: false,
+    canEdit: true,
+    canDelete: true,
+  },
+  meetings: {
+    label: 'Consultation Meetings',
+    endpoint: '/api/project/meetings/',
+    columns: [
+      { field: 'id', label: 'ID' },
+      { field: 'project', label: 'Project ID' },
+      { field: 'scheduled_date', label: 'Date' },
+      { 
+        field: 'status', 
+        label: 'Status',
+        type: 'select',
+        options: [
+          { value: 'pending', label: 'Pending', color: 'yellow' },
+          { value: 'scheduled', label: 'Scheduled', color: 'blue' },
+          { value: 'completed', label: 'Completed', color: 'green' },
+          { value: 'cancelled', label: 'Cancelled', color: 'red' },
+        ]
+      },
+    ],
+    formFields: [
+      { field: 'project', label: 'Project ID', type: 'text', readOnlyOnEdit: true },
+      { field: 'scheduled_date', label: 'Date', type: 'datetime-local' },
+      { field: 'meeting_link', label: 'Meeting Link', type: 'url' },
+      { field: 'status', label: 'Status', type: 'select', options: [
+        { value: 'pending', label: 'Pending' },
+        { value: 'scheduled', label: 'Scheduled' },
+        { value: 'completed', label: 'Completed' },
+        { value: 'cancelled', label: 'Cancelled' },
+      ] },
+      { field: 'notes', label: 'Notes', type: 'textarea' },
+    ],
+    canCreate: false,
+    canEdit: true,
+    canDelete: true,
   }
 };

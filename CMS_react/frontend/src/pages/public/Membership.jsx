@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import Button from '../../components/common/Button';
 import { useCreateMembership } from '../../hooks/queries/usePublicQueries';
 import { useAuth } from '../../context/AuthContext';
+import { apiClient } from '../../api/apiClient';
 
 const Membership = () => {
   const navigate = useNavigate();
@@ -50,13 +51,34 @@ const Membership = () => {
     setErrorMsg('');
 
     try {
+      let planType = 'free';
+      if (selectedPlan?.name === 'Professional') planType = 'professional';
+      if (selectedPlan?.name === 'Enterprise Partner') planType = 'enterprise';
+
       const payload = {
         ...formData,
         description: `Plan: ${selectedPlan?.name}`,
         duration_days: 365, // Default 1 year
+        membership_type: planType
       };
       
-      await createMembership(payload);
+      const response = await createMembership(payload);
+      const membershipData = response.data || response;
+
+      if (planType === 'professional') {
+        // Redirect to PayPal
+        const paymentRes = await apiClient.post('/api/v1/payments/', {
+          payment_type: 'membership',
+          membership_id: membershipData.id,
+          return_url: `${window.location.origin}/member-portal?payment=success`,
+          cancel_url: `${window.location.origin}/membership?payment=cancelled`
+        });
+        if (paymentRes.data?.approval_url) {
+          window.location.href = paymentRes.data.approval_url;
+          return;
+        }
+      }
+      
       setSuccess(true);
     } catch (err) {
       console.error("Membership registration error", err);
@@ -88,14 +110,14 @@ const Membership = () => {
     },
     {
       name: 'Professional',
-      price: '$49/mo',
+      price: '$3/year',
       description: 'Designed for working professionals wanting to stay ahead of threats.',
       features: [
-        'All Student Explorer features',
-        'Access to advanced research articles',
-        'Exclusive technical webinars',
-        'Priority enrollment for bootcamps',
-        '1-on-1 mentorship sessions (1/mo)'
+        'All Feature of free membership',
+        'Access to Advanced research',
+        '50% off Project Hosting on Our VPS',
+        'Project Mentorship and Support',
+        'Attend Monthly Mentorship on Project and Career'
       ],
       icon: <Award className="text-[#D4AF37]" size={32} />,
       popular: true
@@ -164,7 +186,7 @@ const Membership = () => {
               </ul>
 
               <button 
-                onClick={() => handleJoinClick(plan)}
+                onClick={() => plan.price === 'Custom' ? navigate('/contact') : handleJoinClick(plan)}
                 className={`w-full py-3 rounded-lg font-bold transition-colors ${plan.popular ? 'bg-[#D4AF37] hover:bg-[#c29e2f] text-black' : 'bg-transparent border border-white/20 text-white hover:bg-white/5'}`}>
                 {plan.price === 'Custom' ? 'Contact Sales' : 'Join Now'}
               </button>
@@ -217,7 +239,10 @@ const Membership = () => {
                   </div>
                   <h4 className="text-2xl font-bold text-white mb-2">Registration Successful!</h4>
                   <p className="text-gray-400 mb-6">
-                    Welcome to TrusterLabs! We have received your membership request and sent a confirmation to your email.
+                    Welcome to TrusterLabs! We have received your membership request. 
+                    {selectedPlan?.name === 'Enterprise Partner' 
+                      ? " Our team will contact you shortly to finalize your enterprise access." 
+                      : " We have sent a confirmation to your email."}
                   </p>
                   <Button onClick={() => setShowModal(false)} className="w-full bg-[#D4AF37] text-black hover:bg-[#c29e2f]">
                     Close

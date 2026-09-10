@@ -19,8 +19,10 @@ const SuperAdminLayout = () => {
     membershipManagement: false,
     accessInquiries: false,
     trainingAcademy: false,
+    projectManagement: false,
     researchWebinars: false,
     certificationAwards: false,
+    financialManagement: false,
     systemSettings: false,
   });
 
@@ -54,6 +56,11 @@ const SuperAdminLayout = () => {
     { path: '/superadmin/entity/custom_training_requests', label: 'Requested Training', icon: <BookOpen size={18} /> },
   ];
 
+  const projectItems = [
+    { path: '/superadmin/entity/projects', label: 'User Projects', icon: <Briefcase size={18} /> },
+    { path: '/superadmin/entity/meetings', label: 'Consultations', icon: <Calendar size={18} /> },
+  ];
+
   const researchWebinarItems = [
     { path: '/superadmin/entity/research_publications', label: 'Research Publications', icon: <Globe size={18} /> },
     { path: '/superadmin/entity/webinars', label: 'Webinars', icon: <Monitor size={18} /> },
@@ -64,6 +71,10 @@ const SuperAdminLayout = () => {
     { path: '/superadmin/entity/certificates/overview', label: 'Certificate Overview', icon: <Award size={18} />, prefetchApi: '/certificates/' },
     { path: '/superadmin/entity/certificates', label: 'All Certificates', icon: <Award size={18} /> },
     { path: '/superadmin/entity/certificates/offer', label: 'Offer Certificates', icon: <Award size={18} /> },
+  ];
+
+  const financialManagementItems = [
+    { path: '/superadmin/finance', label: 'Financial Overview', icon: <Activity size={18} />, prefetchApi: '/api/v1/payment/finance/overview/' },
   ];
 
   const settingsItems = [
@@ -77,7 +88,7 @@ const SuperAdminLayout = () => {
 
   const getPageInfo = () => {
     if (location.pathname === '/superadmin') return { title: 'Dashboard', subtitle: "Welcome back! Here's what's happening with your platform." };
-    const allItems = [...courseManagementItems, ...membershipItems, ...accessInquiriesItems, ...trainingItems, ...researchWebinarItems, ...certificationAwardsItems, ...settingsItems];
+    const allItems = [...courseManagementItems, ...membershipItems, ...accessInquiriesItems, ...trainingItems, ...projectItems, ...researchWebinarItems, ...certificationAwardsItems, ...financialManagementItems, ...settingsItems];
     const item = allItems.find(i => location.pathname.startsWith(i.path) && i.path !== '/superadmin');
     if (item) return { title: item.label, subtitle: `Manage your ${item.label.toLowerCase()}` };
     return { title: 'Platform', subtitle: 'Manage your platform settings' };
@@ -227,6 +238,39 @@ const SuperAdminLayout = () => {
             </div>
           </div>
 
+          {/* Section: Project Management */}
+          <div className="mb-4">
+            <button 
+              onClick={() => toggleDropdown('projectManagement')}
+              className="w-full flex items-center justify-between px-6 py-2 text-xs font-semibold text-slate-500 tracking-wider hover:text-white transition-colors"
+            >
+              <span>PROJECT MANAGEMENT</span>
+              <ChevronDown size={14} className={`transform transition-transform ${openDropdowns.projectManagement ? 'rotate-180' : ''}`} />
+            </button>
+            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${openDropdowns.projectManagement ? 'max-h-[500px] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+              <nav className="space-y-1 px-4">
+                {projectItems.map((item) => {
+                  const isActive = location.pathname.startsWith(item.path);
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
+                        isActive 
+                          ? 'bg-[#153474] text-white font-medium shadow-md' 
+                          : 'text-slate-400 hover:text-white hover:bg-white/5 font-medium'
+                      }`}
+                    >
+                      <span className={`mr-4 ${isActive ? 'text-[#3b82f6]' : ''}`}>{item.icon}</span>
+                      <span className="text-[14px]">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+          </div>
+
           {/* Section: Research & Webinars */}
           <div className="mb-4">
             <button 
@@ -272,6 +316,39 @@ const SuperAdminLayout = () => {
             <div className={`overflow-hidden transition-all duration-300 ease-in-out ${openDropdowns.certificationAwards ? 'max-h-[500px] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
               <nav className="space-y-1 px-4">
                 {certificationAwardsItems.map((item) => {
+                  const isActive = location.pathname.startsWith(item.path);
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
+                        isActive 
+                          ? 'bg-[#153474] text-white font-medium shadow-md' 
+                          : 'text-slate-400 hover:text-white hover:bg-white/5 font-medium'
+                      }`}
+                    >
+                      <span className={`mr-4 ${isActive ? 'text-[#3b82f6]' : ''}`}>{item.icon}</span>
+                      <span className="text-[14px]">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+          </div>
+
+          {/* Section: Financial Management */}
+          <div className="mb-4">
+            <button 
+              onClick={() => toggleDropdown('financialManagement')}
+              className="w-full flex items-center justify-between px-6 py-2 text-xs font-semibold text-slate-500 tracking-wider hover:text-white transition-colors"
+            >
+              <span>FINANCIAL MANAGEMENT</span>
+              <ChevronDown size={14} className={`transform transition-transform ${openDropdowns.financialManagement ? 'rotate-180' : ''}`} />
+            </button>
+            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${openDropdowns.financialManagement ? 'max-h-[500px] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+              <nav className="space-y-1 px-4">
+                {financialManagementItems.map((item) => {
                   const isActive = location.pathname.startsWith(item.path);
                   return (
                     <Link

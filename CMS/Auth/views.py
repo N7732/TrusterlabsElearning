@@ -581,6 +581,52 @@ def send_membership_approved_email(membership):
     email_message.attach_alternative(html_message, "text/html")
     send_email_async(email_message)
 
+def send_professional_membership_confirmation_email(membership):
+    subject = "Your Professional Membership is Approved!"
+    context = {
+        'user': {'first_name': membership.Fullname.split()[0] if membership.Fullname else 'Member'},
+        'membership': {
+            'membership_id': membership.MembershipID,
+            'start_date': membership.start_date.strftime('%Y-%m-%d') if membership.start_date else 'N/A',
+            'expiry_date': membership.expiry_date.strftime('%Y-%m-%d') if membership.expiry_date else 'N/A'
+        },
+        'profile_url': settings.LOGIN_URL,
+        'settings': settings,
+    }
+    html_message, dynamic_subject = render_email_template('emails/professional_membership_confirmation.html', context)
+    text_content = strip_tags(html_message)
+    email_message = EmailMultiAlternatives(
+        subject=dynamic_subject or subject,
+        body=text_content,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[membership.email],
+    )
+    email_message.attach_alternative(html_message, "text/html")
+    send_email_async(email_message)
+
+def send_professional_membership_added_email(membership):
+    subject = "Welcome to TrusterLab Professional Membership!"
+    context = {
+        'user': {'first_name': membership.Fullname.split()[0] if membership.Fullname else 'Member'},
+        'membership': {
+            'membership_id': membership.MembershipID,
+            'start_date': membership.start_date.strftime('%Y-%m-%d') if membership.start_date else 'N/A',
+            'expiry_date': membership.expiry_date.strftime('%Y-%m-%d') if membership.expiry_date else 'N/A'
+        },
+        'profile_url': settings.LOGIN_URL,
+        'settings': settings,
+    }
+    html_message, dynamic_subject = render_email_template('emails/professional_membership_added.html', context)
+    text_content = strip_tags(html_message)
+    email_message = EmailMultiAlternatives(
+        subject=dynamic_subject or subject,
+        body=text_content,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[membership.email],
+    )
+    email_message.attach_alternative(html_message, "text/html")
+    send_email_async(email_message)
+
 def send_webinar_registration_email(registration):
     subject = f"Webinar Registration Confirmed: {registration.webinar.title}"
     context = {
@@ -596,6 +642,50 @@ def send_webinar_registration_email(registration):
         body=text_content,
         from_email=settings.DEFAULT_FROM_EMAIL,
         to=[registration.email],
+    )
+    email_message.attach_alternative(html_message, "text/html")
+    send_email_async(email_message)
+
+def send_project_consultation_scheduled_email(meeting):
+    """
+    Notifies a user that a consultation meeting has been scheduled for their project.
+    """
+    subject = f"Consultation Scheduled for your Project: {meeting.project.name}"
+    user_email = meeting.project.owner.email
+    context = {
+        'user': {'first_name': meeting.project.owner.first_name or 'Developer'},
+        'project': meeting.project,
+        'meeting': meeting,
+        'settings': settings,
+    }
+    html_message, dynamic_subject = render_email_template('emails/project_consultation_scheduled.html', context)
+    text_content = strip_tags(html_message)
+    email_message = EmailMultiAlternatives(
+        subject=dynamic_subject or subject,
+        body=text_content,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[user_email],
+    )
+    email_message.attach_alternative(html_message, "text/html")
+    send_email_async(email_message)
+
+def send_project_status_update_email(project, old_status, new_status):
+    subject = f"Project Status Updated: {project.name}"
+    user_email = project.owner.email
+    context = {
+        'user': {'first_name': project.owner.first_name or 'Developer'},
+        'project': project,
+        'old_status': old_status,
+        'new_status': new_status,
+        'settings': settings,
+    }
+    html_message, dynamic_subject = render_email_template('emails/project_status_update.html', context)
+    text_content = strip_tags(html_message)
+    email_message = EmailMultiAlternatives(
+        subject=dynamic_subject or subject,
+        body=text_content,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[user_email],
     )
     email_message.attach_alternative(html_message, "text/html")
     send_email_async(email_message)
@@ -971,6 +1061,7 @@ class GoogleLoginAPIView(APIView):
     def post(self, request):
         token = request.data.get('credential') or request.data.get('token')
         user_type = request.data.get('user_type', 'learner')  # Default to learner
+        action = request.data.get('action', 'login')  # 'login' or 'register'
 
         if not token:
             return Response({'error': 'No credential provided.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -988,7 +1079,12 @@ class GoogleLoginAPIView(APIView):
             first_name = idinfo.get('given_name', '')
             last_name = idinfo.get('family_name', '')
 
-            # Check if user exists
+            # If action is login, ensure user exists
+            if action == 'login':
+                if not User.objects.filter(email=email).exists():
+                    return Response({'error': 'Account not found. Please click on Register to create an account first.'}, status=status.HTTP_404_NOT_FOUND)
+
+            # Check if user exists or create
             user, created = User.objects.get_or_create(email=email, defaults={
                 'username': email,
                 'first_name': first_name,
@@ -1006,12 +1102,10 @@ class GoogleLoginAPIView(APIView):
                 elif user_type == 'instructor':
                     Instructor.objects.create(user=user, profile_picture_url=idinfo.get('picture', ''))
                 
-                # Create extended profile
+                # Update extended profile (it's already created by the User post_save signal)
                 from .models import AccountProfile
-                AccountProfile.objects.create(
-                    user=user, 
-                    profile_picture=idinfo.get('picture', '')  # Fallback if you change ImageField to URLField or just leave blank for ImageField
-                )
+                if idinfo.get('picture'):
+                    AccountProfile.objects.filter(user=user).update(profile_picture=idinfo.get('picture', ''))
                 
                 # Send Welcome Email for new users created via Google
                 try:

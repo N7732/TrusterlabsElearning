@@ -1,0 +1,20 @@
+{% extends 'emails/base.html' %}
+
+{% block content %}
+<h1>Consultation Scheduled</h1>
+<p>Dear {{ user.first_name }},</p>
+<p>A consultation meeting has been successfully scheduled for your project: <strong>{{ project.name }}</strong>.</p>
+
+<div class="highlight-box">
+    <p><strong>Meeting Details:</strong></p>
+    <p>Date: <strong>{{ meeting.meeting_date }}</strong></p>
+    <p>Time: <strong>{{ meeting.meeting_time }}</strong></p>
+    {% if meeting.meeting_link %}
+    <p>Meeting Link: <a href="{{ meeting.meeting_link }}" style="color: #d4af37;">{{ meeting.meeting_link }}</a></p>
+    {% endif %}
+</div>
+
+<p>Please ensure you join the meeting on time. If you need to reschedule, please contact our support team as soon as possible.</p>
+
+<a href="{{ settings.FRONTEND_URL|default:'https://frontend-omega-five-21.vercel.app' }}/dashboard" class="btn">View Project</a>
+{% endblock %}

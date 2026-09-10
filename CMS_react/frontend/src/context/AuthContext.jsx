@@ -137,8 +137,8 @@ export const AuthProvider = ({ children }) => {
   const isInstructor = user?.user_type === 'instructor' || user?.user_type === 'admin';
   const isAdmin = user?.user_type === 'admin' || user?.is_superuser;
 
-  const googleLogin = async (credential) => {
-    const data = await apiClient.post('/auth/api/auth/google/', { token: credential });
+  const googleLogin = async (credential, action = 'login') => {
+    const data = await apiClient.post('/auth/api/auth/google/', { token: credential, action });
     localStorage.setItem('truster_lab_token', data.access);
     localStorage.setItem('truster_lab_refresh', data.refresh);
     if (data.user) {

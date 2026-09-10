@@ -1272,7 +1272,7 @@ class ReuseRequestViewSet(viewsets.ModelViewSet):
                         is_preview=lesson.is_preview
                     )
         elif ctype == 'training':
-            from training.models import Training, TrainingCourses, TrainingClasswork, TrainingFinalExam
+            from Training.models import Training, TrainingCourses, TrainingClasswork, TrainingFinalExam
             original = get_object_or_404(Training, id=obj_id)
             new_training = Training.objects.create(
                 title=f"{original.title} (Copy)",
@@ -1300,7 +1300,7 @@ class ReuseRequestViewSet(viewsets.ModelViewSet):
                     linked_exam=exam.linked_exam
                 )
         elif ctype == 'classwork':
-            from training.models import Training, TrainingClasswork
+            from Training.models import Training, TrainingClasswork
             original = get_object_or_404(TrainingClasswork, id=obj_id)
             dest_training = get_object_or_404(Training, id=dest_id)
             TrainingClasswork.objects.create(
@@ -1311,7 +1311,7 @@ class ReuseRequestViewSet(viewsets.ModelViewSet):
                 linked_quiz=original.linked_quiz
             )
         elif ctype == 'exam':
-            from training.models import Training, TrainingFinalExam
+            from Training.models import Training, TrainingFinalExam
             original = get_object_or_404(TrainingFinalExam, id=obj_id)
             dest_training = get_object_or_404(Training, id=dest_id)
             TrainingFinalExam.objects.create(

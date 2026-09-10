@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { User, Shield, Briefcase, Calendar, ChevronRight, Award, Video, Loader, ArrowRight } from 'lucide-react';
 import Button from '../../components/common/Button';
 import { useTrainings, useWebinars, useCheckMembership } from '../../hooks/queries/usePublicQueries';
@@ -11,6 +12,16 @@ const MemberPortal = () => {
   const { data: rawTrainings, isLoading: loadingTrainings } = useTrainings();
   const { data: rawWebinars, isLoading: loadingWebinars } = useWebinars();
   const { mutateAsync: checkMembership, isPending: loading } = useCheckMembership();
+  const [searchParams] = useSearchParams();
+  const [paymentStatus, setPaymentStatus] = useState(null);
+
+  useEffect(() => {
+    if (searchParams.get('payment') === 'success') {
+      setPaymentStatus({ type: 'success', message: 'Payment successful! Your Professional Membership is now active.' });
+    } else if (searchParams.get('payment') === 'cancelled') {
+      setPaymentStatus({ type: 'error', message: 'Payment was cancelled. Your membership remains unpaid.' });
+    }
+  }, [searchParams]);
 
   const trainings = React.useMemo(() => {
     if (!rawTrainings) return [];
@@ -59,6 +70,12 @@ const MemberPortal = () => {
             {error && (
               <div className="bg-red-500/10 border border-red-500/50 text-red-400 p-3 rounded-lg text-sm text-center">
                 {error}
+              </div>
+            )}
+            
+            {paymentStatus && (
+              <div className={`p-3 rounded-lg text-sm text-center ${paymentStatus.type === 'success' ? 'bg-emerald-500/10 border border-emerald-500/50 text-emerald-400' : 'bg-red-500/10 border border-red-500/50 text-red-400'}`}>
+                {paymentStatus.message}
               </div>
             )}
             
