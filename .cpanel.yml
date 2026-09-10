@@ -1,11 +1,24 @@
+# ---
+# deployment:
+#   tasks:
+#     - export BACKENDPATH=/home/trusteracademy/back.trusterlabsacademy
+#     - export FRONTENDPATH=/home/trusteracademy/public_html
+    
+#     # Safely sync Django backend files, excluding secrets, database, and cache
+#     - /usr/bin/rsync -av --exclude='.env' --exclude='db.sqlite3' --exclude='__pycache__' --exclude='venv' --exclude='.git' CMS/ $BACKENDPATH/
+    
+#     # Safely sync React frontend build files, only if the dist folder was generated
+#     - if [ -d "CMS_react/frontend/dist" ]; then /usr/bin/rsync -av --exclude='.env' --exclude='node_modules' --exclude='.git' CMS_react/frontend/dist/ $FRONTENDPATH/; fi
+
+
 ---
 deployment:
   tasks:
     - export BACKENDPATH=/home/trusteracademy/back.trusterlabsacademy
     - export FRONTENDPATH=/home/trusteracademy/public_html
-    
-    # Safely sync Django backend files, excluding secrets, database, and cache
-    - /usr/bin/rsync -av --exclude='.env' --exclude='db.sqlite3' --exclude='__pycache__' --exclude='venv' --exclude='.git' CMS/ $BACKENDPATH/
-    
-    # Safely sync React frontend build files, only if the dist folder was generated
-    - if [ -d "CMS_react/frontend/dist" ]; then /usr/bin/rsync -av --exclude='.env' --exclude='node_modules' --exclude='.git' CMS_react/frontend/dist/ $FRONTENDPATH/; fi
+
+    # Deploy Django backend
+    - /usr/bin/rsync -av --delete --exclude='.env' --exclude='db.sqlite3' --exclude='__pycache__' --exclude='venv' --exclude='.git' CMS/ $BACKENDPATH/
+
+    # Deploy React production build
+    - if [ -d "CMS_react/frontend/dist" ]; then /usr/bin/rsync -av --delete --exclude='.env' --exclude='node_modules' --exclude='.git' CMS_react/frontend/dist/ $FRONTENDPATH/; fi
